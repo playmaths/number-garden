@@ -67,6 +67,10 @@ Pip the ladybug is the single narrator everywhere: home greeting, lessons, pictu
 
 A **Tell Pip** button sits on the play card and in every picture book. It opens six big choices with no typing: *It got stuck*, *The answer is wrong*, *I don't get it*, *Too hard*, *Too easy*, *I love this one*. Pip thanks the child and says she will tell the gardeners; *Back to my puzzle* returns to the same problem. Each report is kept on the device (last twenty, listed in the grown-ups screen with sent / waiting) and posted to the `reports` collection with the plain REST API; a failed send is retried when the app comes back to the foreground. `tools/reports.sh` lists the reports, newest first. The "love" choice exists so the button is also a way to say something nice, which keeps a child willing to tap it.
 
+## 5b. Ways of thinking
+
+Three games carry strategies rather than facts, after the Russian and Singapore primary traditions. **Draw the bar** (`bar`, Stories) draws every story as a bar model with `barSvg` (parts to scale, the whole as a bracket, two bars lined up for a comparison, `?` for the unknown); level 4 asks only for the shape, which is the modelling skill itself. **Rewind it** (`rewind`, Puzzles) shows a story as a chain of boxes and arrows and the child undoes each step from the last one back; `rewindStory` generates starts and steps whose every intermediate value stays between 1 and 20. **Name the trick** (`trick`, Add & take) is driven by the `TRICKS` table: each strategy has a name, a `fits(a,b,sub)` test, a one-line reason it does not fit, a `why` sentence and a picture; `trickProblem` generates a sum for a target trick and offers only distractors that do not fit, so exactly one answer is right. Each has a lesson per level and a Big Idea in the strand *Ways of thinking*.
+
 ## 6. Big Ideas
 
 A Big Idea is a concept taught, not a game dressed up. Every book follows the same order, and *Even and odd* is the model:
@@ -135,7 +139,7 @@ The rules the games are held to, in rough order of importance:
 Nothing is published until it passes a headless run. The checks, all Playwright against the local file:
 
 - a syntax check of the whole script (`new Function` on the extracted source);
-- every game at every level, played clean and miss-then-recover, asserting a star, a book line and no console errors;
+- every game at every level, played clean and miss-then-recover, asserting a star, a book line and no console errors (the solver scripts read the current problem through the read-only `window.__ng()` hook);
 - every page of every Big Idea drawn, the interactive pages driven, every kind of try-it answered;
 - trail construction for every door, many times, asserting no neighbouring repeats and no cross-door stones;
 - two simulated devices against a mocked Firestore (join, win on each side, foreground refresh, offline), asserting the garden moves both ways and that joining never overwrites;

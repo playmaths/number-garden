@@ -11,16 +11,16 @@ Play it at **https://playmaths.github.io/number-garden/**, or open `index.html` 
 | Room | Games | What it builds |
 |---|---|---|
 | Warm-ups | How many? · Make 10 · Which has more? | Subitizing, complements to 10/20/100, comparing groups and numbers and finding the difference |
-| Add & take | Take away · Make a ten to add · Find the missing number | Place value (sticks of 10 that break), bridging through ten, missing-addend thinking |
+| Add & take | Take away · Make a ten to add · Find the missing number · Name the trick | Place value (sticks of 10 that break), bridging through ten, missing-addend thinking, and the named mental strategies (doubles, near doubles, count on, ten and more, make ten, count back, take from ten): see the trick before you count |
 | Patterns | What comes next? · Rule machine | Repeating and growing patterns, function machines |
-| Puzzles | Balance it · Which one is different? · Make the money · Sudoku (shapes 4×4 → digits 4×4 → 6×6) · Number riddle · Who has what? (logic grid) · Sort by two things · If this, then that | Reasoning with no algorithm: the seed of competition maths |
-| Stories | Story mystery · How many ways? | Reading-level word problems in one to two steps, and open questions with several right answers, up to finding every split and counting the ways |
+| Puzzles | Balance it · Which one is different? · Make the money · Sudoku (shapes 4×4 → digits 4×4 → 6×6) · Number riddle · Who has what? (logic grid) · Sort by two things · If this, then that · Rewind it | Reasoning with no algorithm: the seed of competition maths. Rewind it is working backwards: the end of a story is known, the start is the question, and each step is undone from the last one back |
+| Stories | Story mystery · How many ways? · Draw the bar | Reading-level word problems in one to two steps, open questions with several right answers, and bar models: the story drawn as parts of a bar before it is solved (whole hidden, part hidden, two bars compared, then choosing the bar that fits a story) |
 | Shapes & space | Mirror it · Count the shapes · Fit the hole · Finish the mirror · Count the cubes | Spatial reasoning: reflections, shapes hidden inside shapes, matching a piece to a gap, completing a symmetric picture, counting cubes you cannot see |
 | Time | What time is it? · How long until…? · Days and months | Reading the clock to five minutes, elapsed time by counting on, the week and the year going round |
 | Measure | Parts of a whole · How long? · About how many? | Halves and quarters of shapes and of groups, measuring with units laid end to end, estimating against a box of 10 |
 | (Name) makes it | You hide the number · You make the rule · You write the story · You make the pattern | The child sets the puzzle and the app solves it, sometimes wrongly on purpose, so the child checks the answer and says why |
 | Playground | Counters and sticks · Number line walk · Balance scale | Free play with no questions: feel ten snapping into a stick, hop a sum along the line, load a scale and watch it tip |
-| Big Ideas | **Numbers:** Counting on · Skip counting · Tens and ones · Bigger and smaller · Number neighbors **Adding and taking:** Making ten · How far apart · What = really means **Groups:** Even and odd · Double and half · Equal groups · Fair sharing **Patterns:** Rules and machines **Shapes:** Shapes and mirrors **Measure:** Money · Measuring **Time:** Reading the clock · Day and night · Why 24, 60 and 60? · A day on Mars · Before there were clocks · Why time is precious · What is time for? | Picture books of 10 to 14 pages narrated by Pip: the idea in a sentence, two or three ways to see it, the rule, why it works, the traps, where you meet it, practice with and without pictures, what it is the same as; then three try-its and a link to the game |
+| Big Ideas | **Numbers:** Counting on · Skip counting · Tens and ones · Bigger and smaller · Number neighbors **Adding and taking:** Making ten · How far apart · What = really means **Groups:** Even and odd · Double and half · Equal groups · Fair sharing **Patterns:** Rules and machines **Shapes:** Shapes and mirrors **Measure:** Money · Measuring **Time:** Reading the clock · Day and night · Why 24, 60 and 60? · A day on Mars · Before there were clocks · Why time is precious · What is time for? **Ways of thinking:** Bars that tell a story · Walking backwards · Tricks with names | Picture books of 10 to 14 pages narrated by Pip: the idea in a sentence, two or three ways to see it, the rule, why it works, the traps, where you meet it, practice with and without pictures, what it is the same as; then three try-its and a link to the game |
 
 ## How a session works
 
@@ -82,9 +82,13 @@ For the Tell Pip reports, add this block inside the same `match /databases/{data
 
 The Firebase web key is a public identifier, not a secret; these rules are the access control (see [ARCHITECTURE.md](ARCHITECTURE.md#security-and-privacy)).
 
+## Ways of thinking
+
+Three games and three books borrow from the Russian and Singapore primary traditions, where the picture and the strategy are taught by name before the sum: **bar models** (draw the story, then solve it), **working backwards** (undo from the end), and **named mental strategies** (look for the trick before you count). Still queued from the same tradition: unknowns on both sides of a balance, logic statements ("if all… then…"), and visible combinatorics.
+
 ## Ideas queued
 
-Nothing waiting. Add the next idea here.
+Unknowns on both sides · Logic statements · Visible combinatorics (see above).
 
 ## Developing
 
