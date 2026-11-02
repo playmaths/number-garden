@@ -8,7 +8,7 @@ const {open,go,stars,msg,book,done}=require('./lib');
   for(let lv=1;lv<=4;lv++){for(const mode of ['clean','miss','show']){await go(pg,'bar',lv,'story');const before=await stars(pg);const name=`bar lv${lv} ${mode}`;
       if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).length)errs.push(`${name}: silent`);continue}
       if(lv<4){const a=await answer();if(mode==='miss'){await type(a+1);if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}await type(a);await check(name,before,/bar|part|difference/)}
-      else{const kind=await pg.evaluate(()=>{const c=[...document.querySelectorAll('#controls .choice')];const k=prompt.textContent;return c.map(x=>x.dataset.kind)});const right=await pg.evaluate(()=>{const st=document.querySelector('#stage .story').textContent;return /in all/.test(st)?'whole':/blue/.test(st)?'part':'more'});
+      else{const kind=await pg.evaluate(()=>{const c=[...document.querySelectorAll('#controls .choice')];const k=prompt.textContent;return c.map(x=>x.dataset.kind)});const right=await pg.evaluate(()=>{const st=document.querySelector('#stage .story').textContent;return /in all/.test(st)?'whole':/more does/.test(st)?'more':'part'});
         if(mode==='miss'){const wrong=kind.find(k=>k!==right);await pg.locator(`#controls .choice[data-kind="${wrong}"]`).click();if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}
         await pg.locator(`#controls .choice[data-kind="${right}"]`).click();await pg.waitForTimeout(100);await check(name,before,/picked the right bar/)}}}
   /* rewind */
@@ -21,8 +21,8 @@ const {open,go,stars,msg,book,done}=require('./lib');
       const info=await pg.evaluate(()=>({right:__ng().ctx.help.answer,names:[...document.querySelectorAll('#controls .choice')].map(c=>c.textContent),why:__ng().ctx.help.why}));
       if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).length)errs.push(`${name}: silent`);if(!await pg.locator('#stage svg').count())errs.push(`${name}: no picture`);continue}
       const rightName=lv===1?info.right:await pg.evaluate(()=>{const w=__ng().ctx.help.book;return Object.values(__ng().tricks).map(t=>t.name).find(n=>w.includes(n))});
-      if(mode==='miss'){const wrong=info.names.find(n=>n!==rightName);await pg.locator('#controls .choice',{hasText:wrong}).click();if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}
-      await pg.locator('#controls .choice',{hasText:rightName}).first().click();await pg.waitForTimeout(100);
+      if(mode==='miss'){const wrong=info.names.find(n=>n!==rightName);await pg.locator('#controls .choice',{hasText:new RegExp('^'+wrong+'$')}).click();if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}
+      await pg.locator('#controls .choice',{hasText:new RegExp('^'+rightName+'$')}).click();await pg.waitForTimeout(100);
       if(lv>1){if(!await pg.locator('#controls .num').count())errs.push(`${name}: no numpad after the pick`);else{if(mode==='miss'){await type(info.right+1)}await type(info.right)}}
       await check(name,before,lv===1?/named the/:/used the/)}}
   console.log('thinking games played');done('solve-thinking',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});
