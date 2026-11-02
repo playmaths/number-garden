@@ -73,7 +73,7 @@ Three games carry strategies rather than facts, after the Russian and Singapore 
 
 **Does that make sense?** A game may give `help({sense: v => ({q, opts, ans, why}) | null})`. On a wrong number it calls `senseCard(v)`, which, when `sense` returns a check for that value, shows a card with one question about the story's shape (a part cannot be as big as the whole; a start cannot exceed an end that only grew). Answering it does not count as a hint. Draw the bar, Rewind it and Story detective use it.
 
-**3D views.** `view3d(hm, yaw, pitch)` draws a height map from any angle with a painter's sort and back-face removal, so the same function gives the front, side and top views and the spinning one (`spinCubes`). Count the cubes teaches with it and spins the stack after the answer; the Big Idea *Top, front and side* lets the child turn a stack with buttons.
+**3D views.** `view3d(hm, yaw, pitch)` draws a height map from any angle with a painter's sort and back-face removal, so the same function gives the front, side and top views and the spinning one (`spinCubes`). Faces are coloured by world direction (`FACE_COL`: tops yellow, fronts blue, sides green), so a front view is all blue and a top view all yellow. `turnable(hm)` is the widget the child drives: drag sideways to walk round, up and down to fly over, buttons for the named views. Count the cubes teaches with it and spins the stack slowly after the answer; **Build the stack** (`build`) gives the views and asks for the stack, checking with `topOf`, `frontOf` and `sideOf` so any stack with the same views is accepted at levels 2 and 3. The Big Idea *Top, front and side* uses the same widget.
 
 ## 6. Big Ideas
 
