@@ -1,7 +1,7 @@
 // shared helpers for the headless checks. Every script opens the local index.html in Chromium.
 const path=require('path');const {chromium}=require('playwright');
 const URL='file://'+path.resolve(__dirname,'..','index.html');
-async function open(opts={}){const br=await chromium.launch();const ctx=await br.newContext({viewport:{width:420,height:860},...opts});const pg=await ctx.newPage();const errs=[];
+async function open(opts={}){const br=await chromium.launch();const ctx=await br.newContext({viewport:{width:420,height:860},...opts});const pg=await ctx.newPage();const errs=[];await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:'{}'})); // no real network from the checks; a test that needs its own mock routes after this and wins
   pg.on('pageerror',e=>errs.push('PAGEERROR '+e.message));pg.on('console',m=>{if((m.type()==='error'||m.type()==='warning')&&!/status of 500/.test(m.text()))errs.push(m.text().slice(0,160))});
   await pg.goto(URL);await pg.evaluate(()=>localStorage.clear());await pg.reload();return{br,ctx,pg,errs}}
 /* jump straight to one game at one level, as the first stone of a trail from its door; lessons are marked as seen so the problem mounts at once */
