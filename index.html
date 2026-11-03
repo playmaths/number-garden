@@ -498,7 +498,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-04j';
+const APP_VERSION='2026-11-05';
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 let pendingShot=null,pendingHtml='';
@@ -678,6 +678,8 @@ const BADGES=[
  {id:'riddle',name:'Riddle Solver',text:'cracked five number riddles',test:()=>(S.counts.riddle||0)>=5},
  {id:'ways',name:'Many Ways',text:'found splits in five how-many-ways puzzles',test:()=>(S.counts.ways||0)>=5},
  {id:'build',name:'Builder',text:'built five stacks from their views',test:()=>(S.counts.build||0)>=5},
+ {id:'catcher',name:'Slip Catcher',text:"caught Pip's mistake ten times",test:()=>(S.counts.pipslip||0)>=10},
+ {id:'seer',name:'Number Seer',text:'saw a number three ways ten times',test:()=>(S.counts.talk||0)>=10},
  {id:'truth',name:'Truth Teller',text:'judged ten statements true or not',test:()=>(S.counts.truth||0)>=10},
  {id:'combo',name:'Every Way',text:'found every way five times',test:()=>(S.counts.combo||0)>=5},
  {id:'thinker',name:'Thinker',text:'thought through ten puzzles',test:()=>(S.counts.think||0)>=10},
@@ -2366,6 +2368,53 @@ skill({id:'combo',room:'think',title:'Find every way',idea:'share',levels:3,grow
     const r=el('div','row');const ok=el('button','btn',"That's one");ok.onclick=()=>{if(ctx.done)return;if(pick2.some(x=>!x)){say(`Pick one ${p.groups.map(g=>g.t).join(' and one ')}.`,false);return}const badWhy=p.bad&&p.bad(pick2);if(badWhy){miss(badWhy);return}const k=p.key(pick2);if(found.has(k)){const c=cellOf.get(k);if(c){c.classList.remove('pop');void c.offsetWidth;c.classList.add('pop')}miss(`You already found ${pick2.join('')}. It is in the table. Change one thing to make a new one.`);return}
       found.set(k,pick2.slice());place(pick2);playNote(found.size*2);count.textContent=`${found.size} found`;slots.forEach(s=>s.querySelectorAll('.choice').forEach(x=>x.classList.remove('hit')));pick2.fill(null);pv();
       if(found.size===p.total){r.remove();win(`${cheer()} All ${p.total}. ${p.why}`)}else say(`${found.size} of ${p.total}. ${found.size===1?'Look where it went in the table.':'Keep going.'}`,true)};r.appendChild(ok);controls.appendChild(r)}});
+/* ================= CATCH PIP'S MISTAKE: find someone else's error ================= */
+/* each family is one classic slip. The child names the slip from three cards, then gives the right answer */
+function pipSlip(lv){const k=KID(),who=pick(DET_NAMES),thing=pick(THINGS);
+  const fam=lv===1?pick(['counton','wrongop','frame']):lv===2?pick(['more','double','counton2']):pick(['tens','forward','frame2']);
+  if(fam==='counton'){const a=rnd(5,9),b=rnd(2,4);return{q:`${a} + ${b}`,pic:'<div class="nline"></div>',said:a+b-1,ans:a+b,work:`Start at ${a} and count ${b}: ${Array.from({length:b},(_,i)=>a+i).join(', ')}. So ${a+b-1}!`,slips:[C(`Pip counted the ${a} as a hop`,1),C('Pip took away instead of adding',0,`Pip did add. Look at where she started counting.`),C(`Pip forgot one of the ${b}`,0,`She said ${b} numbers. The first one was the ${a} itself.`)],why:`The first hop lands on ${a+1}, not ${a}. ${a}… ${Array.from({length:b},(_,i)=>a+i+1).join(', ')}. It is ${a+b}.`}}
+  if(fam==='counton2'){const a=rnd(11,16),b=rnd(2,4);return{q:`${a} + ${b}`,pic:'',said:a+b-1,ans:a+b,work:`${a}: ${Array.from({length:b},(_,i)=>a+i).join(', ')}. So ${a+b-1}!`,slips:[C(`Pip counted the ${a} as a hop`,1),C('Pip started from the wrong number',0,`${a} is the right place to start. The slip is in the first hop.`),C(`Pip hopped ${b+1} times`,0,`Count her hops: ${b}. One of them was not a hop at all.`)],why:`Say ${a}, then hop: ${Array.from({length:b},(_,i)=>a+i+1).join(', ')}. It is ${a+b}.`}}
+  if(fam==='wrongop'){const a=rnd(6,12),b=rnd(2,5);return{q:`${k} had ${a} ${thing} and gave ${b} away. How many now?`,pic:'',said:a+b,ans:a-b,work:`${a} and ${b}: ${a+b}!`,slips:[C('Pip added, but the story says gave away',1),C(`Pip counted the ${thing} wrong`,0,`Her counting was fine. Look at what the story says happened.`),C(`Pip forgot the ${b}`,0,`She used the ${b}. She used it the wrong way round.`)],why:`Gave away means fewer. ${a} take away ${b} is ${a-b}.`}}
+  if(fam==='frame'||fam==='frame2'){const n=fam==='frame'?rnd(3,8):rnd(12,18),T=fam==='frame'?10:20;return{q:`${n} dots. How many more make ${T}?`,frame:n,said:n,ans:T-n,work:`I count the dots: ${n}. So ${n}!`,slips:[C('Pip counted the full boxes, not the empty ones',1),C('Pip counted the empty boxes twice',0,`She never counted the empty boxes at all.`),C(`Pip thought the frame holds ${T+5}`,0,`The frame holds ${T}. Her slip is which boxes she counted.`)],why:`The question is how many more. Count the empty boxes: ${T-n}.`}}
+  if(fam==='more'){const a=rnd(5,9),b=rnd(2,a-1);return{q:`${k} has ${a} ${thing}. ${who} has ${b}. How many more does ${k} have?`,said:a+b,ans:a-b,work:`${a} and ${b} together: ${a+b}!`,slips:[C('Pip put them together, but the question is the gap',1),C(`Pip took ${k}'s away from ${who}'s`,0,`She did not take away at all. She added.`),C('Pip counted the wrong person',0,`Both numbers are right. What she did with them is the slip.`)],why:`How many more is the gap: from ${b} up to ${a} is ${a-b}.`}}
+  if(fam==='double'){const n=rnd(5,8);return{q:'How many dots?',dots:n,said:n+1,ans:n,work:`I touched them: 1, 2, 3… ${n+1}!`,slips:[C('Pip counted one dot twice',1),C('Pip skipped a dot',0,`Skipping would give a smaller number, not a bigger one.`),C('Pip started at 2',0,`She started at 1. One dot got two numbers.`)],why:`Touch each dot once, in a line: ${n}.`}}
+  const t=rnd(1,4),o=rnd(2,7);const n=t*10+o;return{q:`${n}: how many sticks of ten and how many ones?`,pic:`<div class="bigword">${n}</div>`,said:t+o,ans:n,askText:`What number is ${t} sticks of ten and ${o} ones?`,work:`${t} and ${o}: ${t+o}!`,slips:[C(`Pip forgot that the ${t} is ${t} tens`,1),C(`Pip read ${n} backwards`,0,`She read the digits the right way round. She just added them as ones.`),C('Pip forgot the ones',0,`She used the ${o}. She treated the ${t} as ones too.`)],why:`${t} sticks of ten is ${t*10}. ${t*10} and ${o} is ${n}.`}}
+skill({id:'pipslip',room:'think',title:"Catch Pip's mistake",idea:'reading',levels:3,grow:lv=>['','Now the slips hide in stories.','Now tens and ones, and bigger frames.'][lv-1],
+  async teach(lv,L){const box=el('div','story');const n=el('div','narr');n.innerHTML=`<svg class="bug think" viewBox="0 0 60 60">${BUG}</svg><div class="bubble"></div>`;const big=el('div','bigword','');L.scene.append(box,n,big);const bub=n.querySelector('.bubble');
+    box.textContent='6 + 3';bub.innerHTML='Start at 6 and count 3: 6, 7, 8. So <em>8</em>!';L.say('Today I make the mistakes and you catch them. Watch me do 6 + 3.');await L.wait(2600);L.say('Did you see it? I said "6" as my first hop. But I was already on 6! The hops are 7, 8, <em>9</em>. Finding a slip is harder than avoiding one. Now you try.');big.innerHTML='6… 7, 8, <em>9</em>'},
+  mount(lv){const p=pipSlip(lv);let step=0;prompt.textContent='Pip got this one wrong. Catch the slip.';const box=el('div','story',p.q);stage.append(box,readBtn(()=>p.q));
+    if(p.frame){const fs=el('div','frames');const f1=tenFrame(Math.min(10,p.frame)),f2=p.frame>10?tenFrame(p.frame-10):null;fs.appendChild(f1);if(f2)fs.appendChild(f2);stage.appendChild(fs)}
+    else if(p.dots){const g=el('div','dots');for(let i=0;i<p.dots;i++)g.appendChild(el('div','dot'));stage.appendChild(g)}
+    else if(p.pic&&/nline/.test(p.pic)){const d=el('div','nline');const a=+p.q.split(' + ')[0],b=+p.q.split(' + ')[1];d.innerHTML=numberLine(20,a,a+b);stage.appendChild(d)}
+    else if(p.pic){const d=el('div','ta');d.innerHTML=p.pic;stage.appendChild(d)}
+    const n=el('div','narr');n.innerHTML=`<svg class="bug think" viewBox="0 0 60 60">${BUG}</svg><div class="bubble">${p.work}</div>`;stage.appendChild(n);
+    help({book:`caught Pip's slip and put it right: ${p.ans}, not ${p.said}`,clues:['Read what Pip said, slowly. Where does she go wrong?',p.why],answer:p.ans,why:p.why,show:()=>{controls.querySelectorAll('.choice').forEach(c=>{if(c.dataset.right)c.classList.add('hit')})}});
+    const stepEl=el('div','instr','<b>What did Pip do wrong?</b>');stage.appendChild(stepEl);
+    const ch=choices(shuffle(p.slips).map(o=>o.t),(o,b)=>{const opt=p.slips.find(x=>x.t===o);if(opt.ok){b.classList.add('hit');lock(ch);say(`Yes! ${opt.t}.`,true);bugs('happy');step=1;setTimeout(()=>{if(ctx.done)return;stepEl.innerHTML=`<b>So what is it really?</b> ${p.askText||''}`;ch.remove();controls.insertBefore(numpad((v,nm)=>{if(v===p.ans){lock(nm);win(`${cheer()} ${p.why}`)}else miss(ctx.hints===0?'Now do it the right way, slowly.':p.why)},2),controls.firstChild)},1200)}else{b.classList.add('miss');b.disabled=true;miss(opt.no||p.why)}});ch.querySelectorAll('.choice').forEach(b=>{const o=p.slips.find(x=>x.t===b.textContent);if(o&&o.ok)b.dataset.right='1'});ch.classList.add('cards');controls.appendChild(ch)}});
+
+/* ================= NUMBER TALKS: how many, and how did you see it? ================= */
+/* a dot picture with structure; any true way of seeing it wins, and the dots recolour to show that way */
+function talkPicture(lv){const layouts=lv===1?[[2,3,0],[2,4,0],[3,3,0],[2,4,1],[2,5,0],[3,3,1]]:lv===2?[[2,5,0],[3,4,0],[2,6,0],[3,4,1],[2,6,2],[3,5,0]]:[[3,5,0],[4,4,0],[4,5,0],[3,6,1],[4,5,2],[2,8,0],[4,4,1]];
+  const [r,c,miss]=pick(layouts);const n=r*c-miss;const cells=[];for(let i=0;i<r*c;i++)cells.push(i<r*c-miss);
+  const ways=[];const rowIdx=k=>Array.from({length:c},(_,j)=>k*c+j).filter(i=>cells[i]);
+  if(!miss)ways.push({t:`${r} rows of ${c}: ${Array.from({length:r},()=>c).join(' + ')}`,groups:Array.from({length:r},(_,k)=>rowIdx(k))});
+  if(!miss&&r!==c)ways.push({t:`${c} columns of ${r}`,groups:Array.from({length:c},(_,j)=>Array.from({length:r},(_,k)=>k*c+j))});
+  ways.push({t:`the top row and the rest: ${c} and ${n-c}`,groups:[rowIdx(0),cells.map((v,i)=>v&&i>=c?i:-1).filter(i=>i>=0)]});
+  if(miss)ways.push({t:`a full ${r} by ${c} is ${r*c}, take away ${miss}`,groups:[cells.map((v,i)=>v?i:-1).filter(i=>i>=0)],ghost:true});
+  if(n>10)ways.push({t:`10 and ${n-10} more`,groups:[cells.map((v,i)=>v?i:-1).filter(i=>i>=0).slice(0,10),cells.map((v,i)=>v?i:-1).filter(i=>i>=0).slice(10)]});
+  if(n%2===0&&n<=10&&!(r===2&&!miss))ways.push({t:`double ${n/2}: ${n/2} and ${n/2}`,groups:[cells.map((v,i)=>v?i:-1).filter(i=>i>=0).slice(0,n/2),cells.map((v,i)=>v?i:-1).filter(i=>i>=0).slice(n/2)]});
+  const falseWay={t:pick([`${r+1} rows of ${c}`,`${c+1} and ${n-c}`,`double ${Math.floor(n/2)+1}`]),no:'Count that way with your finger. It does not come to the right number.'};
+  return{r,c,miss,n,cells,ways:shuffle(ways).slice(0,2).concat(falseWay),all:ways}}
+skill({id:'talk',room:'think',title:'How did you see it?',idea:'counton',levels:3,grow:lv=>['','Now up to 18 dots, and tens.','Now bigger pictures with gaps.'][lv-1],
+  async teach(lv,L){const g=el('div','dots');g.style.gridTemplateColumns='repeat(4,30px)';const big=el('div','bigword','');L.scene.append(g,big);for(let i=0;i<8;i++)g.appendChild(el('div','dot'));
+    L.say('Eight dots. But do not count them one by one. <em>Look</em>. How do you see it?');await L.wait(2200);[...g.children].forEach((d,i)=>d.style.background=i<4?'var(--accent)':'var(--sky)');big.innerHTML='two rows of 4: 4 + 4';await L.wait(1800);[...g.children].forEach((d,i)=>d.style.background=i%4<2?'var(--accent)':'var(--sky)');big.innerHTML='two halves: 4 and 4 the other way';await L.wait(1800);[...g.children].forEach((d,i)=>d.style.background=i<5?'var(--accent)':'var(--sky)');big.innerHTML='5 and 3';L.say('Rows, halves, a 5 and a 3. All true, all 8. There is no one right way to see a number. Now you try: say how many, then say how you saw it.')},
+  mount(lv){const p=talkPicture(lv);prompt.textContent='How many? Look, do not count one by one.';const g=el('div','dots');g.style.gridTemplateColumns=`repeat(${p.c},${p.c>6?26:30}px)`;const dots=[];p.cells.forEach(v=>{const d=el('div',v?'dot':'dot ghost');dots.push(d);g.appendChild(d)});stage.appendChild(g);
+    const cols=['var(--accent)','var(--sky)','var(--leaf)','var(--sun)','var(--plum)'];const paint=w=>{dots.forEach(d=>d.style.background='');w.groups.forEach((grp,gi)=>grp.forEach(i=>{dots[i].style.background=cols[gi%cols.length]}))};
+    help({book:`saw ${p.n} dots as ${p.all[0].t}`,clues:['Look for rows, or a ten, or a double.',`There are ${p.n}. One way: ${p.all[0].t}.`],answer:p.n,why:`${p.n}. ${p.all[0].t}.`,show:()=>{paint(p.all[0]);say(`${p.n}: ${p.all[0].t}.`,true)}});
+    const stepEl=el('div','instr','<b>How many?</b>');stage.appendChild(stepEl);
+    controls.appendChild(numpad((v,nm)=>{if(v!==p.n){miss(ctx.hints===0?'Look for a row or a group you know, then add the rest.':`There are ${p.n}: ${p.all[0].t}.`);return}lock(nm);say(`${p.n}. Now, how did you see it?`,true);stepEl.innerHTML='<b>How did you see it?</b> Any true way is right.';
+      const ch=choices(shuffle(p.ways).map(w=>w.t),(o,b)=>{const w=p.ways.find(x=>x.t===o);if(w.groups){b.classList.add('hit');lock(ch);paint(w);win(`${cheer()} ${w.t}. That is a real way to see ${p.n}.`)}else{b.classList.add('miss');b.disabled=true;miss(w.no)}});ch.querySelectorAll('.choice').forEach(b=>{const w=p.ways.find(x=>x.t===b.textContent);if(w&&w.groups)b.dataset.right='1'});ch.classList.add('cards');controls.insertBefore(ch,controls.firstChild)},2))}});
+
 /* ================= MEASURE ================= */
 const FRAC={half:{n:1,d:2,t:'half'},quarter:{n:1,d:4,t:'a quarter'},three:{n:3,d:4,t:'three quarters'},whole:{n:1,d:1,t:'the whole thing'}};
 function fracSvg(kind,f,shadeParts){const parts=f.d,col='var(--accent)';let h='';
