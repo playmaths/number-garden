@@ -15,6 +15,7 @@ node tests/books.js "Even and odd"   # one book
 | `trails.js` | every door builds five-stone trails from its own games, no neighbours alike |
 | `books.js` | every page of every Big Idea draws, interactive pages respond, try-its run; fails on any draw warning |
 | `sync.js` | two simulated devices against a mocked Firestore: join, win on each side, foreground refresh |
+| `solve-logic-combo.js` | True or not? at every level with wrong picks, Find every way built out by hand with duplicates and bad builds refused, Show me, and the Think door's mixed trail |
 | `solve-sudoku.js` | every sudoku level: a clash shakes and clears, Fill one fills a single with a reason, the grid is finished from the solution, the door's trail |
 | `solve-garden.js` | the garden over time: flower kinds, bushes, tree, visitors, Pip hovering on a streak, the watered sprout and the milestone on the done screen |
 | `solve-think.js` | the thinking loop: thirty think problems over three tiers, the think stone in a trail, the think-first card, the why gate (a wrong reason breaks the streak, no level-up without a right reason), the own-words card, the greeting and the summary |
