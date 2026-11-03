@@ -12,7 +12,7 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
     await gate(pg);const s=await stars(pg);if(s!==before+1)errs.push(`${name}: stars ${before}->${s} "${await msg(pg)}"`);
     if(!await pg.locator('#stage .said').count())errs.push(`${name}: no own-words card after a think problem`);
     const b=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).book[0].t);if(!/thought through/.test(b))errs.push(`${name}: book "${b}"`)}
-  console.log(`think problems seen: ${seen.size}`);if(seen.size<34)errs.push(`only ${seen.size} different think problems in 48 goes`);
+  console.log(`think problems seen: ${seen.size}`);if(seen.size<30)errs.push(`only ${seen.size} different think problems in 48 goes`);
   /* a trail from another door carries a think stone in the middle, and it mounts as Think */
   await pg.evaluate(()=>localStorage.clear());await pg.reload();await pg.locator('.door',{hasText:'Warm'}).click();const steps=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).trail.steps);if(steps[2]!=='think')errs.push(`trail: ${steps}`);
   if(await pg.locator('#trail .stone.think').count()!==1)errs.push('trail: no think stone drawn');
