@@ -168,7 +168,7 @@ Nothing is published until it passes a headless run. The checks, all Playwright 
 - every page of every Big Idea drawn, the interactive pages driven, every kind of try-it answered;
 - trail construction for every door, many times, asserting no neighbouring repeats and no cross-door stones;
 - two simulated devices against a mocked Firestore (join, win on each side, foreground refresh, offline), asserting the garden moves both ways and that joining never overwrites;
-- screenshots at phone width for layout checks (rows that must not wrap, clocks side by side).
+- screenshots at phone width for layout checks (rows that must not wrap, clocks side by side), in light and in dark mode: every fixed light background (yellow tiles, pastel sudoku numbers, the build grid, the every-way table) sets its own dark text, so dark mode cannot leave light text on a light tile.
 
 The scripts live in `tests/` (`tests/run.sh` runs them all; `tests/README.md` lists them).
 
