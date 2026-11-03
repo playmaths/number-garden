@@ -15,6 +15,7 @@ node tests/books.js "Even and odd"   # one book
 | `trails.js` | every door builds five-stone trails from its own games, no neighbours alike |
 | `books.js` | every page of every Big Idea draws, interactive pages respond, try-its run; fails on any draw warning |
 | `sync.js` | two simulated devices against a mocked Firestore: join, win on each side, foreground refresh |
+| `solve-three.js` | plays Same story, three unknowns at every level, all three rounds, with a miss and Show me |
 | `solve-askq.js` | plays You ask the question eight times: builds a scene, checks that an already-known question is refused, checks Pip's answer and types the truth when she slipped |
 | `solve-build.js` | builds every Build the stack level by tapping the floor, with a wrong build and Show me, and checks that a different stack with the same views is accepted |
 | `solve-detective.js` | plays Story detective at every level and checks the Does-that-make-sense card on three games |
