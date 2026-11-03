@@ -131,7 +131,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .toybtns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .toybtns .num{min-width:62px;padding:0 10px}
 .target{background:var(--sun);color:#1a1a1a;border-radius:12px;padding:8px 14px;font-family:var(--display);font-size:1.05rem}
-.walk{width:100%;max-width:560px}.walksvg{width:100%;display:block}.puff{animation:puff .7s ease-out forwards}@keyframes puff{0%{opacity:.9;transform:translateY(0)}100%{opacity:0;transform:translateY(10px) scale(.4)}}
+.walk{width:100%;max-width:560px}.walksvg{width:100%;display:block}.puff{animation:puff .75s ease-out forwards}.squash{transform-box:fill-box;transform-origin:50% 100%}@keyframes puff{0%{opacity:.9;transform:translateY(0)}100%{opacity:0;transform:translateY(10px) scale(.4)}}
 .sudsym svg{width:30px;height:30px}
 .sud.six{grid-template-columns:repeat(6,1fr)}
 .sud.six .sq{width:44px;height:44px;font-size:1.3rem}
@@ -490,7 +490,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-03e';
+const APP_VERSION='2026-11-03f';
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 function openTell(from){tellFrom=from;const g=$('#tellGrid');g.innerHTML='';$('#tellDone').hidden=true;$('#tellBubble').textContent='Something silly? Tap what happened and I\'ll tell the gardeners.';$('#tellBug').innerHTML=BUG;
@@ -1788,15 +1788,26 @@ const TOYS=[
 /* the number line with Pip on it. trail: the jumps made so far, drawn as arcs labelled with their size, the newest bold and the older ones fading; green goes up, coral goes down */
 function walkSvg(pos,trail){const w=560,pad=20,step=(w-2*pad)/20,X=i=>pad+i*step;let h=`<svg viewBox="0 -70 ${w} 170" class="walksvg"><line x1="${pad}" y1="66" x2="${w-pad}" y2="66" stroke="var(--fg)" stroke-width="3"/>`;for(let i=0;i<=20;i++){const x=X(i);h+=`<line x1="${x}" y1="58" x2="${x}" y2="74" stroke="var(--fg)" stroke-width="2"/><text x="${x}" y="90" text-anchor="middle" font-size="12" fill="var(--muted)" font-family="var(--display)">${i}</text>`}
   (trail||[]).forEach((j,i,arr)=>{const age=arr.length-1-i,x1=X(j.from),x2=X(j.to),d=Math.abs(j.to-j.from),hg=Math.min(44,12+d*5),col=j.to>j.from?'var(--leaf)':'var(--accent)',op=Math.max(.22,1-age*.22);h+=`<path d="M${x1} 62 Q${(x1+x2)/2} ${62-hg*2} ${x2} 62" fill="none" stroke="${col}" stroke-width="${age?2.5:3.5}" stroke-dasharray="6 4" opacity="${op}"/><text x="${(x1+x2)/2}" y="${56-hg}" text-anchor="middle" font-size="${age?14:18}" font-weight="700" fill="${col}" opacity="${op}" font-family="var(--display)">${j.to>j.from?'+':'−'}${d}</text>`});
-  h+=`<g class="dust"></g><g class="walkbug" transform="translate(${X(pos)-17},22) scale(.58)">${BUG}</g></svg>`;return h}
+  h+=`<g class="dust"></g><g class="walkbug" transform="translate(${X(pos)-17},22) scale(.58)"><g class="squash">${BUG}</g></g></svg>`;return h}
 /* Pip flies from where she is to pos, in an arc, flapping, leaving a puff of dust behind her; the line remembers her jumps and draws them as a trail */
+/* Pip with her wing cases open and her wings beating: open is how far the red cases swing out, flap the wing angle, kick the leg swing */
+function bugFly(open,flap,kick){const wing=(sx)=>`<ellipse cx="0" cy="0" rx="9" ry="24" fill="#dfe9f3" fill-opacity=".85" stroke="#9fb3c8" stroke-width="1" transform="translate(${30+sx*6} 20) rotate(${sx*(50+flap)}) translate(0 18)"/>`;
+  const legs=[[-1,24],[-1,32],[-1,40],[1,24],[1,32],[1,40]].map(([sx,y],i)=>`<path d="M${30+sx*12} ${y}l${sx*7} ${5+Math.sin(kick+i)*3}l${sx*2} 6" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>`).join('');
+  const half=(sx)=>`<path d="M30 17a20 17 0 0 ${sx>0?1:0} 0 34a20 17 0 0 ${sx>0?1:0} 0 -34z" fill="#e63946" stroke="#1a1a1a" stroke-width="1" transform="rotate(${sx*open} 30 17)"/><g fill="#1a1a1a" transform="rotate(${sx*open} 30 17)"><circle cx="${30+sx*10}" cy="30" r="3"/><circle cx="${30+sx*7}" cy="42" r="2.6"/></g>`;
+  return `${wing(-1)}${wing(1)}<ellipse cx="30" cy="34" rx="15" ry="16" fill="#1a1a1a"/>${legs}${half(-1)}${half(1)}<circle cx="30" cy="16" r="9" fill="#1a1a1a"/><circle cx="26" cy="14" r="2.2" fill="#fff"/><circle cx="34" cy="14" r="2.2" fill="#fff"/><circle cx="26.6" cy="14.4" r="1" fill="#1a1a1a"/><circle cx="34.6" cy="14.4" r="1" fill="#1a1a1a"/><path d="M22 10l-5-6M38 10l5-6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>`}
+/* Pip flies from where she is to pos: wing cases open, wings beating, legs dangling, a shadow racing along the line under her and the arc drawn behind her as she goes; she lands with a little squash. The line remembers her jumps and draws them as a trail */
 function walkTo(line,pos,opt){opt=opt||{};line.trail=line.trail||[];if(line.pos==null||line.pos===pos||opt.jump){if(line.fly)line.fly();line.pos=pos;if(opt.clear)line.trail=[];line.innerHTML=walkSvg(pos,line.trail);return Promise.resolve()}
-  if(line.fly)line.fly();const from=line.pos,to=pos;line.trail=line.trail.concat({from,to}).slice(-7);line.pos=to;line.innerHTML=walkSvg(from,line.trail);
-  const svg=line.querySelector('svg'),bug=svg.querySelector('.walkbug'),dust=svg.querySelector('.dust');const pad=20,step=(560-2*pad)/20,x0=pad+from*step-17,x1=pad+to*step-17,d=Math.abs(to-from),H=Math.min(44,12+d*5),dur=Math.min(1100,420+d*90),t0=performance.now();let raf=0,k=0;
-  return new Promise(res=>{const end=()=>{cancelAnimationFrame(raf);line.fly=null;line.innerHTML=walkSvg(to,line.trail);playNote(to);res()};line.fly=end;
-    const frame=now=>{const t=Math.min(1,(now-t0)/dur),e=t<.5?2*t*t:-1+(4-2*t)*t,x=x0+(x1-x0)*e,y=22-Math.sin(t*Math.PI)*H*1.6,flap=1+.18*Math.sin(t*dur/28),tilt=(to>from?1:-1)*Math.sin(t*Math.PI)*14;
-      bug.setAttribute('transform',`translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${tilt.toFixed(1)} 17 20) scale(.58,${(.58*flap).toFixed(3)})`);
-      if(k++%2===0){const c=document.createElementNS('http://www.w3.org/2000/svg','circle');c.setAttribute('cx',(x+17-(to>from?12:-12)).toFixed(1));c.setAttribute('cy',(y+22).toFixed(1));c.setAttribute('r',(2+Math.random()*2).toFixed(1));c.setAttribute('fill',Math.random()<.5?'#f7c948':'#e63946');c.setAttribute('class','puff');dust.appendChild(c);setTimeout(()=>c.remove(),700)}
+  if(line.fly)line.fly();const from=line.pos,to=pos;const trail=line.trail.concat({from,to}).slice(-7);line.pos=to;line.innerHTML=walkSvg(from,line.trail.slice(-6));
+  const svg=line.querySelector('svg'),bug=svg.querySelector('.walkbug'),dust=svg.querySelector('.dust');const NS='http://www.w3.org/2000/svg';const pad=20,step=(560-2*pad)/20,x0=pad+from*step-17,x1=pad+to*step-17,d=Math.abs(to-from),H=Math.min(44,12+d*5),dur=Math.min(1400,520+d*100),t0=performance.now(),dir=to>from?1:-1;let raf=0,k=0;
+  const shadow=document.createElementNS(NS,'ellipse');shadow.setAttribute('cy','66');shadow.setAttribute('fill','#1a1a1a');shadow.setAttribute('opacity','.18');svg.insertBefore(shadow,bug);
+  const live=document.createElementNS(NS,'path');live.setAttribute('fill','none');live.setAttribute('stroke',dir>0?'var(--leaf)':'var(--accent)');live.setAttribute('stroke-width','3.5');live.setAttribute('stroke-dasharray','6 4');live.setAttribute('stroke-linecap','round');svg.insertBefore(live,dust);
+  return new Promise(res=>{let finished=false;const end=()=>{if(finished)return;finished=true;cancelAnimationFrame(raf);line.fly=null;line.trail=trail;line.innerHTML=walkSvg(to,trail);const b2=line.querySelector('.squash');if(b2){b2.style.transition='none';b2.style.transform='scale(1.2,.76)';requestAnimationFrame(()=>{b2.style.transition='transform .3s cubic-bezier(.34,1.56,.64,1)';b2.style.transform='scale(1,1)'})}playNote(to);res()};line.fly=end;
+    const arcY=t=>22-Math.sin(t*Math.PI)*H*1.6;
+    const frame=now=>{const t=Math.min(1,(now-t0)/dur),e=t<.5?2*t*t:-1+(4-2*t)*t,x=x0+(x1-x0)*e,y=arcY(t)+Math.sin(t*dur/45)*2.5,ph=t*dur/42,open=Math.min(1,t*4,(1-t)*4)*38,flap=Math.sin(ph)*32,tilt=dir*Math.sin(t*Math.PI)*16;
+      bug.innerHTML=bugFly(open,flap,ph);bug.setAttribute('transform',`translate(${x.toFixed(1)},${y.toFixed(1)}) rotate(${tilt.toFixed(1)} 17 20) scale(.58)`);
+      shadow.setAttribute('cx',(x+17).toFixed(1));const hgt=(22-arcY(t))/(H*1.6||1);shadow.setAttribute('rx',(14-hgt*8).toFixed(1));shadow.setAttribute('ry',(3.5-hgt*2).toFixed(1));
+      let dd='';for(let i=0;i<=24;i++){const u=t*i/24,ux=x0+17+(x1-x0)*u,uy=62-Math.sin(u*Math.PI)*H*2;dd+=(i?'L':'M')+ux.toFixed(1)+' '+uy.toFixed(1)}live.setAttribute('d',dd);
+      if(k++%2===0){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',(x+17-dir*14).toFixed(1));c.setAttribute('cy',(y+22+(Math.random()-.5)*6).toFixed(1));c.setAttribute('r',(2+Math.random()*2.5).toFixed(1));c.setAttribute('fill',pick(['#f7c948','#e63946','#fff']));c.setAttribute('class','puff');dust.appendChild(c);setTimeout(()=>c.remove(),750)}
       if(t<1)raf=requestAnimationFrame(frame);else end()};raf=requestAnimationFrame(frame)})}
 let ac2;function playNote(n){try{ac2=ac2||new (window.AudioContext||window.webkitAudioContext)();const t=ac2.currentTime,o=ac2.createOscillator(),g=ac2.createGain();o.frequency.value=330+n*12;o.connect(g);g.connect(ac2.destination);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.12,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+.5);o.start(t);o.stop(t+.55)}catch(e){}}
 function renderToys(){const t=$('#toys');t.innerHTML='';TOYS.forEach(x=>{const b=el('button','toy',`<b>${x.title}</b><small>${x.line}</small>`);b.onclick=()=>openToy(x);t.appendChild(b)})}
@@ -1940,6 +1951,43 @@ skill({id:'writestory',room:'make',title:'You write the story',idea:'counton',le
         if(yes===!wrong){b.classList.add('hit');if(!wrong){win(`${cheer()} ${st.a} ${add?'+':'−'} ${st.b} is ${ans}.`);await show()}
           else{say(`Good catch! I said ${said}. What is it really?`,true);controls.insertBefore(numpad((v,nm)=>{if(v===ans){lock(nm);win(`${cheer()} It's ${ans}, not ${said}. You caught me!`);show()}else miss(ctx.hints===0?`Act it out: start with ${st.a}, then ${st.act.t} ${st.b}.`:`Count the picture after each step.`)},2),controls.querySelector('#helpRow'))}}
         else{b.classList.add('miss');miss(wrong?`Check me again. Start with ${st.a} and act it out.`:`Count it out: I was actually right this time.`);r.querySelectorAll('button').forEach(x=>x.disabled=false);b.disabled=true;await show()}});
+      r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},900)}
+  build()}});
+
+skill({id:'askq',room:'make',title:'You ask the question',idea:'reading',levels:1,mount(){
+  /* the child builds a scene, then chooses what to ask about it; one card asks something the story already says. Pip answers the real question, and now and then gets it wrong, so the child checks */
+  const k=KID(),who=pick(DET_NAMES),max=12;const st={thing:null,kind:null,a:null,b:null,q:null};
+  prompt.textContent='You make the story and ask the question. I will answer.';
+  const box=el('div','story','');stage.appendChild(box);
+  const words=()=>{if(!st.thing)return'<i>Tap to build your story…</i>';if(!st.kind)return`Some ${st.thing}…`;
+    if(st.kind==='two'){let h=`${k} has <b>${st.a==null?'?':st.a}</b> ${st.thing}.`;if(st.a!=null)h+=` ${who} has <b>${st.b==null?'?':st.b}</b> ${st.thing}.`;return h}
+    let h=`${k} had <b>${st.a==null?'?':st.a}</b> ${st.thing}.`;if(st.a!=null)h+=` Then ${P().s} ${st.kind==='got'?'got':'gave away'} <b>${st.b==null?'?':st.b}</b>${st.kind==='got'?' more':''}.`;return h};
+  const chips=(opts,label,on)=>{controls.innerHTML='';controls.appendChild(el('div','hint',label));const c=choices(opts.map(x=>({node:x.node||el('span','',x.t),o:x.o})),(x,b)=>{b.classList.add('hit');lock(c);on(x.o)});controls.appendChild(c)};
+  const ask=(label,lo,hi,on)=>{controls.innerHTML='';controls.appendChild(el('div','hint',label));const p=pad(hi,(v,b)=>{if(v<lo)return;b.classList.add('hit');lock(p);on(v)});for(let i=0;i<lo;i++)p.children[i].disabled=true;controls.appendChild(p)};
+  const build=()=>{box.innerHTML=words();
+    if(!st.thing)return chips(shuffle(THINGS).slice(0,4).map(t=>{const d=el('span');d.innerHTML=`<svg viewBox="0 0 40 40" width="30" height="30">${ICONS[t]}</svg> ${t}`;return{node:d,o:t}}),'What is the story about?',t=>{st.thing=t;currentThing=t;build()});
+    if(!st.kind)return chips([{t:`${k} and ${who} both have some`,o:'two'},{t:`${k} gets more`,o:'got'},{t:`${k} gives some away`,o:'gave'}],'What kind of story?',kd=>{st.kind=kd;build()});
+    if(st.a==null)return ask(st.kind==='two'?`How many does ${k} have?`:`How many did ${k} have at the start?`,st.kind==='gave'?2:1,max,v=>{st.a=v;build()});
+    if(st.b==null)return ask(st.kind==='two'?`How many does ${who} have?`:st.kind==='got'?`How many did ${P().s} get?`:`How many did ${P().s} give away?`,1,st.kind==='two'?max:st.kind==='got'?max-st.a:st.a-1,v=>{st.b=v;build()});
+    if(!st.q)return pickQuestion();solve()};
+  /* the questions: two that the story does not answer, one that it already does */
+  const questions=()=>{if(st.kind==='two'){const big=Math.max(st.a,st.b),small=Math.min(st.a,st.b),bigWho=st.a>=st.b?k:who,smallWho=st.a>=st.b?who:k;return shuffle([{t:`How many ${st.thing} in all?`,ans:st.a+st.b,kind:'whole',why:`${st.a} and ${st.b} together: ${st.a+st.b}.`,pic:()=>barSvg({parts:[{n:st.a,t:st.a,col:'var(--accent)'},{n:st.b,t:st.b}],whole:'?'})},
+      {t:st.a===st.b?`Who has more?`:`How many more does ${bigWho} have?`,ans:big-small,kind:'more',why:st.a===st.b?'They have the same: nobody has more, 0 more.':`Count up from ${small} to ${big}: ${big-small} more.`,pic:()=>barSvg({compare:[{n:st.a,t:`${k} ${st.a}`},{n:st.b,t:`${who} ${st.b}`}],gap:'?'})},
+      {t:`How many does ${who} have?`,known:st.b}])}
+    const now=st.kind==='got'?st.a+st.b:st.a-st.b;return shuffle([{t:`How many does ${k} have now?`,ans:now,kind:'now',why:`${st.a} ${st.kind==='got'?'+':'−'} ${st.b} = ${now}.`,pic:()=>barSvg(st.kind==='got'?{parts:[{n:st.a,t:st.a,col:'var(--accent)'},{n:st.b,t:st.b}],whole:'?'}:{parts:[{n:now,t:'?',q:1},{n:st.b,t:st.b}],whole:st.a})},
+      {t:st.kind==='got'?`How many did ${k} have before ${P().s} got more?`:`How many did ${k} have before ${P().s} gave some away?`,known:st.a},
+      {t:st.kind==='got'?`How many did ${k} get?`:`How many did ${k} give away?`,known:st.b}])};
+  function pickQuestion(){const qs=questions();controls.innerHTML='';controls.appendChild(el('div','hint','What shall we ask? Pick a question the story does not already answer.'));
+    const c=choices(qs.map(q=>q.t),(o,b)=>{const q=qs.find(x=>x.t===o);if(q.known!=null){b.classList.add('miss');b.disabled=true;say(`We already know that! The story says ${q.known}. Ask something the story does not tell us.`,false);bugs('think');return}b.classList.add('hit');lock(c);say('');st.q=q;build()});c.classList.add('cards');controls.appendChild(c)}
+  function solve(){const q=st.q,ans=q.ans,wrong=Math.random()<.4;const said=wrong?ans+pick([-2,-1,1,2].filter(o=>ans+o>=0)):ans;
+    box.innerHTML=words()+` <b>${q.t}</b>`;const pic=el('div','nline');pic.innerHTML=q.pic();stage.appendChild(pic);
+    help({book:`made up a story about ${st.thing}, asked "${q.t}" and ${wrong?`caught a wrong answer (${said})`:`checked the answer ${ans}`}`,clues:['Look at the bar. Where is the ?',q.why],answer:ans,why:`${q.why} I was ${wrong?'wrong':'right'}.`,show:()=>{}});
+    controls.innerHTML='';const n=el('div','narr');n.innerHTML=`<svg class="bug think" viewBox="0 0 60 60">${BUG}</svg><div class="bubble">Good question. Let me think…</div>`;controls.append(n,helpRow());const bub=n.querySelector('.bubble');const my=ctx;
+    setTimeout(()=>{if(ctx!==my)return;bub.innerHTML=`${q.kind==='more'?`The gap between ${Math.min(st.a,st.b)} and ${Math.max(st.a,st.b)}`:q.kind==='whole'?`${st.a} and ${st.b} together`:`${st.a} ${st.kind==='got'?'and':'take away'} ${st.b}`}… it's <em>${said}</em>! Am I right?`;
+      const r=choices(['Yes!','No'],(o,b)=>{if(ctx.done)return;const yes=o==='Yes!';lock(r);
+        if(yes===!wrong){b.classList.add('hit');if(!wrong)win(`${cheer()} ${q.why} A good question, and a right answer.`);
+          else{say(`Good catch! I said ${said}. What is it really?`,true);controls.insertBefore(numpad((v,nm)=>{if(v===ans){lock(nm);win(`${cheer()} It's ${ans}, not ${said}. You caught me!`)}else miss(ctx.hints===0?'Look at the bar. Where is the ?':q.why)},2),controls.querySelector('#helpRow'))}}
+        else{b.classList.add('miss');miss(wrong?`Check me again. Look at the bar: ${q.why}`:`Count it out: I was actually right this time.`);r.querySelectorAll('button').forEach(x=>x.disabled=false);b.disabled=true}});
       r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},900)}
   build()}});
 
