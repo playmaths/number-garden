@@ -12,4 +12,7 @@ const book=pg=>pg.evaluate(()=>{const b=JSON.parse(localStorage.getItem('ng2')).
 /* every registered game with its room, read from the page itself */
 const games=pg=>pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'))||{};return window.__NG_SKILLS||null});
 function done(name,errs){if(errs.length){console.log(`${name}: FAIL`);errs.forEach(e=>console.log('  ',e));process.exitCode=1}else console.log(`${name}: ok`)}
-module.exports={open,go,stars,msg,book,done,URL};
+/* the think-first card before a numpad, and the why / another-way card after a right answer: tap the right option of each */
+const guess=async pg=>{const g=pg.locator('#stage .guess .choice[data-right="1"]');if(await g.count()){await g.first().click();await pg.waitForTimeout(1100)}};
+const gate=async pg=>{const g=pg.locator('#stage .gate .choice[data-right="1"]:not([disabled])');if(await g.count()){await g.first().click();await pg.waitForTimeout(950)}};
+module.exports={open,go,stars,msg,book,done,URL,guess,gate};

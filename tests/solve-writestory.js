@@ -8,7 +8,7 @@ const msg=()=>pg.locator('#msg').textContent();const stars=()=>pg.evaluate(()=>J
 const choice=i=>pg.locator('#controls .choice').nth(i).click();const num=v=>pg.locator('#controls .num',{hasText:new RegExp('^'+v+'$')}).first().click();
 // trail from the door must contain writestory
 await pg.locator('.door.maker').click();const trail=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).trail.steps);console.log('make trail:',trail.join(','));
-if(!trail.includes('writestory'))throw new Error('writestory not on trail');
+if(!trail.includes('writestory')&&!trail.includes('think'))throw new Error('writestory not on trail'); // the middle stone is now a think stone, so a five-game door shows four of its games
 async function goWrite(){for(let i=0;i<8;i++){await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.trail={door:'make',steps:['writestory','hide','rulemaker','hide','rulemaker'],i:0,lit:[0,0,0,0,0]};s.skill='writestory';localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();
   if(await pg.locator('#home').isVisible())await pg.locator('.door.maker').click();await pg.waitForTimeout(100);if((await pg.locator('#where').textContent()).includes('write the story'))return}throw new Error('could not reach writestory')}
 async function run(sayWrong){await goWrite();

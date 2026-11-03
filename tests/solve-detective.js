@@ -1,5 +1,5 @@
 // plays Story detective at every level (clean, miss-then-win, Show me) and checks the "Does that make sense?" card on Draw the bar and Rewind it
-const {open,go,stars,msg,done}=require('./lib');
+const {open,go,stars,msg,done,guess,gate}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   const H=()=>pg.evaluate(()=>{const c=__ng().ctx;return{answer:c.help.answer,book:c.help.book}});
@@ -15,10 +15,10 @@ const {open,go,stars,msg,done}=require('./lib');
     if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1400);
     if(!/Picture/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Picture`);
     if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1100);
-    if(!/Solve/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Solve`);
+    if(!/Solve/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Solve`);if(!await pg.locator('#stage .guess').count())errs.push(`${name}: no think-first card before the number`);await guess(pg);
     const {answer}=await H();if(mode==='miss'){await type(answer+9);if(!(await msg(pg)).length)errs.push(`${name}: no hint on the number`);let card=pg.locator('#stage .sense');if(!await card.count()){await type(1);card=pg.locator('#stage .sense')}if(!await card.count())errs.push(`${name}: no sense card for an impossible answer`);else{await card.locator('.choice',{hasText:/^no$/}).click();if(!/Try again/.test(await msg(pg))){await card.locator('.choice',{hasText:/^yes$/}).click()}if(!/Try again/.test(await msg(pg)))errs.push(`${name}: sense card did not answer`)}}
-    await type(answer);if(await pg.locator('#stage .sense').count())errs.push(`${name}: sense card left after the win`);await check(name,before,/detective/)}
+    await type(answer);await gate(pg);if(await pg.locator('#stage .sense').count())errs.push(`${name}: sense card left after the win`);await check(name,before,/detective/)}
   /* sense card on Draw the bar level 2 (a part cannot be as big as the whole) and Rewind it level 1 */
-  await go(pg,'bar',2,'story');const whole=await pg.evaluate(()=>+document.querySelector('#stage .story').textContent.match(/has (\d+)/)[1]);await type(whole+1);if(!await pg.locator('#stage .sense').count())errs.push('bar lv2: no sense card for a part bigger than the whole');
-  await go(pg,'rewind',1,'puz');const st=await pg.evaluate(()=>document.querySelector('#stage .story').textContent);const end=+st.match(/has (\d+)/)[1];const got=/got/.test(st);await type(got?end+3:Math.max(0,end-1));if(!await pg.locator('#stage .sense').count())errs.push('rewind lv1: no sense card for an impossible start');
+  await go(pg,'bar',2,'story');await guess(pg);const whole=await pg.evaluate(()=>+document.querySelector('#stage .story').textContent.match(/has (\d+)/)[1]);await type(whole+1);if(!await pg.locator('#stage .sense').count())errs.push('bar lv2: no sense card for a part bigger than the whole');
+  await go(pg,'rewind',1,'puz');await guess(pg);const st=await pg.evaluate(()=>document.querySelector('#stage .story').textContent);const end=+st.match(/has (\d+)/)[1];const got=/got/.test(st);await type(got?end+3:Math.max(0,end-1));if(!await pg.locator('#stage .sense').count())errs.push('rewind lv1: no sense card for an impossible start');
   console.log('detective played');done('solve-detective',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});
