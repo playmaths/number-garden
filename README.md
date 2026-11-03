@@ -13,7 +13,7 @@ Play it at **https://playmaths.github.io/number-garden/**, or open `index.html` 
 | Warm-ups | How many? · Make 10 · Which has more? | Subitizing, complements to 10/20/100, comparing groups and numbers and finding the difference |
 | Add & take | Take away · Make a ten to add · Find the missing number · Name the trick | Place value (sticks of 10 that break), bridging through ten, missing-addend thinking, and the named mental strategies (doubles, near doubles, count on, ten and more, make ten, count back, take from ten): see the trick before you count |
 | Patterns | What comes next? · Rule machine | Repeating and growing patterns, function machines |
-| Puzzles | Balance it · Which one is different? · Make the money · Sudoku (shapes 4×4 → digits 4×4 → 6×6) · Number riddle · Who has what? (logic grid) · Sort by two things · If this, then that · Rewind it | Reasoning with no algorithm: the seed of competition maths. Rewind it is working backwards: the end of a story is known, the start is the question, and each step is undone from the last one back |
+| Puzzles | Balance it · Which one is different? · Make the money · Sudoku (shapes 4×4 → digits 4×4 → 6×6) · Number riddle · Who has what? (logic grid) · Sort by two things · If this, then that · Rewind it · Both sides | Reasoning with no algorithm: the seed of competition maths. Rewind it is working backwards: the end of a story is known, the start is the question, and each step is undone from the last one back. Both sides is a balance with secret bags on it, the same bag on both pans: take the same thing off both sides until a bag stands alone, and read its weight |
 | Stories | Story mystery · How many ways? · Draw the bar · Story detective · Same story, three unknowns | Reading-level word problems in one to two steps, open questions with several right answers, and bar models: the story drawn as parts of a bar before it is solved (whole hidden, part hidden, two bars compared, then choosing the bar that fits a story). Story detective is the reading ritual itself: level 1 has no numbers at all (did they end with more or fewer?), level 2 makes the child find the two facts, pick the question and pick the picture before any number is typed, level 3 moves the hidden number to the start, the middle or the end. Same story, three unknowns tells one story three times with the ? in a different place each time (end, change, start; then the whole and each part of a bar), so the child sees that the shape stays and only the question moves |
 | Shapes & space | Mirror it · Count the shapes · Fit the hole · Finish the mirror · Count the cubes · Build the stack | Spatial reasoning: reflections, shapes hidden inside shapes, matching a piece to a gap, completing a symmetric picture, counting cubes you cannot see. Count the cubes teaches first with a stack that turns in 3D, and after the answer spins the stack round, then lets the child turn it by dragging or with front, side, top buttons, with the three views beneath. Faces are coloured by direction (yellow tops, blue fronts, green sides) so the three views look like three different things. Build the stack is the views backwards: tap squares on the floor plan to raise towers until the build shows the given top view (level 1), top and front (level 2), or all three (level 3); a turnable copy shows what the child has built |
 | Time | What time is it? · How long until…? · Days and months | Reading the clock to five minutes, elapsed time by counting on, the week and the year going round |
@@ -43,7 +43,7 @@ In Stories, the dots warm-up and Count the shapes, the child can touch each obje
 - A star is earned for finishing a problem, not for a first-try answer.
 - Wrong answers get a hint that points at the structure, never an X. The second miss offers the lesson.
 - Every game shows the idea, not just the answer: Show me draws it, a win acts it out.
-- Where asking first would be unfair, Pip teaches first (the Time games), and the lesson can be replayed.
+- Where asking first would be unfair, Pip teaches first (the Time games and the thinking games), and the lesson can be replayed. A lesson never moves on by the clock: after each sentence it waits for a tap on Next, so the child reads at their own pace.
 - Levels adapt on their own: three clean problems in a row moves up, two hint-heavy problems moves down. A grown-up can nudge any level.
 - The child's name and pronouns (she, he or they) are a setting; every story, hint and book line uses them, with verbs agreeing. Nothing in the code assumes a name or a gender.
 - Take-turns mode alternates turns on the same games so the child watches an adult think out loud.
@@ -88,7 +88,7 @@ Four games and four books borrow from the Russian and Singapore primary traditio
 
 ## Ideas queued
 
-Unknowns on both sides · Logic statements · Visible combinatorics (see above).
+Logic statements · Visible combinatorics (see above).
 
 ## Developing
 

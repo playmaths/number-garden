@@ -6,7 +6,7 @@ const {open,go,stars,msg,done}=require('./lib');
   for(let lv=1;lv<=3;lv++)for(const mode of ['clean','miss','show']){await go(pg,'three',lv,'story');const before=await stars(pg);const name=`three lv${lv} ${mode}`;
     if(await pg.locator('#stage .stone').count()!==3)errs.push(`${name}: expected 3 stones`);
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).length)errs.push(`${name}: silent`);if(await pg.locator('#stage .node.q, #stage .barm text[fill="var(--accent)"]').count()>1)errs.push(`${name}: ? still shown after Show me`);continue}
-    const texts=new Set();for(let r=0;r<3;r++){texts.add(await pg.locator('#stage .story').innerText());const a=await ans();if(mode==='miss'&&r===1){await type(a+3);if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}await type(a);await pg.waitForTimeout(1250)}
+    const texts=new Set();for(let r=0;r<3;r++){texts.add(await pg.locator('#stage .story').innerText());const a=await ans();if(mode==='miss'&&r===1){await type(a+3);if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}await type(a);await pg.waitForTimeout(2100)}
     if(texts.size!==3)errs.push(`${name}: the three rounds were not three different stories`);
     const s=await stars(pg);if(s!==before+1)errs.push(`${name}: stars ${before}->${s} ("${await msg(pg)}")`);
     const pics=await pg.locator(lv===3?'#stage .barm':'#stage .chain').count();if(pics!==3)errs.push(`${name}: ${pics} pictures in the summary`);

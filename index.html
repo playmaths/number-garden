@@ -490,7 +490,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-03g';
+const APP_VERSION='2026-11-03h';
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 function openTell(from){tellFrom=from;const g=$('#tellGrid');g.innerHTML='';$('#tellDone').hidden=true;$('#tellBubble').textContent='Something silly? Tap what happened and I\'ll tell the gardeners.';$('#tellBug').innerHTML=BUG;
@@ -628,6 +628,7 @@ const BADGES=[
  {id:'riddle',name:'Riddle Solver',text:'cracked five number riddles',test:()=>(S.counts.riddle||0)>=5},
  {id:'ways',name:'Many Ways',text:'found splits in five how-many-ways puzzles',test:()=>(S.counts.ways||0)>=5},
  {id:'build',name:'Builder',text:'built five stacks from their views',test:()=>(S.counts.build||0)>=5},
+ {id:'both',name:'Bag Weigher',text:'found the secret bag five times',test:()=>(S.counts.both||0)>=5},
  {id:'three',name:'Three Ways',text:'answered five stories three ways each',test:()=>(S.counts.three||0)>=5},
  {id:'detective',name:'Story Detective',text:'read ten stories like a detective',test:()=>(S.counts.detective||0)>=10},
  {id:'bars',name:'Bar Builder',text:'drew ten bars for stories',test:()=>(S.counts.bar||0)>=10},
@@ -1144,9 +1145,9 @@ skill({id:'detective',room:'story',title:'Story detective',idea:'reading',levels
       show:()=>{controls.querySelectorAll('.choice').forEach(c=>{if(c.dataset.right==='1')c.classList.add('hit')})}});
     const render=()=>{controls.innerHTML='';
       if(step===0){stepEl.innerHTML='<b>Know.</b> Tap the two things the story tells us.';const cards=shuffle(st.facts.map(f=>({t:f,ok:true})).concat(st.wrongFacts.map(f=>({t:f,ok:false}))));
-        const ch=choices(cards.map(c=>c.t),(o,b)=>{const c=cards.find(x=>x.t===o);if(c.ok){b.classList.add('hit');b.disabled=true;found.add(o);if(found.size===2){say('Those are the clues.',true);setTimeout(()=>{step=1;render()},700)}}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?'That is not in the story. Read it again.':`The story says: ${st.facts.join(', and ')}.`)}});ch.querySelectorAll('.choice').forEach((b,i)=>{if(cards[i].ok)b.dataset.right='1'});ch.classList.add('cards');controls.appendChild(ch)}
+        const ch=choices(cards.map(c=>c.t),(o,b)=>{const c=cards.find(x=>x.t===o);if(c.ok){b.classList.add('hit');b.disabled=true;found.add(o);if(found.size===2){say('Those are the clues.',true);setTimeout(()=>{step=1;render()},1100)}}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?'That is not in the story. Read it again.':`The story says: ${st.facts.join(', and ')}.`)}});ch.querySelectorAll('.choice').forEach((b,i)=>{if(cards[i].ok)b.dataset.right='1'});ch.classList.add('cards');controls.appendChild(ch)}
       else if(step===1){stepEl.innerHTML='<b>Want.</b> Tap what the story is asking.';const qs=shuffle([st.qs.right].concat(st.qs.wrong));
-        const ch=choices(qs,(o,b)=>{if(o===st.qs.right){b.classList.add('hit');lock(ch);say('That is the question.',true);setTimeout(()=>{step=2;render()},700)}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?'Read the last sentence of the story. That is the question.':`The story asks: ${st.qs.right}`)}});ch.querySelectorAll('.choice').forEach((b,i)=>{if(qs[i]===st.qs.right)b.dataset.right='1'});ch.classList.add('cards');controls.appendChild(ch)}
+        const ch=choices(qs,(o,b)=>{if(o===st.qs.right){b.classList.add('hit');lock(ch);say('That is the question.',true);setTimeout(()=>{step=2;render()},1100)}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?'Read the last sentence of the story. That is the question.':`The story asks: ${st.qs.right}`)}});ch.querySelectorAll('.choice').forEach((b,i)=>{if(qs[i]===st.qs.right)b.dataset.right='1'});ch.classList.add('cards');controls.appendChild(ch)}
       else if(step===2){stepEl.innerHTML='<b>Picture.</b> Tap the picture that fits.';const kinds=shuffle(Object.keys(st.pic));
         const opts=kinds.map(kd=>{const d=el('div','barpick');d.innerHTML=st.pic[kd];return{node:d,kd}});const ch=choices(opts,(o,b)=>{if(o.kd===st.kind){b.classList.add('hit');lock(ch);say(picWhy,true);setTimeout(()=>{step=3;render()},900)}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?'Look at where the ? is. Which picture asks the same question as the story?':picWhy)}});ch.querySelectorAll('.choice').forEach((b,i)=>{if(opts[i].kd===st.kind)b.dataset.right='1'});ch.classList.add('barpicks');controls.appendChild(ch)}
       else{stepEl.innerHTML='<b>Solve.</b> Now the number.';const pic=el('div','nline');pic.innerHTML=st.pic[st.kind];stage.insertBefore(pic,stepEl);
@@ -1179,7 +1180,7 @@ skill({id:'three',room:'story',title:'Same story, three unknowns',idea:'reading'
     const R=()=>st.rounds[i];const render=()=>{box.textContent=R().text;pic.innerHTML=R().pic();steps.querySelectorAll('.stone').forEach((s,j)=>{s.classList.toggle('now',j===i);s.classList.toggle('lit',j<i)});ctx.help.answer=R().ans;ctx.help.why=R().why};
     help({book:`answered the same story three ways, with the ? at a different place each time (${st.line})`,clues:['Find the ? in the picture first. Is it at the start, in the middle, or at the end?',{toString:()=>R().hint}],answer:null,why:'',sense:null,show:()=>{pic.innerHTML=R().done()}});
     const finish=()=>{const all=el('div','ta');all.style.gap='6px';st.rounds.forEach(r=>{const d=el('div',st.isBar?'nline':'ta');d.innerHTML=r.done();all.appendChild(d)});pic.replaceWith(all);box.textContent=st.summary;win(`${cheer()} Three questions, one story: ${st.line}.`)};
-    controls.appendChild(numpad((v,nm)=>{if(v===R().ans){pic.innerHTML=R().done();playNote(i*4+4);if(i===st.rounds.length-1){lock(nm);finish()}else{say(`${R().why} Now the ? moves.`,true);i++;setTimeout(()=>{if(!ctx.done)render()},1100)}}else miss(ctx.hints===0?R().hint:R().why)}));
+    controls.appendChild(numpad((v,nm)=>{if(v===R().ans){pic.innerHTML=R().done();playNote(i*4+4);if(i===st.rounds.length-1){lock(nm);finish()}else{say(`${R().why} Now the ? moves.`,true);i++;setTimeout(()=>{if(!ctx.done)render()},1800)}}else miss(ctx.hints===0?R().hint:R().why)}));
     render()}});
 
 const IDEAS=[
@@ -2103,6 +2104,29 @@ skill({id:'build',room:'space',title:'Build the stack',idea:'views',levels:3,gro
     help({book:lv===1?'built a stack from its top view':`built a stack from its ${which.join(', ')} views`,clues:['Start with the top view: put one cube on every square it shows.',lv===1?'Then make each tower as tall as the number on its square.':'Then make the tallest tower in each column match the front view, left to right.'],answer:null,why:'Every square of the top view is a tower, and the other views say how tall.',show:()=>{goal.forEach((r,i)=>r.forEach((v,j)=>hm[i][j]=v));g.update();t.setHm(hm)}});
     const r=el('div','row');const b=el('button','btn','Check it');b.onclick=()=>{if(ctx.done)return;if(ok()){b.disabled=true;g.cells.forEach(c=>c.disabled=true);win(`${cheer()} Your stack shows the same views.`);const vr=viewRow(hm,['front','side','top'],80);t.appendChild(vr)}else miss(ctx.hints===0?whatIsWrong():`${whatIsWrong()} Tap the view buttons on your stack to compare.`)};r.appendChild(b);controls.appendChild(r)}});
 
+/* unknowns on both sides: a secret bag weighs the same wherever it sits. Whatever comes off one side comes off the other, and the scale stays level, until a bag stands alone */
+function bagPan(side,x){let h='';const bw=24,ow=10;let cx=x-(side.b*(bw+3)-3)/2;for(let i=0;i<side.b;i++){h+=`<path d="M${cx+3} 86 q-4 -20 8 -24 q-2 -6 2 -8 h6 q4 2 2 8 q12 4 8 24z" fill="var(--plum)" stroke="#1a1a1a" stroke-width="1.5"/><text x="${cx+12}" y="80" text-anchor="middle" font-size="13" font-weight="700" fill="#fff" font-family="var(--display)">?</text>`;cx+=bw+3}
+  cx=x-(side.o*(ow+1)-1)/2;for(let i=0;i<side.o;i++){h+=`<rect x="${cx}" y="94" width="${ow}" height="${ow}" rx="2.5" fill="var(--sun)" stroke="#1a1a1a" stroke-width="1.2"/>`;cx+=ow+1}return h}
+function bagScale(L,R){return `<svg viewBox="0 0 400 160"><path d="M200 140V30M120 140h160" stroke="var(--fg)" stroke-width="4"/><g class="beam"><path d="M60 40h280" stroke="var(--fg)" stroke-width="4"/></g><g class="pan pl"><path d="M60 40v10" stroke="var(--fg)" stroke-width="3"/><rect x="5" y="50" width="110" height="60" rx="8" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>${bagPan(L,60)}</g><g class="pan pr"><path d="M340 40v10" stroke="var(--fg)" stroke-width="3"/><rect x="285" y="50" width="110" height="60" rx="8" fill="var(--bg)" stroke="var(--line)" stroke-width="2"/>${bagPan(R,340)}</g></svg>`}
+const sideWords=s=>{const p=[];if(s.b)p.push(s.b===1?'a bag':`${s.b} bags`);if(s.o)p.push(`${s.o}`);return p.join(' and ')||'nothing'};
+function bothProblem(lv){for(;;){let L,R,w;if(lv===1){const a=rnd(1,3);w=rnd(1,6);L={b:1,o:a};R={b:0,o:a+w}}else if(lv===2){const b=rnd(1,3);w=rnd(1,6);L={b:1,o:b+w};R={b:2,o:b}}else{const b=rnd(1,3);w=rnd(1,6);const flip=Math.random()<.5;L={b:2,o:b+w};R={b:3,o:b};if(flip)[L,R]=[R,L]}
+    if(Math.random()<.5&&lv<3)[L,R]=[R,L];if(L.o+R.o>12)continue;return{L,R,w}}}
+skill({id:'both',room:'puz',title:'Both sides',idea:'equals',levels:3,grow:lv=>['','Now there are bags on both sides.','Now two bags face three.'][lv-1],
+  async teach(lv,L){const sc=el('div','scale');const big=el('div','bigword','');L.scene.append(sc,big);let A,B;const draw=()=>{sc.innerHTML=bagScale(A,B)};
+    if(lv===1){A={b:1,o:2};B={b:0,o:5};draw();L.say('A <em>bag</em> with a secret weight, and 2 ones, balance 5 ones. The rule: whatever you take off one side, take off the <em>other</em> too, and it stays level.');await L.wait(2400);A.o--;B.o--;draw();big.innerHTML='take 1 off both';await L.wait(1600);A.o--;B.o--;draw();big.innerHTML='again: the bag alone is <em>3</em>';await L.wait(1600);L.say('Now the bag stands alone against 3. So the bag weighs <em>3</em>. Now you try.')}
+    else if(lv===2){A={b:1,o:4};B={b:2,o:1};draw();L.say('Bags on <em>both</em> sides now. A bag and 4 balance two bags and 1. Bags first: take a bag off both sides.');await L.wait(2400);A.b--;B.b--;draw();big.innerHTML='a bag off both: 4 = bag and 1';await L.wait(1800);A.o--;B.o--;draw();big.innerHTML='1 off both: bag = <em>3</em>';await L.wait(1600);L.say('The bag weighs <em>3</em>. Bags first, then ones, always off both sides. Now you try.')}
+    else{A={b:2,o:5};B={b:3,o:2};draw();L.say('Two bags and 5 balance three bags and 2. Take bags off both sides until one side has none.');await L.wait(2400);A.b--;B.b--;draw();await L.wait(900);A.b--;B.b--;draw();big.innerHTML='two bags off both: 5 = bag and 2';await L.wait(1800);A.o-=2;B.o-=2;draw();big.innerHTML='2 off both: bag = <em>3</em>';await L.wait(1600);L.say('Three steps, and the bag stands alone: <em>3</em>. Now you try.')}},
+  mount(lv){const p=bothProblem(lv);const L={...p.L},R={...p.R},w=p.w;const start=`${sideWords(p.L)} balance ${sideWords(p.R)}`;
+    prompt.textContent='Every bag weighs the same secret number. Find it.';const sc=el('div','scale');const hint=el('div','hint',`${start[0].toUpperCase()+start.slice(1)}. Whatever you take off one side, take off the other.`);stage.append(sc,hint);
+    const draw=()=>{sc.innerHTML=bagScale(L,R)};draw();
+    const alone=()=>(L.b===1&&L.o===0&&R.b===0)||(R.b===1&&R.o===0&&L.b===0);
+    help({book:`found the secret weight of a bag on a balance: ${w}`,clues:['Take the same thing off both sides, and the scale stays level. Start with the bags.',`When a bag stands alone, the other side is its weight: ${w}.`],answer:w,why:`Take the same off both sides until a bag is alone: it weighs ${w}.`,show:async()=>{while(L.b&&R.b){L.b--;R.b--;draw();await wait(500)}while(L.o&&R.o){L.o--;R.o--;draw();await wait(300)}}});
+    const row=el('div','row');const bagBtn=el('button','btn quiet','Take a bag off both'),oneBtn=el('button','btn quiet','Take 1 off both');row.append(bagBtn,oneBtn);controls.appendChild(row);
+    const update=()=>{bagBtn.disabled=!(L.b&&R.b)||ctx.done;oneBtn.disabled=!(L.o&&R.o)||ctx.done;
+      if(alone()){bagBtn.disabled=oneBtn.disabled=true;say('The bag stands alone. What does it weigh?',true);if(!controls.querySelector('.num'))controls.insertBefore(numpad((v,nm)=>{if(v===w){lock(nm);win(`${cheer()} The bag weighs ${w}. Same off both sides, every time.`)}else miss(ctx.hints===0?'Count the ones on the other side. That is what the bag weighs.':`The bag alone balances ${w} ones, so it weighs ${w}.`)}),controls.querySelector('#helpRow'))}
+      else if(L.b===0&&R.b===0)say('No bags left! You took them all off. Start again with Show me, or think: which side had more bags?',false)};
+    bagBtn.onclick=()=>{if(!(L.b&&R.b))return;L.b--;R.b--;draw();playNote(4);update()};oneBtn.onclick=()=>{if(!(L.o&&R.o))return;L.o--;R.o--;draw();playNote(2);update()};update()}});
+
 /* ================= MEASURE ================= */
 const FRAC={half:{n:1,d:2,t:'half'},quarter:{n:1,d:4,t:'a quarter'},three:{n:3,d:4,t:'three quarters'},whole:{n:1,d:1,t:'the whole thing'}};
 function fracSvg(kind,f,shadeParts){const parts=f.d,col='var(--accent)';let h='';
@@ -2293,8 +2317,11 @@ function play(id){S.skill=id;save();prompt.textContent='';stage.innerHTML='';con
 let lessonToken=0;
 function teachNow(id,lv,done){const my=++lessonToken;stage.innerHTML='';controls.innerHTML='';say('');ctx={hints:0,done:true,turn:0,lesson:true};prompt.textContent='Watch first';
   const n=el('div','narr');n.innerHTML=`<svg class="bug think" viewBox="0 0 60 60">${BUG}</svg><div class="bubble"></div>`;const bub=n.querySelector('.bubble');const scene=el('div','ta');scene.style.gap='8px';stage.append(n,scene);
-  scene.classList.add('lesson');const lesson={say:t=>{if(my===lessonToken)bub.innerHTML=t},scene,wait:async ms=>{await wait(ms);if(my!==lessonToken)throw new Error('lesson over')}};
-  const r=el('div','row');const b=el('button','btn','My turn');b.onclick=()=>{lessonToken++;done()};r.appendChild(b);controls.appendChild(r);
+  const r=el('div','row');const nx=el('button','btn next','Next ▶');nx.hidden=true;const b=el('button','btn quiet','My turn');b.onclick=()=>{lessonToken++;done()};r.append(nx,b);controls.appendChild(r);
+  /* a pause under 1.2 s is animation and runs on the clock; a longer one is reading time, so after a short settle the lesson shows Next and waits for a tap */
+  const tapNext=()=>new Promise(res=>{nx.hidden=false;nx.onclick=()=>{nx.hidden=true;nx.onclick=null;res()}});
+  scene.classList.add('lesson');const lesson={say:t=>{if(my===lessonToken)bub.innerHTML=t},scene,wait:async ms=>{if(ms<1200)await wait(ms);else{await wait(Math.min(ms,600));if(my!==lessonToken)throw new Error('lesson over');await tapNext()}if(my!==lessonToken)throw new Error('lesson over')}};
+  b.classList.remove('quiet');
   Promise.resolve().then(()=>SK[id].teach(lv,lesson)).catch(()=>{})}
 function renderSkills(){}
 function renderDoors(){const d=$('#doors');d.innerHTML='';ROOMS.forEach(rm=>{const b=el('button','door'+(rm.id==='make'?' maker':''),`<svg viewBox="0 0 24 24">${rm.icon}</svg><b>${rm.id==='make'?KID()+' makes it':DOORS[rm.id][0]}</b><small>${DOORS[rm.id][1]}</small>`);b.onclick=()=>startTrail(rm.id);d.appendChild(b)});

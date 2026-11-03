@@ -10,9 +10,9 @@ const {open,go,stars,msg,done}=require('./lib');
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).length)errs.push(`${name}: silent`);continue}
     if(lv===1){const {answer}=await H();if(mode==='miss'){const w=pg.locator('#controls .choice',{hasNotText:answer}).first();await w.click();if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}await pg.locator('#controls .choice',{hasText:new RegExp('^'+answer+'$')}).click();await check(name,before,/no numbers/);continue}
     /* know: two right cards */
-    if(mode==='miss')await tapWrong(name);await tapRight();await tapRight();await pg.waitForTimeout(900);
+    if(mode==='miss')await tapWrong(name);await tapRight();await tapRight();await pg.waitForTimeout(1400);
     if(!/Want/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Want`);
-    if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(900);
+    if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1400);
     if(!/Picture/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Picture`);
     if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1100);
     if(!/Solve/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Solve`);
