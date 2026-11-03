@@ -1,8 +1,8 @@
 // Sudoku at every level: a clashing number shakes and comes back out, Fill one fills a single with a reason, the grid is finished from the solution, and the box borders are drawn
 const {open,go,stars,msg,done}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
-  for(let lv=1;lv<=5;lv++){await go(pg,'sudoku',lv,'sud');const before=await stars(pg);const name=`sudoku lv${lv}`;const N=[0,4,4,6,9,9][lv];
-    const cells=await pg.locator('#stage .sq').count();if(cells!==N*N)errs.push(`${name}: ${cells} squares`);if(lv===1&&await pg.locator('#stage .sq .crit').count()<N*N-5)errs.push(`${name}: level 1 should show creatures`);if(lv>1&&await pg.locator('#stage .sq .crit').count())errs.push(`${name}: creatures above level 1`);
+  const sizes=new Set(),styles=new Set();for(let lv=1;lv<=5;lv++)for(let k=0;k<3;k++){await go(pg,'sudoku',lv,'sud');const before=await stars(pg);const name=`sudoku lv${lv} #${k}`;const N=await pg.evaluate(()=>__ng().ctx.N);sizes.add(N);styles.add(await pg.locator('#stage .sq .crit').count()?'bugs':'numbers');
+    const cells=await pg.locator('#stage .sq').count();if(cells!==N*N)errs.push(`${name}: ${cells} squares`);
     const sol=await pg.evaluate(()=>__ng().ctx.sol);const empties=await pg.evaluate(()=>[...document.querySelectorAll('#stage .sq')].map((c,i)=>c.classList.contains('given')?-1:i).filter(i=>i>=0));
     if(!await pg.locator('#stage .sq.bR').count()||!await pg.locator('#stage .sq.bB').count())errs.push(`${name}: no box borders`);
     /* a clash: put into an empty square a number that its row already has */
@@ -13,6 +13,7 @@ const {open,go,stars,msg,done}=require('./lib');
     /* finish from the solution */
     for(const i of empties){const cell=pg.locator('#stage .sq').nth(i);if(await cell.getAttribute('data-v'))continue;await cell.click();await pg.locator(`#controls .num[data-v="${sol[Math.floor(i/N)][i%N]+1}"]`).click()}
     await pg.waitForTimeout(200);const s=await stars(pg);if(s!==before+1)errs.push(`${name}: stars ${before}->${s} "${await msg(pg)}"`)}
+  if(sizes.size<3)errs.push(`only sizes ${[...sizes]} seen in 15 boards`);if(styles.size<2)errs.push(`only ${[...styles]} tiles seen in 15 boards`);
   /* take-turns mode: a race with a scoreboard, turns swapping after each tile, and a result at the end */
   await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.duo=true;s.turn=0;localStorage.setItem('ng2',JSON.stringify(s))});await go(pg,'sudoku',2,'sud');
   {if(!await pg.locator('#stage .race').count())errs.push('race: no scoreboard');const sol=await pg.evaluate(()=>__ng().ctx.sol);const empties=await pg.evaluate(()=>[...document.querySelectorAll('#stage .sq')].map((c,i)=>c.classList.contains('given')?-1:i).filter(i=>i>=0));
