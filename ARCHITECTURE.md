@@ -38,6 +38,8 @@ skill({id, room, title, levels, idea?, grow?(lv), teach?(lv, lesson), mount(lv)}
 
 `mount(lv)` draws into `stage` and `controls` using the shared widgets, and ends each problem by calling `win(message)` or `miss(hint)`. Every game also calls `help({book, clues, answer, why, show})`: `book` is the sentence written in the child's book, `clues` feed the Clue button (one per tap, each counting as a hint), `show` draws the answer for Show me, `why` is said with it. `reveal()` (Show me) ends the problem without a star and nudges mastery down.
 
+The number line Pip walks (`walkTo(line, pos)`) remembers her position and jumps: each call flies her there in an arc with a dust trail and draws the jump as a labelled arc, newest bold and older ones fading, so every book page and the Playground toy that moves her get the same animation for free.
+
 Shared widgets: `pad` (number buttons), `numpad` (typed answer), `choices` (text or drawn options), `tenFrame`, `numberLine`, `clockSvg`, `gridSvg`, `coinBtn`, the story scene engine (`buildScene` / `actOut`, which animates what the child's answer would mean), and the drag engine (`trayOf`, `zones`, `makeDraggable`, `fullCount`).
 
 **Mastery.** Three clean problems in a row move a game up a level; two hint-heavy problems move it down. `grow(lv)` optionally supplies the book line for a level-up.
