@@ -8,7 +8,7 @@ const {open,go,stars,msg,done,gate}=require('./lib');
   for(let lv=1;lv<=3;lv++)for(const mode of ['clean','show']){await go(pg,'combo',lv,'think');const before=await stars(pg);const name=`combo lv${lv} ${mode}`;const total=await pg.evaluate(()=>__ng().ctx.help.answer);
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(await pg.locator('#stage .ccell.got').count()!==total)errs.push(`${name}: Show me filled ${await pg.locator('#stage .ccell.got').count()} of ${total}`);continue}
     const groups=await pg.evaluate(()=>[...document.querySelectorAll('#stage .build .bwrap')].map(w=>[...w.querySelectorAll('.choice')].map(b=>b.textContent)));
-    const pickOne=async(sel)=>{for(let gi=0;gi<sel.length;gi++)await pg.locator('#stage .build .bwrap').nth(gi).locator('.choice',{hasText:sel[gi]}).click();await pg.getByRole('button',{name:"That's one"}).click();await pg.waitForTimeout(60)};
+    const pickOne=async(sel)=>{for(let gi=0;gi<sel.length;gi++)await pg.locator('#stage .build .bwrap').nth(gi).locator('.choice',{hasText:sel[gi]}).click();await pg.waitForTimeout(500)}; // a way is placed by itself once its last piece is tapped
     /* every combination, including the bad and duplicate ones, which must be refused */
     const all=[];const rec=(i,cur)=>{if(i===groups.length){all.push(cur);return}groups[i].forEach(it=>rec(i+1,cur.concat(it)))};rec(0,[]);
     let refused=0;for(const sel of all){if(!await pg.getByRole('button',{name:"That's one"}).count())break;await pickOne(sel);const m=await msg(pg);if(/already found|same/.test(m))refused++}
