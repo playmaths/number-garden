@@ -92,6 +92,11 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .smoke{opacity:0;animation:smoke 2.8s ease-out both}@keyframes smoke{0%{transform:scale(.2);opacity:0}15%{opacity:.9}100%{transform:scale(3.2) translateY(-8px);opacity:0}}
 .fin-ship{animation:finship 2.1s ease-in-out infinite alternate}@keyframes finship{from{transform:rotate(-3deg) translateY(0)}to{transform:rotate(3deg) translateY(-3px)}}
 .waves{animation:waves 1.6s linear infinite}@keyframes waves{from{transform:translateX(0)}to{transform:translateX(19.6px)}}
+.fpuff{opacity:0;animation:fpuff 2.4s ease-out infinite}@keyframes fpuff{0%{transform:scale(.3);opacity:0}15%{opacity:.9}100%{transform:translateY(-34px) scale(2.2);opacity:0}}
+.fglow{animation:fglow 1s ease-in-out infinite alternate}@keyframes fglow{from{opacity:.25}to{opacity:1}}
+.fin-train{animation:fintrain 4.2s ease-in both}@keyframes fintrain{0%{transform:none}12%{transform:translate(-1px,1px)}24%{transform:translate(1px,-1px)}36%{transform:none}100%{transform:translateX(700px)}}
+.rainbow{opacity:0;animation:rainbow 4s ease-in-out both}@keyframes rainbow{0%{opacity:0}30%{opacity:1}85%{opacity:1}100%{opacity:0}}.spark{opacity:0;animation:spark 1.2s ease-in-out infinite}@keyframes spark{0%{transform:scale(.2) rotate(0);opacity:0}50%{transform:scale(1) rotate(25deg);opacity:1}100%{transform:scale(.2) rotate(50deg);opacity:0}}
+.fin-jump{animation:finjump .55s cubic-bezier(.3,.8,.5,1) 6 alternate}@keyframes finjump{from{transform:translateY(0)}to{transform:translateY(-14px)}}
 .cannon{opacity:0;animation:cannon 1.4s ease-out 1.4s both}@keyframes cannon{0%{transform:scale(.2);opacity:0}15%{opacity:1}100%{transform:scale(2.2) translate(6px,-6px);opacity:0}}
 .pages{display:flex;flex-direction:column;gap:8px}
 .page{background:var(--card);border-radius:16px;padding:12px 16px;font-size:1.15rem;line-height:1.5;font-weight:700}
