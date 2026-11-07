@@ -250,21 +250,97 @@ function renderLetter(){const w=weekData();const text=letterText(w);const box=$(
   $('#letterPlain').value=text;const cp=$('#copyLetter');cp.textContent='Copy the letter';cp.onclick=async()=>{try{await navigator.clipboard.writeText(text);cp.textContent='Copied'}catch(e){$('#letterPlain').hidden=false;$('#letterPlain').select();cp.textContent='Select and copy below'}}}
 
 /* ---------- brick builds: a set grows one brick per finished trail; the garden keeps its flowers too ---------- */
-/* original sets drawn as little brick pictures. Letters are colours, dots are air; bricks are laid from the bottom row up, left to right, so a half-built set looks like a half-built set */
-const BRICK_COL={R:'#e63946',B:'#1d6fd8',Y:'#f2b705',G:'#2a9d5c',K:'#2b2b2b',W:'#e9ecef',O:'#ff7a1a',P:'#9b5de5',N:'#8d5a3c',C:'#5bc0eb'};
+/* original sets drawn as real-looking 3D bricks: isometric blocks with studs, light from the upper left, seams between bricks, a studded baseplate.
+   A set is a stack of layers, bottom first; each layer is rows from the back to the front; each row runs left to right. Letters are colours, dots are air.
+   Bricks are one stud deep and up to four long; they are laid layer by layer, back row to front, left to right, so a half-built set looks half built */
+const BRICK_COL={R:'#e63946',B:'#1d6fd8',Y:'#f5c518',G:'#2a9d5c',K:'#2f2f33',W:'#f1f3f5',O:'#ff8c1a',P:'#9b5de5',N:'#8d5a3c',C:'#79c7f0',L:'#b8bec6',D:'#5c6470',T:'#e7c48a'};
 const MODELS=[
- {id:'car',name:'race car',rows:['.....RR.....','...RRRRRR...','..RRRCCRRRR.','RRRRRRRRRRRR','.KK......KK.']},
- {id:'castle',name:'castle',rows:['W.W....W.W','WWW....WWW','.W......W.','WWWWWWWWWW','WWW.NN.WWW','WWW.NN.WWW']},
- {id:'rocket',name:'rocket',rows:['....R....','...RRR...','..RWWWR..','..RWCWR..','..RWWWR..','..RRRRR..','.YRRRRRY.','Y.O...O.Y']},
- {id:'ship',name:'pirate ship',rows:['.....K.....','...WWWWW...','.....N.....','...WWWWW...','.....N.....','NNNNNNNNNNN','.NNNNNNNNN.','..NNNNNNN..']},
- {id:'dragon',name:'dragon',rows:['.........GG.','........GGG.','....GGGGGG..','..GGGGGGG...','GG..GGGG....','....GG.GG...','....GG..GG..']}
+ {id:'car',name:'race car',plate:'#8a9099',layers:[
+  ['.KK....KK.','RRRRRRRRRR','RRRRRRRRRR','.KK....KK.'],
+  ['R..RRRRR..','RRRRRRRRRR','RRRRRRRRRR','R..RRRRR..'],
+  ['..........','....KCC..Y','....KCC..Y','..........'],
+  ['.........Y','.........Y','.........Y','.........Y']]},
+ {id:'castle',name:'castle',plate:'#4f9d4a',layers:[
+  ['LLLLLLLL','L......L','L......L','L......L','LLL..LLL'],
+  ['LLLLLLLL','L......L','L......L','L......L','LLL..LLL'],
+  ['LL....LL','........','........','........','LL.NN.LL'],
+  ['L......L','........','........','........','L......L'],
+  ['R......R','........','........','........','R......R']]},
+ {id:'rocket',name:'rocket',plate:'#7d8591',layers:[
+  ['..O..','.OOO.','OOOOO','.OOO.','..O..'],
+  ['..R..','.RWR.','RWWWR','.RWR.','..R..'],
+  ['.....','.WWW.','.WWW.','.WWW.','.....'],
+  ['.....','.WWW.','.WWW.','.WCW.','.....'],
+  ['.....','.WWW.','.WWW.','.WWW.','.....'],
+  ['.....','..R..','.RRR.','..R..','.....'],
+  ['.....','.....','..R..','.....','.....']]},
+ {id:'ship',name:'pirate ship',plate:'#3a86c8',layers:[
+  ['..........','.NNNNNNNN.','.NNNNNNNN.','..........'],
+  ['NNNNNNNNNN','NNNNNNNNNN','NNNNNNNNNN','NNNNNNNNNN'],
+  ['NNNNNNNNNN','....N.....','..........','NNNNNNNNNN'],
+  ['..........','..WWWWW...','..........','..........'],
+  ['..........','..WWWWW...','..........','..........'],
+  ['..........','..WWWWW...','..........','..........'],
+  ['..........','....K.....','..........','..........']]},
+ {id:'dragon',name:'dragon',plate:'#4f9d4a',layers:[
+  ['.G.....G....','............','.G.....G....'],
+  ['............','GGGGGGGGG...','............'],
+  ['..PPPP......','.GGGGGGGG...','..PPPP......'],
+  ['...PP.......','........GG..','...PP.......'],
+  ['....P.......','.........GG.','....P.......'],
+  ['............','.........GGO','............'],
+  ['............','..........Y.','............']]}
 ];
-MODELS.forEach(m=>{m.bricks=[];for(let r=m.rows.length-1;r>=0;r--)for(let c=0;c<m.rows[r].length;c++)if(m.rows[r][c]!=='.')m.bricks.push({r,c,k:m.rows[r][c]});m.total=m.bricks.length});
-function brickSvg(m,placed,size){const s=size||22,w=m.rows[0].length*s,h=m.rows.length*s;let out='';m.bricks.forEach((b,i)=>{const on=i<placed;out+=`<rect x="${b.c*s+1}" y="${b.r*s+1}" width="${s-2}" height="${s-2}" rx="3" fill="${on?BRICK_COL[b.k]:'rgba(0,0,0,.08)'}" stroke="${on?'rgba(0,0,0,.25)':'rgba(0,0,0,.12)'}" stroke-width="1"${on?'':' stroke-dasharray="3 2"'}/>`;if(on)out+=`<circle cx="${b.c*s+s/2}" cy="${b.r*s+s*.42}" r="${s*.16}" fill="rgba(255,255,255,.35)"/>`});return `<svg viewBox="0 0 ${w} ${h}" style="width:${Math.min(300,w*1.1)}px;max-width:100%">${out}</svg>`}
+MODELS.forEach(m=>{m.W=Math.max(...m.layers.map(l=>Math.max(...l.map(r=>r.length))));m.D=Math.max(...m.layers.map(l=>l.length));m.H=m.layers.length;m.pieces=[];
+  m.layers.forEach((rows,y)=>rows.forEach((row,z)=>{let x=0;while(x<row.length){const k=row[x];if(k==='.'){x++;continue}let L=1;while(L<4&&row[x+L]===k)L++;m.pieces.push({x,y,z,L,k});x+=L}}));m.total=m.pieces.length});
+function tint(hex,k){const n=parseInt(hex.slice(1),16);const c=[n>>16,n>>8&255,n&255].map(v=>Math.round(k>0?v+(255-v)*k:v*(1+k)));return `rgb(${c.join(',')})`}
+/* one picture of a set with the first `placed` bricks laid. opt: size (stud pitch in px), theta (turn, radians), ghost (show where the next brick goes), drop (the last brick falls in), plate (false hides the baseplate) */
+function brickSvg(m,placed,size,opt){opt=opt||{};const s=size||22,a=s*.866,b=s*.5,h=s*1.05,th=opt.theta||0,cs=Math.cos(th),sn=Math.sin(th),cx=m.W/2,cz=m.D/2;
+  const P=(x,y,z)=>{const X=(x-cx)*cs+(z-cz)*sn,Z=-(x-cx)*sn+(z-cz)*cs;return [(X-Z)*a,(X+Z)*b-y*h]};
+  const pt=p=>p.map(v=>v.toFixed(1)).join(',');const poly=(pts,fill,extra)=>`<path d="M${pts.map(pt).join('L')}Z" fill="${fill}"${extra||` stroke="${fill}" stroke-width="${(s*.03).toFixed(2)}"`}/>`;
+  const dx=cs>sn?1:-1,dz=sn+cs>0?1:-1;/* which end and which side face the viewer */
+  const lx=-0.36,ly=0.77,lz=0.56;const lit=(nx,ny,nz)=>{const X=nx*cs+nz*sn,Z=-nx*sn+nz*cs;return Math.max(0,X*lx+ny*ly+Z*lz)};
+  const shade=(col,n)=>{const d=lit(...n);return n[1]?tint(col,.16):tint(col,-.14-.36*(1-d))};
+  const edge=`stroke="rgba(0,0,0,.28)" stroke-width="${(s*.045).toFixed(2)}" stroke-linejoin="round" stroke-linecap="round"`;
+  const occ={},owner={};m.pieces.forEach((p,i)=>{if(i>=placed)return;for(let j=0;j<p.L;j++){occ[`${p.x+j},${p.y},${p.z}`]=1;owner[`${p.x+j},${p.y},${p.z}`]=i}});
+  const at=(x,y,z)=>occ[`${x},${y},${z}`];const same=(x,y,z,i)=>owner[`${x},${y},${z}`]===i;
+  const cube=(x,y,z,k,i,ghost)=>{const col=BRICK_COL[k];let o='';const g=ghost?' opacity=".45"':'';
+    const top=!at(x,y+1,z),fx=!at(x+dx,y,z),fz=!at(x,y,z+dz);const X0=dx>0?x+1:x,Z0=dz>0?z+1:z;
+    if(fz){const f=[P(x,y,Z0),P(x+1,y,Z0),P(x+1,y+1,Z0),P(x,y+1,Z0)];o+=poly(f,ghost?col:shade(col,[0,0,dz]),g);
+      let e=`M${pt(f[0])}L${pt(f[1])}`;if(!same(x-1,y,z,i))e+=`M${pt(f[0])}L${pt(f[3])}`;if(!same(x+1,y,z,i))e+=`M${pt(f[1])}L${pt(f[2])}`;o+=`<path d="${e}" fill="none" ${edge}/>`}
+    if(fx){const f=[P(X0,y,z),P(X0,y,z+1),P(X0,y+1,z+1),P(X0,y+1,z)];o+=poly(f,ghost?col:shade(col,[dx,0,0]),g);o+=`<path d="M${pt(f[0])}L${pt(f[1])}L${pt(f[2])}L${pt(f[3])}Z" fill="none" ${edge}/>`}
+    if(top){const f=[P(x,y+1,z),P(x+1,y+1,z),P(x+1,y+1,z+1),P(x,y+1,z+1)];o+=poly(f,ghost?col:shade(col,[0,1,0]),g);
+      let e=`M${pt(f[0])}L${pt(f[1])}M${pt(f[3])}L${pt(f[2])}`;if(!same(x-1,y,z,i))e+=`M${pt(f[0])}L${pt(f[3])}`;if(!same(x+1,y,z,i))e+=`M${pt(f[1])}L${pt(f[2])}`;o+=`<path d="${e}" fill="none" ${edge}/>`;
+      if(!ghost&&s>=6)o+=stud(x+.5,y+1,z+.5,col)}
+    return o};
+  const stud=(x,y,z,col,plate)=>{const r=plate?.27:.3,rx=(1.2247*r*s).toFixed(1),ry=(.707*r*s).toFixed(1),hh=(plate?.12:.18)*h;const [bx,by]=P(x,y,z);const ty=by-hh;const side=tint(col,-.3),topc=tint(col,plate?.1:.22);
+    return `<ellipse cx="${bx.toFixed(1)}" cy="${by.toFixed(1)}" rx="${rx}" ry="${ry}" fill="${side}"/><rect x="${(bx-rx).toFixed(1)}" y="${ty.toFixed(1)}" width="${(rx*2).toFixed(1)}" height="${hh.toFixed(1)}" fill="${side}"/><ellipse cx="${bx.toFixed(1)}" cy="${ty.toFixed(1)}" rx="${rx}" ry="${ry}" fill="${topc}"/>`};
+  let out='';
+  /* the baseplate: a thin studded slab a stud wider than the set on every side */
+  if(opt.plate!==false){const x0=-1,x1=m.W+1,z0=-1,z1=m.D+1,t=.22,pc=m.plate||'#6b8f3a';const X0=dx>0?x1:x0,Z0=dz>0?z1:z0;
+    out+=poly([P(x0,-t,Z0),P(x1,-t,Z0),P(x1,0,Z0),P(x0,0,Z0)],shade(pc,[0,0,dz]));out+=poly([P(X0,-t,z0),P(X0,-t,z1),P(X0,0,z1),P(X0,0,z0)],shade(pc,[dx,0,0]));
+    out+=poly([P(x0,0,z0),P(x1,0,z0),P(x1,0,z1),P(x0,0,z1)],shade(pc,[0,1,0]),` stroke="rgba(0,0,0,.2)" stroke-width="${(s*.04).toFixed(2)}"`);
+    if(s>=9){const cells=[];for(let z=z0;z<z1;z++)for(let x=x0;x<x1;x++)if(!at(x,0,z))cells.push([x,z]);cells.sort((p,q)=>(P(p[0],0,p[1])[1]-P(q[0],0,q[1])[1]));cells.forEach(([x,z])=>out+=stud(x+.5,0,z+.5,pc,true))}}
+  /* bricks, back to front, bottom to top */
+  const order=[];m.pieces.forEach((p,i)=>{if(i>=placed||(opt.drop&&i===placed-1))return;for(let j=0;j<p.L;j++)order.push({x:p.x+j,y:p.y,z:p.z,k:p.k,i})});
+  const depth=c=>{const X=(c.x+.5-cx)*cs+(c.z+.5-cz)*sn,Z=-(c.x+.5-cx)*sn+(c.z+.5-cz)*cs;return X+Z+c.y*.999};order.sort((p,q)=>depth(p)-depth(q));
+  order.forEach(c=>out+=cube(c.x,c.y,c.z,c.k,c.i));
+  if(opt.drop&&placed>0){const p=m.pieces[placed-1];let g='';for(let j=0;j<p.L;j++)g+=cube(p.x+j,p.y,p.z,p.k,placed-1);out+=`<g class="dropin">${g}</g>`}
+  if(opt.ghost&&placed<m.total){const p=m.pieces[placed];let g='';for(let j=0;j<p.L;j++)g+=cube(p.x+j,p.y,p.z,p.k,placed,true);out+=`<g class="ghost">${g}</g>`}
+  /* a frame that holds still while the set turns: the widest the plate and the set get at any angle */
+  const R=Math.hypot(m.W/2+1,m.D/2+1)*1.02,w=2*R*a,top=-(m.H*h+R*b+s*.3),bot=R*b+.25*h+s*.1;
+  return `<svg viewBox="${(-w/2).toFixed(1)} ${top.toFixed(1)} ${w.toFixed(1)} ${(bot-top).toFixed(1)}" style="width:${Math.min(opt.max||320,Math.round(w*1.05))}px;max-width:100%;display:block">${out}</svg>`}
+let brickTurn=0;
 function renderBricks(){const box=$('#bricks');if(!box)return;const b=S.build;box.innerHTML='';
-  if(b){const m=MODELS.find(x=>x.id===b.model);const d=el('div','buildnow');d.innerHTML=brickSvg(m,b.placed,22);const t=el('div','buildtext',`${KID()}'s ${m.name}: brick ${b.placed} of ${m.total}. ${m.total-b.placed===0?'Finished!':`${m.total-b.placed} more trail${m.total-b.placed===1?'':'s'} to go.`}`);box.append(d,t)}
-  else{box.appendChild(el('div','buildtext','Pick a set to build. Every finished trail adds one brick.'));const shelf=el('div','modelshelf');MODELS.forEach(m=>{const c=el('button','modelcard');c.innerHTML=brickSvg(m,m.total,10)+`<small>${m.name} · ${m.total} bricks</small>`;c.onclick=()=>{S.build={model:m.id,placed:0};save();renderBricks()};shelf.appendChild(c)});box.appendChild(shelf)}
-  const done=(S.built||[]);if(done.length){const sh=el('div','builtshelf');sh.appendChild(el('small','',`Finished: ${done.length}`));done.forEach(id=>{const m=MODELS.find(x=>x.id===id);if(!m)return;const d=el('div','builtone');d.innerHTML=brickSvg(m,m.total,7);d.title=m.name;sh.appendChild(d)});box.appendChild(sh)}}
+  if(b){const m=MODELS.find(x=>x.id===b.model);const wrap=el('div','buildwrap');const d=el('div','buildnow');const draw=()=>{d.innerHTML=brickSvg(m,b.placed,22,{theta:brickTurn,ghost:true,max:340})};draw();turnBricks(d,draw);
+    const art=el('div','boxart');art.innerHTML=brickSvg(m,m.total,7,{theta:.5,max:120})+'<small>the picture on the box</small>';wrap.append(d,art);
+    const left=m.total-b.placed;const t=el('div','buildtext',`${KID()}'s ${m.name}: brick ${b.placed} of ${m.total}. ${left===0?'Finished!':`${left} more trail${left===1?'':'s'} to go. The see-through brick is the next one.`}`);box.append(wrap,t,el('small','turnhint','Drag the set to turn it around.'))}
+  else{box.appendChild(el('div','buildtext','Pick a set to build. Every finished trail adds one brick.'));const shelf=el('div','modelshelf');MODELS.forEach(m=>{const c=el('button','modelcard');c.innerHTML=brickSvg(m,m.total,8,{theta:.5,max:140})+`<small>${m.name} · ${m.total} bricks</small>`;c.onclick=()=>{S.build={model:m.id,placed:0};brickTurn=0;save();renderBricks()};shelf.appendChild(c)});box.appendChild(shelf)}
+  const done=(S.built||[]);if(done.length){const sh=el('div','builtshelf');sh.appendChild(el('small','',`Finished: ${done.length}`));done.forEach(id=>{const m=MODELS.find(x=>x.id===id);if(!m)return;const d=el('div','builtone');d.innerHTML=brickSvg(m,m.total,6,{theta:.5,max:96});d.title=m.name;sh.appendChild(d)});box.appendChild(sh)}}
+/* drag sideways to turn the set */
+function turnBricks(d,draw){let px=null;d.onpointerdown=e=>{px=e.clientX;try{d.setPointerCapture(e.pointerId)}catch(e2){}};d.onpointermove=e=>{if(px===null)return;brickTurn+=(e.clientX-px)*.012;px=e.clientX;draw()};d.onpointerup=d.onpointercancel=()=>{px=null}}
+/* a finished set turns slowly on the done screen for a little while */
+function turntable(d,m,size){let th=.3,n=0;const tick=()=>{if(!d.isConnected||n++>360)return;th+=.02;d.innerHTML=brickSvg(m,m.total,size,{theta:th,max:280});setTimeout(tick,50)};tick()}
 function setGardenView(v){S.gview=v;save();$('#gardenWrap').hidden=v==='bricks';$('#bricks').hidden=v!=='bricks';$('#tabGarden').classList.toggle('on',v!=='bricks');$('#tabBricks').classList.toggle('on',v==='bricks');renderBricks()}
 /* a finished trail lays a brick; a finished set goes on the shelf. Returns a line for the done screen, or '' */
 function layBrick(){const b=S.build;if(!b)return'';const m=MODELS.find(x=>x.id===b.model);if(!m)return'';b.placed++;if(b.placed>=m.total){S.built=(S.built||[]).concat(m.id);S.build=null;addPage(`${KID()} finished building the ${m.name}, brick by brick.`,true);return `The ${m.name} is finished! Every brick came from a trail.`}return `Brick ${b.placed} of ${m.total} on the ${m.name}.`}
@@ -299,7 +375,7 @@ function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S
   const reached=GARDEN_STAGES.find(st=>st.at===n);const pageOpened=(n===1||(n-1)%10===0)&&storyPages()<=STORY.length?storyPages():0;$('#doneTitle').textContent=reached?reached.text:pageOpened?`Page ${pageOpened} of Pip's story is open!`:`A new flower for ${KID()}!`;
   $('#doneText').textContent=`${KID()} walked the whole ${doorName(tr.door)} trail${lit?` and solved ${inWords(lit)} problem${lit===1?'':'s'} ${P().self}`:' and looked carefully at every problem'}. The garden now has ${inWords(n)} flower${n===1?'':'s'}.${brickLine?' '+brickLine:''}`;
   addPage(`${KID()} finished the ${doorName(tr.door)} trail and planted flower number ${n}.`,true);
-  show('done');drawGarden();confetti();ding();if(brickLine){const bb=$('#bigflower');if(S.build||/finished/.test(brickLine)){const m=MODELS.find(x=>S.build?x.id===S.build.model:x.id===(S.built||[]).slice(-1)[0]);if(m){const bd=el('div','buildnow');bd.innerHTML=brickSvg(m,S.build?S.build.placed:m.total,14);bb.after(bd)}}}document.querySelectorAll('#done .buildnow').forEach((x,i,a)=>{if(i<a.length-1)x.remove()});if(reached){addPage(`${KID()}'s garden: ${reached.text}`,true);save()}const old=$('#readTale');if(old)old.remove();if(pageOpened){addPage(`Page ${pageOpened} of Pip's story opened for ${KID()}.`,true);save();const rb=el('button','btn','Read the new page');rb.id='readTale';rb.onclick=()=>{talePage=pageOpened-1;renderTale();show('tale')};$('#againBtn').parentNode.insertBefore(rb,$('#againBtn'))}$('#againBtn').onclick=()=>startTrail(tr.door);$('#homeBtn').onclick=()=>{renderHome();show('home')}}
+  show('done');drawGarden();confetti();ding();if(brickLine){const bb=$('#bigflower');if(S.build||/finished/.test(brickLine)){const m=MODELS.find(x=>S.build?x.id===S.build.model:x.id===(S.built||[]).slice(-1)[0]);if(m){const bd=el('div','buildnow');bd.innerHTML=brickSvg(m,S.build?S.build.placed:m.total,14,S.build?{drop:true,max:280}:{theta:.3,max:280});bb.after(bd);if(!S.build)turntable(bd,m,14)}}}document.querySelectorAll('#done .buildnow').forEach((x,i,a)=>{if(i<a.length-1)x.remove()});if(reached){addPage(`${KID()}'s garden: ${reached.text}`,true);save()}const old=$('#readTale');if(old)old.remove();if(pageOpened){addPage(`Page ${pageOpened} of Pip's story opened for ${KID()}.`,true);save();const rb=el('button','btn','Read the new page');rb.id='readTale';rb.onclick=()=>{talePage=pageOpened-1;renderTale();show('tale')};$('#againBtn').parentNode.insertBefore(rb,$('#againBtn'))}$('#againBtn').onclick=()=>startTrail(tr.door);$('#homeBtn').onclick=()=>{renderHome();show('home')}}
 
 /* ---------- badges ---------- */
 const BADGES=[
