@@ -1,0 +1,21 @@
+// plays Where is Pip? at every level: tap the landing square (a wrong one first), build a path from the arrow buttons and Go (a short path first), the fewest steps round a rock with the think-first card and a gate; and Show me on each
+const {open,go,stars,msg,done,guess,gate}=require('./lib');
+(async()=>{const {br,pg,errs}=await open();
+  const read=()=>pg.evaluate(()=>{const c=__ng().ctx;return{start:c.start,target:c.target,answer:c.help.answer}});
+  const walkWait=n=>pg.waitForTimeout(n*450+500);
+  const arrows=async(dx,dy)=>{for(let i=0;i<Math.abs(dx);i++)await pg.locator(`#controls button[aria-label="${dx>0?'right':'left'}"]`).click();for(let i=0;i<Math.abs(dy);i++)await pg.locator(`#controls button[aria-label="${dy>0?'up':'down'}"]`).click()};
+  for(let lv=1;lv<=3;lv++)for(const mode of ['clean','miss','show']){await go(pg,'steps',lv,'space');const before=await stars(pg);const name=`steps lv${lv} ${mode}`;const {start,target,answer}=await read();const dx=target.x-start.x,dy=target.y-start.y,n=Math.abs(dx)+Math.abs(dy);
+    const cells=await pg.locator('#stage .cell').count();if(cells!==(lv===3?36:25))errs.push(`${name}: ${cells} squares`);if(lv===3&&!await pg.locator('#stage path[fill="#8d99ae"]').count())errs.push(`${name}: no rock`);if(lv>1&&!await pg.locator('#stage circle[fill="var(--sun)"]').count())errs.push(`${name}: no flower`);
+    if(lv===3){if(answer!==n)errs.push(`${name}: answer ${answer} but the flower is ${n} steps away`);if(!await pg.locator('#stage .guess').count())errs.push(`${name}: no think-first card`);await guess(pg)}
+    if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await walkWait(n);const marks=await pg.locator('#stage .marks text').count();if(marks!==n)errs.push(`${name}: Show me drew ${marks} step numbers for ${n} steps`);if(!(await msg(pg)).length)errs.push(`${name}: Show me said nothing`);continue}
+    if(lv===1){if(mode==='miss'){await pg.locator('#stage .cell').nth(target.i===0?1:0).click();if(!/finger|square|Pip/.test(await msg(pg)))errs.push(`${name}: hint was "${await msg(pg)}"`)}
+      await pg.locator('#stage .cell').nth(target.i).click();await walkWait(n)}
+    else if(lv===2){if(mode==='miss'){if(dy)await arrows(dx,0);else await arrows(dx+(dx>0?-1:1),0);await pg.getByRole('button',{name:'Go'}).click();await walkWait(Math.abs(dx)+1);const m=await msg(pg);if(!/too|far|edge|right|left/.test(m))errs.push(`${name}: hint was "${m}"`);await pg.waitForTimeout(800);if(await pg.locator('#stage .way').count())errs.push(`${name}: the path strip was not cleared after a miss`)}
+      await arrows(dx,dy);const ways=await pg.locator('#stage .way').count();if(ways!==n)errs.push(`${name}: ${ways} arrows on the strip for ${n} taps`);await pg.getByRole('button',{name:'Go'}).click();await walkWait(n)}
+    else{if(mode==='miss'){await pg.locator('#controls .num',{hasText:new RegExp('^'+(n+1)+'$')}).click();if(!/sideways|Count/.test(await msg(pg)))errs.push(`${name}: hint was "${await msg(pg)}"`)}
+      await pg.locator('#controls .num',{hasText:new RegExp('^'+n+'$')}).click();await walkWait(n);if(!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg)}
+    const s=await stars(pg);if(s!==before+1)errs.push(`${name}: stars ${before}->${s}, msg "${await msg(pg)}"`);
+    const at=await pg.evaluate(()=>{const p=document.querySelector('#stage .pip');return p?p.style.transform:''});if(!at)errs.push(`${name}: Pip did not move`)}
+  /* level 2 accepts a longer path that still reaches the flower, and says the shorter way */
+  await go(pg,'steps',2,'space');{const {start,target}=await read();const dx=target.x-start.x,dy=target.y-start.y;const detourOk=dy>0?start.y+dy<4:start.y+dy>0;if(detourOk){await arrows(0,dy>0?1:-1);await arrows(dx,dy);await arrows(0,dy>0?-1:1)}else await arrows(dx,dy);const n=Math.abs(dx)+Math.abs(dy)+(detourOk?2:0);await pg.getByRole('button',{name:'Go'}).click();await walkWait(n);const m=await msg(pg);if(!/on the flower/.test(m))errs.push(`steps lv2 detour: "${m}"`);if(detourOk&&!/shorter way/.test(m))errs.push(`steps lv2 detour: the shorter way was not named: "${m}"`)}
+  console.log('steps played');done('solve-steps',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});
