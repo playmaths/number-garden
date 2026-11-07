@@ -1,0 +1,131 @@
+
+<div id="home" class="view">
+  <div class="hometop"><h1 id="homeTitle">Number Garden</h1><button class="pill" id="bookBtn">My Book</button></div>
+  <div class="who" id="who" hidden></div>
+  <div class="resting" id="resting" hidden>🐞💤 Pip is sleepy. The garden opens again tomorrow. The flowers, the book and the story are all safe.</div>
+  <div class="homebug"><svg class="bug idle" id="homeBug" viewBox="0 0 60 60"></svg><div class="greet" id="greet"></div></div>
+  <div class="note" id="noteCard" hidden></div>
+  <div class="gtabs"><button class="tab on" id="tabGarden">Garden</button><button class="tab" id="tabBricks">Bricks</button></div>
+  <div id="gardenWrap"><div class="garden big"><svg id="gardenSvg" viewBox="0 0 400 150" aria-label="your garden"></svg><div class="sign" id="sign"></div></div></div>
+  <div class="bricks" id="bricks" hidden></div>
+  <h2 class="pickline">Pick a door</h2>
+  <div class="doors" id="doors"></div>
+  <button class="grownup" id="gearBtn">for grown-ups</button>
+</div>
+
+<div id="play" class="view" hidden>
+  <div class="playtop"><button class="back" id="backBtn" aria-label="back to garden">‹</button><div class="trail" id="trail"></div><button class="tell" id="tellBtn" aria-label="tell Pip something">🐞<span>Tell Pip</span></button><div class="streak" id="streakChip" hidden></div><div class="turn" id="turn"></div></div>
+  <div class="card" id="card">
+    <svg class="bug idle" id="cardBug" viewBox="0 0 60 60"></svg>
+    <div class="where" id="where"></div>
+    <div class="prompt" id="prompt"></div>
+    <div class="stage" id="stage"></div>
+    <div class="msg" id="msg"></div>
+    <div id="controls"></div>
+  </div>
+</div>
+
+<div id="closed" class="view" hidden>
+  <div class="donecard"><div class="emo">🐞💤</div><h2 id="closedTitle">Pip is sleepy</h2><p id="closedText"></p>
+  <div class="row"><button class="btn" id="closedHome">Back to the garden</button></div></div>
+</div>
+
+<div id="done" class="view" hidden>
+  <div class="donecard">
+    <div class="bigflower" id="bigflower"></div>
+    <h2 id="doneTitle"></h2>
+    <p id="doneText"></p>
+    <div class="row"><button class="btn" id="againBtn">Another trail</button><button class="btn quiet" id="homeBtn">Back to the garden</button></div>
+  </div>
+</div>
+
+<div id="book" class="view" hidden>
+  <div class="playtop"><button class="back" id="bookBack" aria-label="back to garden">‹</button><h2 id="bookTitle">My Book</h2></div>
+  <div class="row"><button class="btn quiet" id="museumBtn">Mistake museum</button></div>
+  <div class="shelf" id="shelf"></div>
+  <div class="pages" id="pages"></div>
+</div>
+
+<div id="playground" class="view" hidden>
+  <div class="playtop"><button class="back" id="pgBack" aria-label="back to garden">‹</button><h2>Playground</h2></div>
+  <p class="pickline">No questions here. Just play with numbers.</p>
+  <div class="toys" id="toys"></div>
+</div>
+<div id="toy" class="view" hidden>
+  <div class="playtop"><button class="back" id="toyBack" aria-label="back to playground">‹</button><h2 id="toyTitle"></h2></div>
+  <div class="card learncard">
+    <div class="target" id="toyTarget"></div>
+    <div class="stage" id="toyStage"></div>
+    <div class="msg" id="toyMsg"></div>
+    <div id="toyControls"></div>
+  </div>
+</div>
+<div id="tale" class="view" hidden>
+  <div class="playtop"><button class="back" id="taleBack" aria-label="back to garden">‹</button><h2 id="taleTitle">Pip's story</h2></div>
+  <div class="talecard"><div class="talepage" id="talePage"></div><div id="taleBox" class="talebox"></div><div class="taledots" id="taleDots"></div>
+  <div class="row"><button class="btn quiet" id="talePrev">‹ Back</button><button class="btn" id="taleNext">Next ›</button></div></div>
+</div>
+
+<div id="museum" class="view" hidden>
+  <div class="playtop"><button class="back" id="museumBack" aria-label="back"><span>‹</span></button><h2>Mistake museum</h2></div>
+  <p class="pickline">Every slip goes in here. Beat it later and it gets a trophy.</p>
+  <div class="museumlist" id="museumList"></div>
+</div>
+
+<div id="ideas" class="view" hidden>
+  <div class="playtop"><button class="back" id="ideasBack" aria-label="back to garden">‹</button><h2>Big Ideas</h2></div>
+  <p class="pickline">Read one, try it, then play.</p>
+  <div class="idealist" id="idealist"></div>
+</div>
+
+<div id="learn" class="view" hidden>
+  <div class="playtop"><button class="back" id="learnBack" aria-label="back to ideas">‹</button><h2 id="learnTitle" style="flex:1"></h2><button class="tell" id="tellBtn2" aria-label="tell Pip something">🐞<span>Tell Pip</span></button></div>
+  <div class="book">
+    <div class="scenebox" id="sceneBox"><div class="sky"></div><div class="ground"></div><div class="sceneInner" id="sceneInner"></div></div>
+    <div class="narr"><svg class="bug idle" id="narrBug" viewBox="0 0 60 60"></svg><div class="bubble" id="bubble"></div></div>
+    <div class="row"><button class="btn quiet" id="prevBtn">‹ Back</button><div class="pages-dots" id="pageDots"></div><button class="btn" id="nextBtn">Next ›</button></div>
+  </div>
+  <div class="card learncard" id="tryCard" hidden>
+    <div class="prompt" id="tryPrompt"></div>
+    <div class="stage" id="tryStage"></div>
+    <div class="msg" id="tryMsg"></div>
+    <div id="tryControls"></div>
+  </div>
+</div>
+
+<div id="tell" class="view" hidden>
+  <div class="playtop"><button class="back" id="tellBack" aria-label="back">‹</button><h2>Tell Pip</h2></div>
+  <div class="card">
+    <div class="narr"><svg class="bug idle" id="tellBug" viewBox="0 0 60 60"></svg><div class="bubble" id="tellBubble">Something silly? Tap what happened and I'll tell the gardeners.</div></div>
+    <div class="tellgrid" id="tellGrid"></div>
+    <div class="row" id="tellDone" hidden><button class="btn" id="tellReturn">Back to my puzzle</button></div>
+  </div>
+</div>
+
+<div id="letter" class="view" hidden>
+  <div class="playtop"><button class="back" id="letterBack" aria-label="back">‹</button><h2 style="font-size:1.2rem">This week</h2></div>
+  <div class="lettercard"><div id="letterBox" class="letterbox"></div><div class="row"><button class="btn" id="copyLetter">Copy the letter</button></div><textarea id="letterPlain" class="letterplain" hidden rows="8" readonly></textarea></div>
+</div>
+
+<div class="sheet view" id="sheet" hidden>
+  <div class="playtop"><button class="back" id="closeSheet" aria-label="back">‹</button><h2 style="font-size:1.2rem">For grown-ups</h2></div>
+  <div class="papa" id="papa"></div>
+  <div class="row"><button class="btn" id="openLetter">This week's letter</button></div>
+  <label>Child's name <input id="name" placeholder="e.g. Mia" maxlength="20"></label>
+  <div class="kids"><b>Children on this device</b><div id="kidList" class="row"></div><div class="row"><input id="newKid" placeholder="another child's name" maxlength="20"><button class="btn quiet" id="addKid">Add a child</button></div><p>Each child has their own garden, book and family code. Tap a name on the home screen to switch.</p></div>
+  <label>Pronouns <select id="pro"><option value="she">she / her</option><option value="he">he / him</option><option value="they">they / them</option></select></label>
+  <label>Me &amp; Dad mode (take turns) <input type="checkbox" id="duo"></label>
+  <label>Sounds (notes and dings) <input type="checkbox" id="soundOn"></label>
+  <label>Read-aloud buttons <input type="checkbox" id="speechOn"></label>
+  <label>Play per day <select id="limit"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="0">no limit</option></select></label>
+  <p id="limitNote"></p><div class="row"><button class="btn quiet" id="moreToday">Ten more minutes today</button></div>
+  <label style="flex-direction:column;align-items:stretch;gap:6px">A note for the child (shows on the home screen)<input id="note" placeholder="e.g. I loved watching you count the acorns. Papa" maxlength="120"></label>
+  <label style="flex-direction:column;align-items:stretch;gap:6px">Family code (type the same code on every device, and the garden follows)<div class="row" style="justify-content:flex-start"><input id="family" placeholder="e.g. K7PM-3QX2" maxlength="9" style="text-transform:uppercase;width:150px"><button class="btn quiet" id="newFamily" type="button">New family</button></div></label>
+  <p id="famState" class="cloud"></p>
+  <div class="papa" id="reportsBox"><h3>Tell Pip reports from this device</h3><div id="reportsList">None yet.</div></div>
+  <p id="cloud" class="cloud"></p>
+  <p>Levels move by themselves: three problems in a row with no hints goes up a level, two problems that needed hints goes down. Nudge a level here if the child is bored or stuck. Levels are never shown; the child sees flowers, the book, and badges.</p>
+  <table id="levels"></table>
+  <div class="row"><button class="btn quiet" id="resetAll">Start over (clears everything)</button></div>
+</div>
+

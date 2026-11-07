@@ -102,6 +102,8 @@ More Think problems (the bank grows by hand; each family rolls its numbers but k
 
 ## Developing
 
+The source is in `src/` (markup, styles and the script in a few plain files); `index.html` is generated from it. Edit `src/`, run `sh tools/build.sh` (POSIX sh, nothing to install), and commit both `src/` and the regenerated `index.html`. `sh tools/check-build.sh` fails if the two have drifted apart.
+
 Everything about the code, the engine contract for games and Big Ideas, the sync design and the testing approach is in [ARCHITECTURE.md](ARCHITECTURE.md).
 
 ## License

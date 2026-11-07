@@ -4,11 +4,11 @@ This is the record of how Number Garden is built and why. Each section states th
 
 ## 1. Shape of the app
 
-**One `index.html`, no build step, no framework.** Styles, markup and about 1,900 lines of plain JavaScript live in one file, next to a manifest, a service worker and an icon folder.
+**One `index.html`, no framework, no dependencies.** The shipped file is still a single `index.html` (styles, markup and about 3,800 lines of plain JavaScript), next to a manifest, a service worker and an icon folder. The source now lives in `src/` as plain pieces: `head.html`, `style.css`, `body.html`, then the script split at top-level statement boundaries into `engine.js`, `games/*.js` (one file per room, numbered in load order), `ideas.js`, `playground.js`, `think.js`, `play.js` and `wiring.js`. `tools/build.sh` (POSIX sh, nothing to install) concatenates them back, byte for byte, into `index.html`, which is committed alongside `src/`; `tools/check-build.sh` fails when the two disagree. Edit `src/`, run `sh tools/build.sh`, commit both.
 
-Why: the fastest possible loop is save-then-refresh, and there is exactly one file to publish anywhere (a static host, a chat artifact, an Electron or WebView2 shell). For a solo project of this size a bundler buys nothing visible.
+Why: the fastest possible loop is save-then-refresh, and there is exactly one file to publish anywhere (a static host, a chat artifact, an Electron or WebView2 shell). For a solo project of this size a bundler buys nothing visible; `cat` is the whole build, and the generated file is kept in git so the host, the service worker and the tests never see the split.
 
-When to change it: past roughly 5–10k lines, or when unit tests or a second developer arrive. The path that keeps the no-build property is to split into a few plain files (`engine.js`, `games.js`, `ideas.js`, `style.css`) loaded by script tags, with a five-line script that concatenates them back into a single file for single-file targets.
+When to change it further: if `src/` ever needs modules or a second output, that is the moment for a real bundler; until then the split stays plain concatenation so the pieces read like the original file.
 
 ## 2. Runtime layout
 
@@ -184,6 +184,7 @@ The scripts live in `tests/` (`tests/run.sh` runs them all; `tests/README.md` li
 
 ## 12. Conventions
 
+- Edit `src/`, never `index.html` by hand; run `sh tools/build.sh` and commit `src/` and the regenerated `index.html` together (`sh tools/check-build.sh` tells you when they have drifted).
 - The code is dense one-liners by design; a new game should read like its neighbours.
 - Comments explain *why* (a trap, a rule, a child's behaviour), not what.
 - Book lines are written in the child's name and past tense: "found half of 8".

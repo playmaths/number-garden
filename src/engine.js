@@ -1,0 +1,348 @@
+(function(){
+'use strict';
+const $=s=>document.querySelector(s), el=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
+const rnd=(a,b)=>a+Math.floor(Math.random()*(b-a+1)), pick=a=>a[rnd(0,a.length-1)], shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rnd(0,i);[a[i],a[j]]=[a[j],a[i]]}return a};
+const store={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+const S=Object.assign({stars:0,dad:0,name:'',duo:false,m:{},room:'add',skill:null,turn:0,book:[],flowers:[],badges:{},counts:{},trail:null,streakNow:0,bestStreak:0,note:'',days:[],savedAt:0},store.get('ng2',{}));
+/* children on one device: a small registry of gardens. The active child's garden is the plain ng2 key (so everything else stays as it was); the others sleep under ng2_<id>. Switching swaps the keys and reloads */
+const PROFILES=store.get('ng2_profiles',{active:'p1',list:[{id:'p1'}]});
+const profileName=p=>p.id===PROFILES.active?(S.name||'Sprout'):((store.get('ng2_'+p.id,{})||{}).name||p.name||'Sprout');
+function switchProfile(id){if(id===PROFILES.active)return;store.set('ng2_'+PROFILES.active,S);PROFILES.active=id;store.set('ng2_profiles',PROFILES);store.set('ng2',store.get('ng2_'+id,{})||{});location.reload()}
+function addProfile(name){const id='p'+Date.now().toString(36);PROFILES.list.push({id,name});store.set('ng2_profiles',PROFILES);store.set('ng2_'+id,{name,stars:0,m:{},book:[],flowers:[],badges:{},counts:{},days:[]});switchProfile(id)}
+function removeProfile(id){if(id===PROFILES.active||PROFILES.list.length<2)return;PROFILES.list=PROFILES.list.filter(p=>p.id!==id);store.set('ng2_profiles',PROFILES);try{localStorage.removeItem('ng2_'+id)}catch(e){}}
+/* save: browser storage right away, cloud (db capability) a moment later; the cloud copy wins on load when it is newer */
+let cloud=null,cloudTimer=null,cloudWriting=null,cloudState='';
+function save(){S.savedAt=Date.now();store.set('ng2',S);if(cloud){clearTimeout(cloudTimer);cloudTimer=setTimeout(pushCloud,1500)}if(famOK()){clearTimeout(famTimer);famTimer=setTimeout(famPush,1500)}}
+async function pushCloud(){if(!cloud)return;if(cloudWriting){cloudTimer=setTimeout(pushCloud,1500);return}const body=JSON.parse(JSON.stringify(S));cloudWriting=cloud.doc('progress/main').set(body).then(()=>{cloudState='saved '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'})}).catch(e=>{cloudState='could not save ('+(e&&e.code||'error')+')'}).finally(()=>{cloudWriting=null;const c=document.getElementById('cloud');if(c)c.textContent=cloudLine()})}
+function cloudLine(){return cloud?`Progress is saved to the cloud for this page (${cloudState||'connected'}), so it carries over between devices and survives a cleared browser.`:'Progress is saved in this browser only. Sign in to Claude on this device for cloud saving across devices.'}
+async function connectCloud(){try{if(!window.claude||!claude.use)return;const db=await claude.use('db');if(!db)return;cloud=db;const snap=await db.doc('progress/main').get();
+  if(snap.exists){const d=snap.data();if(d&&(d.savedAt||0)>(S.savedAt||0)){Object.assign(S,d);store.set('ng2',S);renderHome();if(!$('#home').hidden)show('home');else if(!$('#play').hidden&&S.trail)play(S.trail.steps[S.trail.i])}else pushCloud()}
+  else pushCloud();cloudState='connected';const c=document.getElementById('cloud');if(c)c.textContent=cloudLine()}catch(e){cloud=null}}
+
+/* ---------- family code: one garden on every device, through Firestore's plain web API; the browser copy stays as the offline fallback ---------- */
+const FIREBASE={apiKey:'AIzaSyCgG83-cqWqDuzOWrIQwqLBMF7sTwOkbWA',projectId:'playmaths-6a181'};
+const famUrl=code=>`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/families/${encodeURIComponent(code)}?key=${FIREBASE.apiKey}`;
+let famTimer=null,famBusy=false,famState='';
+const famOK=()=>/^[A-Z0-9]{4}-[A-Z0-9]{4}$/.test(S.family||'');
+function newFamilyCode(){const A='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';const pick4=()=>Array.from({length:4},()=>A[Math.floor(Math.random()*A.length)]).join('');return pick4()+'-'+pick4()}
+function famLine(){const f=$('#famState');if(!f)return;f.textContent=famOK()?`Family ${S.family}: ${famState||'connecting…'}`:'No family code yet. Tap New family on the first device, then type that code on the others.'}
+async function famPush(){if(!famOK()||!navigator.onLine)return;if(famBusy){famTimer=setTimeout(famPush,1500);return}famBusy=true;
+  try{const body={fields:{data:{stringValue:JSON.stringify(S)},savedAt:{integerValue:String(S.savedAt||0)}}};const r=await fetch(famUrl(S.family),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});famState=r.ok?'saved '+new Date().toLocaleTimeString([],{hour:'numeric',minute:'2-digit'}):'could not save ('+r.status+')'}catch(e){famState='offline, saved on this device'}
+  famBusy=false;famLine()}
+async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await fetch(famUrl(S.family));
+    if(r.status===404){famPush();return}if(!r.ok){famState='could not read ('+r.status+')';famLine();return}
+    const doc=await r.json();const d=JSON.parse(doc.fields.data.stringValue);
+    const fresh=!S.stars&&!(S.book||[]).length&&!(S.flowers||[]).length,remoteHas=!!(d.stars||(d.book||[]).length||(d.flowers||[]).length); // a device with no progress takes the family's garden, if the family has one
+    if((fresh&&remoteHas)||(d.savedAt||0)>(S.savedAt||0)){const code=S.family,localTrail=S.trail,localSkill=S.skill,localM=localSkill&&S.m[localSkill],inPlay=!$('#play').hidden,keepLocal=inPlay&&!d.trail;Object.assign(S,d);S.family=code;if(keepLocal){S.trail=localTrail;S.skill=localSkill;if(localM)S.m[localSkill]=localM}if(S.skill&&!S.m[S.skill])S.m[S.skill]={lv:1,streak:0,low:0};store.set('ng2',S);famState='up to date';renderHome();$('#name').value=S.name||'';$('#pro').value=S.pro||'she';if(!$('#sheet').hidden)renderLevels();else if(!$('#home').hidden)show('home');else if(!$('#play').hidden&&S.trail&&!keepLocal)play(S.trail.steps[S.trail.i])}
+    else{famState='up to date';if((d.savedAt||0)<(S.savedAt||0))famPush()}}catch(e){famState='offline, saved on this device'}famLine()}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
+
+/* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
+const APP_VERSION='2026-11-07f';
+const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
+let tellFrom='play';
+let pendingShot=null,pendingHtml='';
+function openTell(from){tellFrom=from;pendingHtml=(from==='play'?$('#play'):$('#learn')).innerHTML.slice(0,24000);pendingShot=snapshot(); // the picture is taken of the screen as the child saw it, before the Tell view replaces it
+  const g=$('#tellGrid');g.innerHTML='';$('#tellDone').hidden=true;$('#tellBubble').textContent='Something silly? Tap what happened and I\'ll tell the gardeners.';$('#tellBug').innerHTML=BUG;
+  TELLS.forEach(([ico,label,kind])=>{const b=el('button','choice',`<b>${ico}</b>${label}`);b.onclick=()=>{fileReport(kind,label);g.querySelectorAll('.choice').forEach(x=>x.disabled=true);b.classList.add('hit');$('#tellBubble').innerHTML=kind==='love'?`Me too! I'll tell the gardeners you love it.`:`Thank you! I'll tell the gardeners: <em>${label}</em>. They'll have a look.`;bugs('happy');$('#tellDone').hidden=false};g.appendChild(b)});show('tell')}
+/* a picture of the screen for the gardeners: the visible page is serialised into an SVG with the page's own styles and drawn to a canvas. No library, no network; a small JPEG. If anything refuses, the report goes without it */
+async function snapshot(){try{const el=$('#play').hidden?$('#learn'):$('#play');const w=Math.min(el.scrollWidth||innerWidth,600),h=Math.min(el.scrollHeight||innerHeight,1500);const css=[...document.querySelectorAll('style')].map(x=>x.textContent).join('\n');const bg=getComputedStyle(document.body).backgroundColor;const dark=matchMedia('(prefers-color-scheme: dark)').matches;
+  const clone=el.cloneNode(true);clone.removeAttribute('hidden');clone.querySelectorAll('.puff,.dust').forEach(x=>x.remove());const xhtml=new XMLSerializer().serializeToString(clone);const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><foreignObject width="100%" height="100%"><div xmlns="http://www.w3.org/1999/xhtml" style="background:${bg};width:${w}px;color-scheme:${dark?'dark':'light'}"><style>${css.replace(/<\/style/g,'')} *{animation:none!important;transition:none!important}</style>${xhtml}</div></foreignObject></svg>`; // a canvas rasterises the SVG at time zero, where every fade-in is still invisible, so animations are switched off
+  const url='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);const img=new Image();await Promise.race([new Promise((res,rej)=>{img.onload=res;img.onerror=rej;img.src=url}),wait(2500).then(()=>{throw new Error('slow')})]);
+  const sc=Math.min(1,520/w,1100/h);const c=document.createElement('canvas');c.width=Math.round(w*sc);c.height=Math.round(h*sc);const g2=c.getContext('2d');g2.fillStyle=bg;g2.fillRect(0,0,c.width,c.height);g2.drawImage(img,0,0,c.width,c.height);const out=c.toDataURL('image/jpeg',.72);return out.length<380000?out:c.toDataURL('image/jpeg',.4)}catch(e){window.__snapErr=String(e);return ''}}
+function fileReport(kind,label){const inPlay=tellFrom==='play';const r={kind,label,game:inPlay?((ctx&&ctx.id)||S.skill||''):('idea:'+($('#learnTitle').textContent||'')),level:inPlay?((ctx&&ctx.lv)||0):0,prompt:(inPlay?$('#prompt').textContent:$('#bubble').textContent).slice(0,380),stage:(inPlay?$('#stage').innerText:$('#sceneInner').innerText).replace(/\s+/g,' ').slice(0,380),controls:(inPlay?$('#controls').innerText:'').replace(/\s+/g,' ').slice(0,280),when:new Date().toISOString(),ver:APP_VERSION,family:S.family||'',device:`${navigator.platform||''} ${innerWidth}x${innerHeight} ${/iPad|iPhone/.test(navigator.userAgent)?'iOS':/Android/.test(navigator.userAgent)?'Android':'other'}`.trim(),lang:navigator.language||'',html:pendingHtml,shot:'',sent:false};
+  S.reports=(S.reports||[]).concat(r).slice(-20);store.set('ng2',S);(pendingShot||Promise.resolve('')).then(png=>{r.shot=png||'';store.set('ng2',S);sendReports()})}
+let sendingReports=false;
+async function sendReports(){if(sendingReports||!navigator.onLine)return;const todo=(S.reports||[]).filter(r=>!r.sent);if(!todo.length)return;sendingReports=true;
+  for(const r of todo){try{const fields={};for(const k of ['kind','label','game','prompt','stage','controls','when','ver','family','device','lang','html','shot'])fields[k]={stringValue:String(r[k]||'')};fields.level={integerValue:String(r.level||0)};
+      const res=await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/reports?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(res.ok)r.sent=true;else if(res.status===400||res.status===403){delete fields.html;delete fields.shot;const res2=await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents/reports?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({fields})});if(res2.ok){r.sent=true;r.noShot=true}}}catch(e){}}
+  store.set('ng2',S);sendingReports=false;renderReports()}
+function renderReports(){const l=$('#reportsList');if(!l)return;const rs=(S.reports||[]).slice().reverse();l.innerHTML=rs.length?rs.map(r=>`<div>${r.label} · ${r.game}${r.level?' level '+r.level:''} · ${new Date(r.when).toLocaleString([],{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})} · ${r.sent?(r.noShot?'sent without the picture (rules not updated yet)':'sent with a picture'):'waiting to send'}</div>`).join(''):'None yet.'}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')sendReports()});
+
+/* ---------- rooms & skills ---------- */
+const ROOMS=[
+ {id:'warm',title:'Warm-ups',icon:'<circle cx="7" cy="7" r="3" fill="var(--dot)"/><circle cx="17" cy="7" r="3" fill="var(--dot)"/><circle cx="7" cy="17" r="3" fill="var(--dot)"/><circle cx="17" cy="17" r="3" fill="var(--accent)"/>'},
+ {id:'add',title:'Add & take',icon:'<rect x="3" y="4" width="6" height="16" rx="2" fill="var(--dot)"/><circle cx="15" cy="8" r="2.4" fill="var(--dot)"/><circle cx="15" cy="16" r="2.4" fill="var(--dot-gone)"/><circle cx="20" cy="8" r="2.4" fill="var(--dot)"/>'},
+ {id:'pat',title:'Patterns',icon:'<circle cx="5" cy="12" r="3" fill="var(--accent)"/><rect x="10" y="9" width="6" height="6" fill="var(--leaf)"/><circle cx="21" cy="12" r="3" fill="var(--accent)"/>'},
+ {id:'puz',title:'Puzzles',icon:'<path d="M4 18h16M12 18V6M6 6h12" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="6" cy="10" r="3" fill="var(--sun)"/><circle cx="18" cy="10" r="3" fill="var(--plum)"/>'},
+ {id:'story',title:'Stories',icon:'<path d="M4 5h7a2 2 0 012 2v13a2 2 0 00-2-2H4zM20 5h-7a2 2 0 00-2 2v13a2 2 0 012-2h7z" fill="var(--bg)" stroke="currentColor" stroke-width="2"/><path d="M6 9h4M6 12h4M14 9h4M14 12h4" stroke="var(--accent)" stroke-width="1.5"/>'},
+ {id:'space',title:'Shapes & space',icon:'<rect x="3" y="11" width="8" height="8" fill="var(--sky)"/><path d="M14 19l4-8 4 8z" fill="var(--accent)"/><circle cx="8" cy="6" r="3" fill="var(--leaf)"/>'},
+ {id:'time',title:'Time',icon:'<circle cx="12" cy="12" r="9" fill="var(--card)" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3 2" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" fill="none"/>'},
+ {id:'meas',title:'Measure',icon:'<path d="M3 15h18v5H3z" fill="var(--sun)"/><path d="M6 15v3M9 15v2M12 15v3M15 15v2M18 15v3" stroke="#1a1a1a" stroke-width="1.5"/><path d="M4 11a8 8 0 0116 0" fill="var(--accent)"/>'},
+ {id:'sud',title:'Sudoku',icon:'<rect x="3" y="3" width="18" height="18" rx="2" fill="var(--card)" stroke="currentColor" stroke-width="2"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2"/><circle cx="7.5" cy="7.5" r="2" fill="var(--plum)"/><circle cx="16.5" cy="16.5" r="2" fill="var(--accent)"/>'},
+ {id:'think',title:'Think',icon:'<path d="M12 3a6 6 0 00-3.5 10.9V17h7v-3.1A6 6 0 0012 3z" fill="var(--sun)" stroke="#1a1a1a" stroke-width="1.5"/><rect x="9.5" y="18" width="5" height="3" rx="1" fill="#1a1a1a"/>'},
+ {id:'make',title:'Makes it',icon:'<rect x="3" y="8" width="18" height="10" rx="3" fill="var(--plum)"/><circle cx="8" cy="13" r="2" fill="#fff"/><circle cx="16" cy="13" r="2" fill="#fff"/><path d="M12 3v5" stroke="var(--plum)" stroke-width="2"/><circle cx="12" cy="3" r="2" fill="var(--sun)"/>'}
+];
+const SK={};
+function skill(def){SK[def.id]=def}
+const MAX=id=>SK[id].levels;
+const lvl=id=>{const m=S.m[id]||(S.m[id]={lv:1,streak:0,low:0});return m.lv};
+
+/* read aloud (Web Speech, if the browser has it) */
+function speak(text){try{if(!window.speechSynthesis||S.speech===false)return false;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,''));u.rate=.9;u.pitch=1.05;const v=speechSynthesis.getVoices().find(v=>/en/i.test(v.lang)&&/female|zira|samantha|karen|google us english/i.test(v.name));if(v)u.voice=v;speechSynthesis.speak(u);return true}catch(e){return false}}
+function readBtn(getText){if(!window.speechSynthesis||S.speech===false)return el('span');const b=el('button','readbtn','🔊 Read it to me');b.onclick=()=>speak(getText());return b}
+/* ---------- shared UI ---------- */
+const prompt=$('#prompt'),stage=$('#stage'),msg=$('#msg'),controls=$('#controls'),turnEl=$('#turn');
+const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],make:['Makes it','You hide, I guess']};
+const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
+function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
+let ctx=null; // current problem context
+window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday}); // read-only hook for the headless checks
+function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'')}
+function cheer(){const c=pick(['Nice thinking!','You got it!','Yes!','That\'s it!','Great counting!','Clever!']);const who=S.duo&&ctx.turn===1?'Dad':S.name;return who?`${c.replace('!','')}, ${who}!`:c}
+function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;let c=document.getElementById('confetti');if(!c){c=document.createElement('canvas');c.id='confetti';document.body.appendChild(c)}
+  const x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const cols=['#ff7a59','#ffc83d','#4cae7c','#5aa9e6','#9b6bd6'];
+  const P=Array.from({length:70},()=>({x:innerWidth/2+(Math.random()-.5)*120,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,r:4+Math.random()*4,c:cols[rnd(0,4)],a:Math.random()*6,s:(Math.random()-.5)*.3}));
+  let t=0;if(window.__cf)cancelAnimationFrame(window.__cf);(function f(){x.clearRect(0,0,c.width,c.height);for(const p of P){p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.vx*=.99;p.a+=p.s;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore()}if(++t<70)window.__cf=requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
+let ac;function ding(){if(S.sound===false)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;[523,659,784].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.0001,t+i*.09);g.gain.exponentialRampToValueAtTime(.15,t+i*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.09+.25);o.start(t+i*.09);o.stop(t+i*.09+.3)})}catch(e){}}
+function pad(max,onPick,cls){const p=el('div','pad'+(max>9?' six':'')+(cls?' '+cls:''));for(let i=0;i<=max;i++){const b=el('button','num',i);b.onclick=()=>onPick(i,b);p.appendChild(b)}return p}
+function lock(p){p.querySelectorAll('button').forEach(b=>b.disabled=true)}
+function numpad(onSubmit,digits){digits=digits||2;const nm=el('div','pad');let typed='';const show=el('div','typed','_');nm.appendChild(show);
+  for(let i=0;i<10;i++){const k=el('button','num',i);k.onclick=()=>{if(typed.length<digits){typed+=i;show.textContent=typed}};nm.appendChild(k)}
+  const clr=el('button','num','⌫');clr.onclick=()=>{typed=typed.slice(0,-1);show.textContent=typed||'_'};
+  const ok=el('button','num go','That\'s it');ok.style.gridColumn='span 4';ok.onclick=()=>{if(!typed)return;const ans=+typed;typed='';show.textContent='_';onSubmit(ans,nm)};
+  nm.shake=()=>{show.classList.remove('shake');void show.offsetWidth;show.classList.add('shake')};
+  nm.append(clr,ok);return nm}
+function choices(opts,onPick){const r=el('div','row');opts.forEach(o=>{const b=el('button','choice');if(typeof o==='string'||typeof o==='number')b.textContent=o;else b.appendChild(o.node);b.onclick=()=>onPick(o,b);r.appendChild(b)});return r}
+function nextBtn(){const r=el('div','row');const last=S.trail&&S.trail.i>=S.trail.steps.length-1;const b=el('button','btn',last?'Plant the flower':'Next stone');b.onclick=()=>stepTrail();r.appendChild(b);return r}
+/* every few wins: ask her to explain her thinking to a grown-up before moving on */
+function tellPapa(){S.tellCount=(S.tellCount||0)+1;if(!ctx||(S.skill!=='think'&&(S.tellCount%3!==0||ctx.hints>0)))return;
+  const card=el('div','note said',`<small>In your own words</small>How did you know? Say it out loud: "I knew because…"`);const r=el('div','row');card.appendChild(r);stage.appendChild(card);
+  const keep=t=>{t=(t||'').trim().slice(0,160);if(!t)return;S.said=(S.said||[]).slice(0,19);S.said.unshift({t,skill:S.skill,d:Date.now()});addPage(`${KID()} said: "${t}"`,true);save();card.innerHTML=`<small>In your own words</small>"${t.replace(/</g,'&lt;')}" — written in ${P().pp} book.`;bugs('happy')};
+  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(SR){const mic=el('button','btn','🎤 Say it');mic.onclick=()=>{try{const rec=new SR();rec.lang='en-US';rec.interimResults=false;mic.textContent='Listening…';mic.disabled=true;rec.onresult=e=>keep(e.results[0][0].transcript);rec.onerror=()=>{mic.textContent='🎤 Say it';mic.disabled=false;say('I could not hear that. Try again, or type it.',false)};rec.onend=()=>{mic.textContent='🎤 Say it';mic.disabled=false};rec.start()}catch(e){mic.hidden=true}};r.appendChild(mic)}
+  const typ=el('button','btn quiet','✏️ Type it');typ.onclick=()=>{typ.hidden=true;const inp=el('input','saidin');inp.placeholder='I knew because…';inp.maxLength=160;const ok=el('button','btn','Keep');ok.onclick=()=>keep(inp.value);r.append(inp,ok);inp.focus()};r.appendChild(typ);
+  const told=el('button','btn quiet','I said it out loud');told.onclick=()=>{told.disabled=true;told.textContent='Said!';addPage(`${KID()} explained out loud how ${P().s} solved a ${SK[S.skill].title} problem.`,false);save()};r.appendChild(told)}
+
+/* mastery + reward */
+/* a right number is not the end. Where a game offers a reason or a second way, the star waits for one: odd problems ask why, even ones ask for another way. A level-up needs at least one right reason at this level */
+function nextGate(){const h=ctx.help;if(!h||ctx.lesson||ctx.gated)return null;const has=[h.reasons&&'why',h.ways&&'ways'].filter(Boolean);if(!has.length)return null;S.gateTurn=(S.gateTurn||0)+1;const kind=has.length===2?(S.gateTurn%2?'why':'ways'):has[0];return Object.assign({kind},kind==='why'?h.reasons:h.ways)}
+function askGate(g,go){ctx.gated=true;const card=el('div','note gate',`<small>${g.kind==='why'?'Why?':'Another way'}</small>${g.q}`);const r=el('div','row cards');let tries=0;
+  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{if(o.ok){b.classList.add('hit');r.querySelectorAll('button').forEach(x=>x.disabled=true);if(tries===0&&g.kind==='why'){const m=S.m[S.skill];if(m)m.why=(m.why||0)+1}say(g.why||'That is the reason.',true);bugs('happy');setTimeout(go,800)}
+      else{b.classList.add('miss');b.disabled=true;tries++;ctx.hints++;say(o.no||'Not that one. Look at the picture and think again.',false);bugs('think');if(tries>=2){r.querySelectorAll('button').forEach(x=>{if(x.dataset.right)x.classList.add('hit');x.disabled=true});setTimeout(()=>{say(`${g.why||''} Next time, think it through first.`,false);setTimeout(go,900)},900)}}};r.appendChild(b)});
+  card.appendChild(r);stage.appendChild(card);say(g.kind==='why'?'Right number! Now tell me why.':'Right! Now show me another way.',true);bugs('happy');card.scrollIntoView({block:'nearest',behavior:'smooth'})}
+/* think first: before the numpad, one tap about the shape of the answer (more or fewer, bigger or smaller). A wrong guess costs nothing but a sentence; the point is to think before touching a number */
+function guessGate(g){const kids=[...controls.children];kids.forEach(k=>k.hidden=true);const card=el('div','note guess',`<small>Think first</small>${g.q}`);const r=el('div','row');
+  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>x.disabled=true);if(o.ok){b.classList.add('hit');say(o.why||'Good thinking. Now the number.',true);bugs('happy')}else{b.classList.add('miss');say(o.why||g.why||'Hmm. Read the story again, then the number.',false);bugs('think')}setTimeout(()=>{card.remove();kids.forEach(k=>k.hidden=false)},1000)};r.appendChild(b)});card.appendChild(r);stage.appendChild(card)}
+function win(text,noMastery){
+  if(ctx.done)return;const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
+  ctx.done=true;say(text,true);bugs('happy');
+  const m=S.m[S.skill]||(S.m[S.skill]={lv:1,streak:0,low:0});let levelUp=false;
+  if(!noMastery){if(ctx.hints===0){m.streak++;m.low=0;if(m.streak>=3&&m.lv<MAX(S.skill)&&(!SK[S.skill].hasReasons||m.why)){m.lv++;m.streak=0;m.why=0;levelUp=true}}
+    else{m.streak=0;if(ctx.hints>=2){m.low++;if(m.low>=2&&m.lv>1){m.lv--;m.low=0}}else m.low=0}}
+  const mine=!(S.duo&&ctx.turn===1);
+  if(mine){S.stars++;S.counts[S.skill]=(S.counts[S.skill]||0)+1;const day=Math.floor(Date.now()/864e5);S.last=S.last||{};S.last[S.skill]=day;if(!S.days.includes(day))S.days.push(day);
+    if(ctx.hints===0){S.streakNow++;if(S.streakNow>S.bestStreak)S.bestStreak=S.streakNow}else{S.streakNow=0;say('You kept going and got it. That is what good thinkers do. '+text,true)}
+    if(S.streakNow===3)setTimeout(()=>say(`Three in a row, ${KID()}!`,true),900);
+    if(S.streakNow===5){setTimeout(()=>{say(`Five in a row! ${KID()} is unstoppable today.`,true);confetti()},900);addPage(`${KID()} got five right in a row, no clues needed.`,true)}
+    if(S.streakNow===10){setTimeout(()=>{say(`TEN in a row! Papa, come and see this.`,true);confetti()},900);addPage(`${KID()} got TEN right in a row. Best streak ever: ${S.bestStreak}.`,true)}
+    renderStreak();
+    const line=ctx.help&&ctx.help.book?ctx.help.book:`finished a ${SK[S.skill].title} problem`;addPage(`${KID()} ${line}.`,false);S.log=((S.log||[]).concat({d:Date.now(),s:S.skill,h:ctx.hints,lv:m.lv})).slice(-400);if(ctx.hints===0)(S.misses||[]).forEach(x=>{if(x.s===S.skill&&!x.beaten&&x.lv<=m.lv){x.beaten=Date.now()}});if(museumRetry!=null){const x=(S.misses||[])[museumRetry];if(x&&ctx.hints===0)x.beaten=Date.now();museumRetry=null} // a clean win beats every old slip on that game at that level or below
+    if(levelUp){addPage(`${KID()} moved up in ${SK[S.skill].title}. ${SK[S.skill].grow?SK[S.skill].grow(m.lv):'The problems get a little bigger now.'}`,true);setTimeout(()=>{say(text+' You moved up!',true);confetti()},700)}
+    checkBadges()}
+  if(S.trail)S.trail.lit[S.trail.i]=true;
+  S.turn=1-S.turn;save();ding();renderTrail();const hr=controls.querySelector('#helpRow');if(hr)hr.remove();controls.appendChild(nextBtn());if(mine)tellPapa();
+}
+function addPage(text,big){S.book.unshift({t:text,d:Date.now(),big:!!big});if(S.book.length>200)S.book.length=200}
+const KID=()=>S.name||'Sprout'; // a garden nickname until a name is typed in the grown-ups screen
+/* pronouns, chosen in the grown-ups screen: P().s = she/he/they, .o = her/him/them, .p = her/his/their, .pp = hers/his/theirs, .self; vb(singular, plural) picks the verb form, so 'they' reads "they have" */
+const PRO={she:{s:'she',o:'her',p:'her',pp:'hers',self:'herself'},he:{s:'he',o:'him',p:'his',pp:'his',self:'himself'},they:{s:'they',o:'them',p:'their',pp:'theirs',self:'themself'}};
+const P=()=>PRO[S.pro]||PRO.she;const vb=(sg,pl)=>P().s==='they'?pl:sg;const cap=w=>w[0].toUpperCase()+w.slice(1);
+function miss(hint){ctx.hints++;say(hint,false);bugs('think');
+  if(ctx.hints===1&&!ctx.lesson&&S.skill&&SK[S.skill]){const st=$('#stage .story');S.misses=((S.misses||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,p:$('#prompt').textContent.slice(0,120),st:st?st.textContent.slice(0,160):'',beaten:false})).slice(-60);save()} // the first slip on a problem goes in the museum
+  if(ctx.hints===2&&SK[S.skill]&&SK[S.skill].idea){const l=controls.querySelector('.learn');if(l){l.classList.add('glow');setTimeout(()=>say(hint+' Want Pip to show you the idea? Tap Learn.',false),1200)}}if(S.streakNow){S.streakNow=0;renderStreak()}const t=controls.querySelector('.typed');if(t){t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake')}}
+/* every game declares help({clues:[...], answer, why, show}) so the Clue / Show me buttons work the same everywhere */
+function help(o){ctx.help=o;ctx.clueIdx=0;if(o.reasons&&SK[S.skill])SK[S.skill].hasReasons=true}
+function helpRow(){const r=el('div','row');r.id='helpRow';const c=el('button','btn quiet','Clue'),s=el('button','btn quiet','Show me');
+  c.onclick=()=>{if(ctx.done||!ctx.help)return;const cl=ctx.help.clues;say(cl[Math.min(ctx.clueIdx,cl.length-1)]);ctx.clueIdx++;ctx.hints++};
+  s.onclick=()=>{if(ctx.done||!ctx.help)return;reveal()};r.append(c,s);
+  if(SK[S.skill]&&SK[S.skill].teach){const w=el('button','btn quiet','Watch');w.onclick=()=>{if(ctx.done)return;const lv=S.m[S.skill].lv;teachNow(S.skill,lv,()=>play(S.skill))};r.appendChild(w)}
+  if(SK[S.skill]&&SK[S.skill].idea){const l=el('button','btn quiet learn','Learn');l.onclick=()=>{const idea=IDEAS.find(i=>i.id===SK[S.skill].idea);if(idea)openIdea(idea,true)};r.appendChild(l)}return r}
+function reveal(){const h=ctx.help;ctx.done=true;S.streakNow=0;renderStreak();controls.querySelectorAll('button').forEach(b=>{if(b.closest('#helpRow'))return;b.disabled=true});
+  if(h.show)try{h.show()}catch(e){}
+  say((h.answer!=null?`It's ${h.answer}. `:'')+(h.why||''),true);
+  const m=S.m[S.skill]||(S.m[S.skill]={lv:1,streak:0,low:0});m.streak=0;m.low++;if(m.low>=2&&m.lv>1){m.lv--;m.low=0}S.turn=1-S.turn;save();
+  const r=controls.querySelector('#helpRow');if(r)r.remove();controls.appendChild(nextBtn())}
+function renderStars(){}
+
+/* ---------- garden ---------- */
+const FLOWER={pick:'#ff6b6b',sud:'#7b61ff',think:'#ff9f1c',warm:'var(--sky)',add:'var(--accent)',pat:'var(--leaf)',puz:'var(--plum)',story:'var(--sun)',space:'var(--sky)',time:'var(--plum)',meas:'var(--sun)'};
+const WORDS=['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
+const inWords=n=>n<=20?WORDS[n]:String(n);
+/* ---------- the garden grows: flower kinds, bushes, a tree, visitors ---------- */
+/* a flower by kind: 0 daisy, 1 tulip, 2 sunflower, 3 bell. The kind comes from the flower's number, so the garden mixes as it grows */
+function flowerSvg(x,y,ht,col,scale,kind){scale=scale||1;kind=kind||0;let h=`<line x1="${x}" y1="${y}" x2="${x}" y2="${y-ht}" stroke="var(--leaf)" stroke-width="${2.5*scale}"/><ellipse cx="${x-5*scale}" cy="${y-ht/2}" rx="${5*scale}" ry="${2.5*scale}" fill="var(--leaf)" transform="rotate(-30 ${x-5*scale} ${y-ht/2})"/>`;
+  if(kind===1)return h+`<path d="M${x-5*scale} ${y-ht+2*scale} q${5*scale} ${-12*scale} ${10*scale} 0 q${-2*scale} ${8*scale} ${-5*scale} ${9*scale} q${-3*scale} ${-1*scale} ${-5*scale} ${-9*scale}z" fill="${col}"/><path d="M${x} ${y-ht+2*scale} v${-9*scale}" stroke="${col}" stroke-width="${2*scale}"/>`;
+  if(kind===2){for(let p=0;p<8;p++){const a=p*45*Math.PI/180;h+=`<ellipse cx="${x+Math.cos(a)*6*scale}" cy="${y-ht+Math.sin(a)*6*scale}" rx="${3.6*scale}" ry="${2*scale}" fill="var(--sun)" transform="rotate(${p*45} ${x+Math.cos(a)*6*scale} ${y-ht+Math.sin(a)*6*scale})"/>`}return h+`<circle cx="${x}" cy="${y-ht}" r="${3.4*scale}" fill="#6b4f1d"/>`}
+  if(kind===3)return h+`<path d="M${x-5*scale} ${y-ht+4*scale} q${5*scale} ${2*scale} ${10*scale} 0 l${-2*scale} ${-9*scale} q${-3*scale} ${-3*scale} ${-6*scale} 0z" fill="${col}"/><circle cx="${x}" cy="${y-ht+5*scale}" r="${1.4*scale}" fill="var(--sun)"/>`;
+  for(let p=0;p<5;p++){const a=p*72*Math.PI/180;h+=`<circle cx="${x+Math.cos(a)*5*scale}" cy="${y-ht+Math.sin(a)*5*scale}" r="${3.8*scale}" fill="${col}"/>`}return h+`<circle cx="${x}" cy="${y-ht}" r="${2.6*scale}" fill="var(--sun)"/>`}
+/* what the garden has reached: every 8 flowers a bush, a tree that sprouts at 20 and grows through 4 stages, and visitors that arrive at milestones */
+const GARDEN_STAGES=[{at:5,visitor:'🦋',text:'A butterfly has come to visit.'},{at:12,visitor:'🐝',text:'A bee found the flowers.'},{at:20,tree:1,text:'A little tree has sprouted!'},{at:30,visitor:'🐦',text:'A bird sings in the garden.'},{at:40,tree:2,text:'The tree is growing tall.'},{at:55,visitor:'🐿️',text:'A squirrel lives here now.'},{at:70,tree:3,text:'The tree has leaves to sit under.'},{at:90,visitor:'🌈',text:'A rainbow over the garden!'},{at:110,tree:4,text:'The tree is full of fruit.'}];
+function gardenStage(n){return GARDEN_STAGES.filter(s=>n>=s.at)}
+function treeSvg(x,y,stage){if(!stage)return'';const s=[0,.5,.75,1,1][stage];let h=`<path d="M${x} ${y} v${-30*s-10}" stroke="#6b4f1d" stroke-width="${3+4*s}" stroke-linecap="round"/>`;
+  if(stage===1)return h+`<ellipse cx="${x-5}" cy="${y-22}" rx="6" ry="3" fill="var(--leaf)" transform="rotate(-30 ${x-5} ${y-22})"/><ellipse cx="${x+5}" cy="${y-30}" rx="6" ry="3" fill="var(--leaf)" transform="rotate(30 ${x+5} ${y-30})"/>`;
+  h+=`<circle cx="${x}" cy="${y-30*s-18}" r="${14+10*s}" fill="#4cae7c"/><circle cx="${x-12*s-6}" cy="${y-30*s-8}" r="${10+6*s}" fill="#5bbd8a"/><circle cx="${x+12*s+6}" cy="${y-30*s-8}" r="${10+6*s}" fill="#5bbd8a"/>`;
+  if(stage>=4)for(let i=0;i<6;i++)h+=`<circle cx="${x-18+i*7}" cy="${y-48+(i%2)*10}" r="3" fill="#e63946"/>`;return h}
+function bushSvg(x,y){return `<circle cx="${x}" cy="${y-8}" r="11" fill="#4cae7c"/><circle cx="${x-9}" cy="${y-4}" r="8" fill="#5bbd8a"/><circle cx="${x+9}" cy="${y-4}" r="8" fill="#5bbd8a"/>`}
+/* the garden follows the real calendar: snow in winter, blossom in spring, a sun in summer, falling leaves in autumn. Flowers never go: they are earned */
+const SEASONS={winter:{months:[11,0,1],sky:'#dfe9f3',soil:'#e8eef4',leaf:'#7fa08a',bits:['❄','❄','❄'],text:'It is winter in the garden.'},spring:{months:[2,3,4],sky:'#eaf7ee',soil:null,leaf:'#4cae7c',bits:['🌸','🌸','·'],text:'It is spring: blossom everywhere.'},summer:{months:[5,6,7],sky:'#fff8e1',soil:null,leaf:'#3f9a66',bits:['☀'],text:'It is summer in the garden.'},autumn:{months:[8,9,10],sky:'#fdf0e0',soil:'#a86b3c',leaf:'#d9822b',bits:['🍂','🍁','🍂'],text:'It is autumn: the leaves are falling.'}};
+function season(d){const m=(d||new Date()).getMonth();return Object.keys(SEASONS).find(k=>SEASONS[k].months.includes(m))}
+function drawGarden(){const svg=$('#gardenSvg');const n=S.flowers.length;const stage=gardenStage(n);const sn=season(),se=SEASONS[sn];const tree=Math.max(0,...stage.filter(s=>s.tree).map(s=>s.tree));const visitors=stage.filter(s=>s.visitor).map(s=>s.visitor);
+  const fl=S.flowers.slice(-32);let h=`<rect x="0" y="0" width="400" height="150" fill="${se.sky}" opacity=".55"/><rect x="0" y="130" width="400" height="20" fill="${se.soil||'var(--soil)'}" rx="6"/>`;if(sn==='winter')h+=`<rect x="0" y="128" width="400" height="6" fill="#fff" rx="3"/>`;if(sn==='summer')h+=`<circle cx="44" cy="26" r="14" fill="#ffd166"/>`;
+  h+=treeSvg(360,132,tree).replace(/#4cae7c/g,se.leaf).replace(/#5bbd8a/g,se.leaf).replace(/var\(--leaf\)/g,se.leaf);if(sn==='spring'&&tree)for(let i=0;i<8;i++)h+=`<circle cx="${340+(i*17)%44}" cy="${70+(i*23)%40}" r="3" fill="#ffb3c6"/>`;if(sn==='winter'&&tree)h+=`<ellipse cx="360" cy="${132-30-18}" rx="22" ry="5" fill="#fff"/>`;for(let b=0;b<Math.min(4,Math.floor(n/8));b++)h+=bushSvg(30+b*85,132);
+  const day0=fl.length?Math.min(...fl.map(f=>f.day)):0;const off=S.flowers.length-fl.length;
+  fl.forEach((f,i)=>{const k=off+i;const x=14+(i%16)*20.5,row=Math.floor(i/16),ht=28+((f.day-day0)%5)*7+row*10;h+=flowerSvg(x,130-row*4,ht,FLOWER[f.room]||'var(--accent)',1,Math.floor(k/3)%4)});
+  const today=Math.floor(Date.now()/864e5);visitors.forEach((v,i)=>{const x=40+((today*37+i*113)%300),y=30+((today*17+i*71)%40);h+=`<text x="${x}" y="${y}" font-size="18" class="visitor" style="animation-delay:${i*.7}s">${v}</text>`});
+  if(sn!=='summer'){const today=Math.floor(Date.now()/864e5);for(let i=0;i<7;i++)h+=`<text class="bit" x="${(today*13+i*57)%390}" y="${-10-(i*19)%60}" font-size="${sn==='winter'?12:14}" style="animation-delay:-${(i*1.3)%7}s;animation-duration:${7+(i%3)*2}s">${se.bits[i%se.bits.length]}</text>`}
+  svg.innerHTML=h;const latest=stage.length&&n===stage[stage.length-1].at?stage[stage.length-1].text:null;
+  $('#sign').textContent=latest?latest:n===0?`${KID()}'s garden is ready for its first flower.`:n===1?`${KID()} has grown one flower.`:(Math.floor(Date.now()/864e5)%3===0?se.text+' ':'')+`${KID()} has grown ${inWords(n)} flowers${tree?' and a tree':''}.`;
+  const hb=$('#homeBug');if(hb)hb.classList.toggle('hover',S.streakNow>=3)}
+
+/* ---------- Pip's story: a page opens every ten flowers ---------- */
+/* a short picture story about Pip, read aloud if the child likes. Page 1 opens with the first flower, and every ten flowers open the next. It is the reward that is a story, not a count */
+const STORY=[
+ {t:`One morning Pip woke up in the garden and saw that the number 5 was missing. Not from a page. From the <em>world</em>. Four, then six. "That cannot be," said Pip.`,pic:'🐞 4 ❓ 6'},
+ {t:`She asked the snail. "Did you see a 5?" The snail counted his spots. "One, two, three, four… six. Oh dear. I have lost a spot too."`,pic:'🐌 🔢'},
+ {t:`Pip flew to the pond. The frogs were in a muddle. Five frogs on a log had become four frogs and a gap, and nobody knew who was missing.`,pic:'🐸🐸🐸🐸 🪵'},
+ {t:`"Think," said Pip. "If four are here, and there is one gap, then one frog is somewhere else." That is how you find a missing one: count what is here, then look at the gap.`,pic:'🐸🐸🐸🐸 ➕ ❓'},
+ {t:`They found the fifth frog under a lily pad, asleep. "I did not know I was a five," he said. "You are when there are four friends with you," said Pip.`,pic:'🪷 🐸 💤'},
+ {t:`But the number 5 was still gone. Pip went to the bee, who counts everything. "Ten and ten and ten," hummed the bee. "I never use five. I use tens."`,pic:'🐝 10 10 10'},
+ {t:`"Half of ten is five," said Pip. The bee stopped humming. "So it is. Then half my tens are missing too!" Numbers hold hands, Pip thought. Lose one and the others feel it.`,pic:'10 ✂️ 5 5'},
+ {t:`In the apple tree, the butterfly was crying. She had five spots on each wing, and now she had four. "Ten spots," she said, "and now only eight. I am not myself."`,pic:'🦋 4 + 4'},
+ {t:`Pip sat down and thought the hardest she had ever thought. Where does a number go when it is lost? Then she heard it. A tiny voice from inside a seed.`,pic:'🐞 💭 🌱'},
+ {t:`"I am in here," said the 5. "A child counted me wrong yesterday, and I fell off the end of the counting." Pip laughed. "Then we count you back."`,pic:'🌱 5 🗣️'},
+ {t:`One. Two. Three. Four. And Pip said it slowly and clearly, with the frog and the snail and the bee and the butterfly all together: <em>FIVE</em>. The seed cracked open.`,pic:'1 2 3 4 ✨5✨'},
+ {t:`The 5 climbed out and stood between 4 and 6, where it belonged. The snail got his spot back. The butterfly got her ten. And Pip went home to bed, because thinking that hard makes a ladybug very sleepy. The end.`,pic:'4 5 6 🐞 😴'}
+];
+const storyPages=()=>S.flowers.length===0?0:Math.min(STORY.length,1+Math.floor((S.flowers.length-1)/10)); // page 1 with the first flower, then one every ten
+let talePage=0;
+function renderTale(){const open=storyPages();const i=Math.max(0,Math.min(talePage,STORY.length-1));talePage=i;const p=STORY[i];const box=$('#taleBox');const locked=i>=open;
+  $('#taleTitle').textContent="Pip and the lost five";$('#talePage').textContent=`page ${i+1} of ${STORY.length}`;
+  box.innerHTML=locked?`<div class="emo">🔒</div><p class="talelock">This page opens when the garden has ${i*10+1} flowers. ${S.flowers.length} so far: ${i*10+1-S.flowers.length} more to grow.</p>`:`<div class="emo talepic">${p.pic}</div><p class="taletext">${p.t}</p>`;
+  document.querySelectorAll('#tale .readbtn').forEach(b=>b.remove());if(!locked){const rb=readBtn(()=>p.t.replace(/<[^>]+>/g,''));box.appendChild(rb)}
+  $('#talePrev').disabled=i===0;$('#taleNext').disabled=i>=STORY.length-1||i>=open; // the next page can be looked at only once it is open
+  const dots=$('#taleDots');dots.innerHTML=STORY.map((_,k)=>`<i class="${k<open?'open':''}${k===i?' now':''}"></i>`).join('')}
+function openTale(){talePage=Math.max(0,Math.min(storyPages()-1,S.lastTalePage||0));renderTale();show('tale');S.counts.tale_opened=(S.counts.tale_opened||0)+1;save()}
+
+/* ---------- the weekly letter: the last seven days on one screen, for a grown-up to read in a minute ---------- */
+/* what to say at the table, by what the child played this week */
+const TABLE_TALK={bar:'When she reads a story, ask "what do we know, and what do we want?" before any number is said.',detective:'Ask her to tell a story back in her own words, then "what is it asking?"',rewind:'Tell her a tiny story backwards at bedtime: "I have 5 now, I ate 2, how many did I start with?"',three:'Take one story and move the ? yourself: ask how many now, then how many she got, then how many at the start.',trick:'When a sum comes up, ask "which trick?" before "what is the answer?"',make:'Hold up fingers and ask how many more make ten.',missing:'Ask "7 and what makes 10?" instead of "what is 10 take away 7?"',both:'Put the same thing on both sides of a toy scale and ask what happens if you take one off each side.',think:'Ask "how do you know?" after any answer, right or wrong, and wait.',truth:'Play "true or not" with the shopping: "all the apples are red", "some of the bananas are green".',combo:'With two tops and two bottoms, ask how many outfits, and make them all.',pipslip:'Make a mistake on purpose and let her catch you.',talk:'Point at a group of things and ask "how did you see it?" rather than "how many?"',sudoku:'Ask which row, column or box is nearly full.',cubes:'Stack some blocks and ask what they look like from above, then from the front.',build:'Build a block stack from a drawing of its top view.',jar:'With a jar or a bowl of anything, ask "about how many?" before counting.',maketrue:'Ask whether 5 take away something could ever be 12.',flash:'Show her five fingers for one second and hide them: how many?',balance:'If one apple weighs the same as two plums, ask what three apples weigh.',tale:'Act a story out with real things before saying a number.',askq:'Give her two facts and ask "what could we ask?"',ways:'Ask for a second way to the same answer: "could you get 8 another way?"'};
+const dayN=ms=>Math.floor(ms/864e5);
+function weekData(){const now=Date.now(),from=now-7*864e5;const log=(S.log||[]).filter(e=>e.d>=from);const wins=log.filter(e=>e.s);const ideas=log.filter(e=>e.idea);
+  const byGame={};wins.forEach(e=>{const g=byGame[e.s]||(byGame[e.s]={n:0,h:0,clean:0});g.n++;if(e.h>0)g.h++;else g.clean++});
+  const days=new Set(wins.map(e=>dayN(e.d))).size;const flowers=S.flowers.filter(f=>f.day>=dayN(from)).length;const said=(S.said||[]).filter(e=>e.d>=from);
+  const ups=S.book.filter(e=>e.d>=from&&/moved up in/.test(e.t));const thinks=wins.filter(e=>['think','truth','combo','pipslip','talk'].includes(e.s)).length;
+  const tried=Object.entries(byGame).sort((a,b)=>b[1].n-a[1].n);const hard=tried.filter(([id,g])=>g.n>=2&&g.h/g.n>=.5).slice(0,3);const strong=tried.filter(([id,g])=>g.n>=2&&g.clean/g.n>=.8).slice(0,3);
+  const talk=[];tried.forEach(([id])=>{if(TABLE_TALK[id]&&talk.length<3)talk.push(TABLE_TALK[id])});if(!talk.length)talk.push(TABLE_TALK.think);
+  return{days,wins:wins.length,flowers,said,ups,thinks,tried,hard,strong,ideas,talk}}
+function letterText(w){const k=KID(),s=P().s,title=id=>SK[id]?SK[id].title:id;const lines=[];
+  lines.push(`${k}'s week in the Number Garden`);lines.push('');
+  lines.push(w.wins?`${cap(s)} played on ${inWords(w.days)} day${w.days===1?'':'s'}, solved ${w.wins} problem${w.wins===1?'':'s'} and grew ${inWords(w.flowers)} flower${w.flowers===1?'':'s'}.${w.thinks?` ${w.thinks} of the problems were think problems.`:''}`:`${cap(s)} did not play this week. No pressure: the garden waits.`);
+  if(w.said.length){lines.push('');lines.push('In '+P().pp+' own words:');w.said.slice(0,4).forEach(e=>lines.push(`  "${e.t}" (${title(e.skill)})`))}
+  if(w.ups.length){lines.push('');lines.push('Moved up:');w.ups.slice(0,4).forEach(e=>lines.push('  '+e.t))}
+  if(w.strong.length){lines.push('');lines.push('Solid right now: '+w.strong.map(([id,g])=>`${title(id)} (${g.clean} of ${g.n} without a clue)`).join(', ')+'.')}
+  if(w.hard.length){lines.push('');lines.push('Worth doing together: '+w.hard.map(([id,g])=>`${title(id)} (clues on ${g.h} of ${g.n})`).join(', ')+'.')}
+  if(w.ideas.length){lines.push('');lines.push('Big Ideas read: '+[...new Set(w.ideas.map(e=>{const i=IDEAS.find(x=>x.id===e.idea);return i?i.title:e.idea}))].join(', ')+'.')}
+  lines.push('');lines.push('To say at the table this week:');w.talk.forEach(t=>lines.push('  • '+t));
+  return lines.join('\n')}
+function renderLetter(){const w=weekData();const text=letterText(w);const box=$('#letterBox');box.innerHTML='';text.split('\n').forEach((ln,i)=>{if(!ln){box.appendChild(el('div','gap'));return}const d=el('div',i===0?'lhead':/^  /.test(ln)?'lline':/:$/.test(ln)?'lsub':'lpara',ln.trim());box.appendChild(d)});
+  $('#letterPlain').value=text;const cp=$('#copyLetter');cp.textContent='Copy the letter';cp.onclick=async()=>{try{await navigator.clipboard.writeText(text);cp.textContent='Copied'}catch(e){$('#letterPlain').hidden=false;$('#letterPlain').select();cp.textContent='Select and copy below'}}}
+
+/* ---------- brick builds: a set grows one brick per finished trail; the garden keeps its flowers too ---------- */
+/* original sets drawn as little brick pictures. Letters are colours, dots are air; bricks are laid from the bottom row up, left to right, so a half-built set looks like a half-built set */
+const BRICK_COL={R:'#e63946',B:'#1d6fd8',Y:'#f2b705',G:'#2a9d5c',K:'#2b2b2b',W:'#e9ecef',O:'#ff7a1a',P:'#9b5de5',N:'#8d5a3c',C:'#5bc0eb'};
+const MODELS=[
+ {id:'car',name:'race car',rows:['.....RR.....','...RRRRRR...','..RRRCCRRRR.','RRRRRRRRRRRR','.KK......KK.']},
+ {id:'castle',name:'castle',rows:['W.W....W.W','WWW....WWW','.W......W.','WWWWWWWWWW','WWW.NN.WWW','WWW.NN.WWW']},
+ {id:'rocket',name:'rocket',rows:['....R....','...RRR...','..RWWWR..','..RWCWR..','..RWWWR..','..RRRRR..','.YRRRRRY.','Y.O...O.Y']},
+ {id:'ship',name:'pirate ship',rows:['.....K.....','...WWWWW...','.....N.....','...WWWWW...','.....N.....','NNNNNNNNNNN','.NNNNNNNNN.','..NNNNNNN..']},
+ {id:'dragon',name:'dragon',rows:['.........GG.','........GGG.','....GGGGGG..','..GGGGGGG...','GG..GGGG....','....GG.GG...','....GG..GG..']}
+];
+MODELS.forEach(m=>{m.bricks=[];for(let r=m.rows.length-1;r>=0;r--)for(let c=0;c<m.rows[r].length;c++)if(m.rows[r][c]!=='.')m.bricks.push({r,c,k:m.rows[r][c]});m.total=m.bricks.length});
+function brickSvg(m,placed,size){const s=size||22,w=m.rows[0].length*s,h=m.rows.length*s;let out='';m.bricks.forEach((b,i)=>{const on=i<placed;out+=`<rect x="${b.c*s+1}" y="${b.r*s+1}" width="${s-2}" height="${s-2}" rx="3" fill="${on?BRICK_COL[b.k]:'rgba(0,0,0,.08)'}" stroke="${on?'rgba(0,0,0,.25)':'rgba(0,0,0,.12)'}" stroke-width="1"${on?'':' stroke-dasharray="3 2"'}/>`;if(on)out+=`<circle cx="${b.c*s+s/2}" cy="${b.r*s+s*.42}" r="${s*.16}" fill="rgba(255,255,255,.35)"/>`});return `<svg viewBox="0 0 ${w} ${h}" style="width:${Math.min(300,w*1.1)}px;max-width:100%">${out}</svg>`}
+function renderBricks(){const box=$('#bricks');if(!box)return;const b=S.build;box.innerHTML='';
+  if(b){const m=MODELS.find(x=>x.id===b.model);const d=el('div','buildnow');d.innerHTML=brickSvg(m,b.placed,22);const t=el('div','buildtext',`${KID()}'s ${m.name}: brick ${b.placed} of ${m.total}. ${m.total-b.placed===0?'Finished!':`${m.total-b.placed} more trail${m.total-b.placed===1?'':'s'} to go.`}`);box.append(d,t)}
+  else{box.appendChild(el('div','buildtext','Pick a set to build. Every finished trail adds one brick.'));const shelf=el('div','modelshelf');MODELS.forEach(m=>{const c=el('button','modelcard');c.innerHTML=brickSvg(m,m.total,10)+`<small>${m.name} · ${m.total} bricks</small>`;c.onclick=()=>{S.build={model:m.id,placed:0};save();renderBricks()};shelf.appendChild(c)});box.appendChild(shelf)}
+  const done=(S.built||[]);if(done.length){const sh=el('div','builtshelf');sh.appendChild(el('small','',`Finished: ${done.length}`));done.forEach(id=>{const m=MODELS.find(x=>x.id===id);if(!m)return;const d=el('div','builtone');d.innerHTML=brickSvg(m,m.total,7);d.title=m.name;sh.appendChild(d)});box.appendChild(sh)}}
+function setGardenView(v){S.gview=v;save();$('#gardenWrap').hidden=v==='bricks';$('#bricks').hidden=v!=='bricks';$('#tabGarden').classList.toggle('on',v!=='bricks');$('#tabBricks').classList.toggle('on',v==='bricks');renderBricks()}
+/* a finished trail lays a brick; a finished set goes on the shelf. Returns a line for the done screen, or '' */
+function layBrick(){const b=S.build;if(!b)return'';const m=MODELS.find(x=>x.id===b.model);if(!m)return'';b.placed++;if(b.placed>=m.total){S.built=(S.built||[]).concat(m.id);S.build=null;addPage(`${KID()} finished building the ${m.name}, brick by brick.`,true);return `The ${m.name} is finished! Every brick came from a trail.`}return `Brick ${b.placed} of ${m.total} on the ${m.name}.`}
+
+/* ---------- trails ---------- */
+function makeTrail(door){ /* pure doors: all five stones come from the door she picked, cycling through its games with no two alike in a row */
+  if(door==='pick'){S.trail={door:'pick',steps:pickTrail().steps,i:0,lit:[false,false,false,false,false]};save();return}
+  const d=shuffle(Object.values(SK).filter(k=>k.room===door).map(k=>k.id));
+  const steps=[];for(let i=0;i<5;i++)steps.push(d[i%d.length]);
+  if(door!=='think'&&SK.think)steps[2]='think'; // the middle stone of every trail is a think problem: one good idea, written by hand, no numpad reflex
+  S.trail={door,steps,i:0,lit:[false,false,false,false,false]};save()}
+function renderStreak(){const c=$('#streakChip');if(!c)return;c.hidden=S.streakNow<2;c.textContent=`${S.streakNow} in a row`}
+function renderTrail(){const t=$('#trail');t.innerHTML='';if(!S.trail)return;S.trail.steps.forEach((id,i)=>{const st=el('div','stone'+(S.trail.lit[i]?' lit':'')+(i===S.trail.i?' now':'')+(id==='think'?' think':''));t.appendChild(st)})}
+/* play time: counted only while a playing view is on screen and the tab is visible, in 5-second ticks. The limit is minutes per day, 0 for none; a grown-up can add ten minutes for today */
+const PLAY_VIEWS=['play','learn','playground','toy','tale'];const todayN=()=>Math.floor(Date.now()/864e5);
+function playToday(){if(!S.today||S.today.day!==todayN())S.today={day:todayN(),ms:0,extra:0};return S.today}
+function limitMs(){const t=playToday();const lim=S.limit==null?20:S.limit;return lim?lim*60000+(t.extra||0):Infinity}
+function gardenClosed(){return playToday().ms>=limitMs()}
+setInterval(()=>{if(document.visibilityState!=='visible')return;const on=PLAY_VIEWS.some(id=>{const v=$('#'+id);return v&&!v.hidden});if(!on)return;const t=playToday();t.ms+=5000;if(t.ms%60000<5000)save()},5000);
+function showClosed(){const k=KID();$('#closedTitle').textContent='Pip is sleepy';$('#closedText').textContent=`${k} has played for a good while today. The garden opens again tomorrow. Everything is saved: the flowers, the book, the story.`;show('closed');$('#closedHome').onclick=()=>{renderHome();show('home')}}
+/* Pip's pick: a trail of what is due, from the log. A game that needed clues lately and has not been done clean since is due; a game not played for five days is stale; a game never played is new. Think stone in the middle, as always */
+function pickTrail(){const now=Date.now(),day=todayN();const log=(S.log||[]).filter(e=>e.s&&now-e.d<10*864e5);const pool=Object.values(SK).filter(k=>k.room!=='make'&&k.room!=='think'&&k.room!=='pick');
+  const due=pool.filter(k=>{const es=log.filter(e=>e.s===k.id);const lastHint=[...es].reverse().find(e=>e.h>0);return lastHint&&!es.some(e=>e.h===0&&e.d>lastHint.d)}).map(k=>k.id);
+  const stale=pool.filter(k=>S.last&&S.last[k.id]!=null&&day-S.last[k.id]>=5).map(k=>k.id);const fresh=pool.filter(k=>!S.counts[k.id]).map(k=>k.id);
+  const steps=[];const take=(...lists)=>{for(const l of lists){const x=shuffle(l).find(id=>!steps.includes(id));if(x){steps.push(x);return true}}return false};
+  take(due,stale,fresh);take(stale,fresh,due);take(due,fresh,stale);take(stale,due,fresh);while(steps.length<4)take([shuffle(pool.map(k=>k.id)).find(id=>!steps.includes(id))]);
+  steps.splice(2,0,'think');return{steps:steps.slice(0,5),due,stale,fresh}}
+function startTrail(door){if(gardenClosed())return showClosed();makeTrail(door);show('play');play(S.trail.steps[0])}
+function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
+function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
+  const brickLine=layBrick();if(brickLine)save();const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');bf.innerHTML=`<div class="water">🚿</div><svg viewBox="0 0 60 70"><g class="sprout">${flowerSvg(30,66,40,FLOWER[tr.door],2.2,kind)}</g></svg>`;
+  const reached=GARDEN_STAGES.find(st=>st.at===n);const pageOpened=(n===1||(n-1)%10===0)&&storyPages()<=STORY.length?storyPages():0;$('#doneTitle').textContent=reached?reached.text:pageOpened?`Page ${pageOpened} of Pip's story is open!`:`A new flower for ${KID()}!`;
+  $('#doneText').textContent=`${KID()} walked the whole ${doorName(tr.door)} trail${lit?` and solved ${inWords(lit)} problem${lit===1?'':'s'} ${P().self}`:' and looked carefully at every problem'}. The garden now has ${inWords(n)} flower${n===1?'':'s'}.${brickLine?' '+brickLine:''}`;
+  addPage(`${KID()} finished the ${doorName(tr.door)} trail and planted flower number ${n}.`,true);
+  show('done');drawGarden();confetti();ding();if(brickLine){const bb=$('#bigflower');if(S.build||/finished/.test(brickLine)){const m=MODELS.find(x=>S.build?x.id===S.build.model:x.id===(S.built||[]).slice(-1)[0]);if(m){const bd=el('div','buildnow');bd.innerHTML=brickSvg(m,S.build?S.build.placed:m.total,14);bb.after(bd)}}}document.querySelectorAll('#done .buildnow').forEach((x,i,a)=>{if(i<a.length-1)x.remove()});if(reached){addPage(`${KID()}'s garden: ${reached.text}`,true);save()}const old=$('#readTale');if(old)old.remove();if(pageOpened){addPage(`Page ${pageOpened} of Pip's story opened for ${KID()}.`,true);save();const rb=el('button','btn','Read the new page');rb.id='readTale';rb.onclick=()=>{talePage=pageOpened-1;renderTale();show('tale')};$('#againBtn').parentNode.insertBefore(rb,$('#againBtn'))}$('#againBtn').onclick=()=>startTrail(tr.door);$('#homeBtn').onclick=()=>{renderHome();show('home')}}
+
+/* ---------- badges ---------- */
+const BADGES=[
+ {id:'first',name:'First Flower',text:'planted the very first flower',test:()=>S.flowers.length>=1},
+ {id:'tenbreaker',name:'Ten-Breaker',text:'solved ten take-away problems',test:()=>(S.counts.take||0)>=10},
+ {id:'riddle',name:'Riddle Solver',text:'cracked five number riddles',test:()=>(S.counts.riddle||0)>=5},
+ {id:'ways',name:'Many Ways',text:'found splits in five how-many-ways puzzles',test:()=>(S.counts.ways||0)>=5},
+ {id:'build',name:'Builder',text:'built five stacks from their views',test:()=>(S.counts.build||0)>=5},
+ {id:'setter',name:'Puzzle Setter',text:'set five sudokus for Pip',test:()=>(S.counts.setsudoku||0)>=5},
+ {id:'guesser',name:'Good Guesser',text:'guessed a jar closely ten times',test:()=>(S.counts.jar||0)>=10},
+ {id:'truemaker',name:'Sign Finder',text:'made ten number sentences true',test:()=>(S.counts.maketrue||0)>=10},
+ {id:'catcher',name:'Slip Catcher',text:"caught Pip's mistake ten times",test:()=>(S.counts.pipslip||0)>=10},
+ {id:'seer',name:'Number Seer',text:'saw a number three ways ten times',test:()=>(S.counts.talk||0)>=10},
+ {id:'truth',name:'Truth Teller',text:'judged ten statements true or not',test:()=>(S.counts.truth||0)>=10},
+ {id:'combo',name:'Every Way',text:'found every way five times',test:()=>(S.counts.combo||0)>=5},
+ {id:'thinker',name:'Thinker',text:'thought through ten puzzles',test:()=>(S.counts.think||0)>=10},
+ {id:'ownwords',name:'In My Own Words',text:'explained five answers in their own words',test:()=>(S.said||[]).length>=5},
+ {id:'both',name:'Bag Weigher',text:'found the secret bag five times',test:()=>(S.counts.both||0)>=5},
+ {id:'three',name:'Three Ways',text:'answered five stories three ways each',test:()=>(S.counts.three||0)>=5},
+ {id:'detective',name:'Story Detective',text:'read ten stories like a detective',test:()=>(S.counts.detective||0)>=10},
+ {id:'bars',name:'Bar Builder',text:'drew ten bars for stories',test:()=>(S.counts.bar||0)>=10},
+ {id:'rewind',name:'Rewinder',text:'rewound five stories back to the start',test:()=>(S.counts.rewind||0)>=5},
+ {id:'tricks',name:'Trick Namer',text:'named ten adding tricks',test:()=>(S.counts.trick||0)>=10},
+ {id:'balance',name:'Balance Master',text:'balanced the scale five times',test:()=>(S.counts.balance||0)>=5},
+ {id:'pattern',name:'Pattern Spotter',text:'spotted ten patterns',test:()=>((S.counts.cont||0)+(S.counts.machine||0))>=10},
+ {id:'reader',name:'Story Reader',text:'read and solved ten story mysteries',test:()=>(S.counts.tale||0)>=10},
+ {id:'garden',name:'Gardener',text:'grew ten flowers',test:()=>S.flowers.length>=10}
+];
+function checkBadges(){BADGES.forEach(b=>{if(!S.badges[b.id]&&b.test()){S.badges[b.id]=Date.now();addPage(`${KID()} earned the ${b.name} badge: ${P().s} ${b.text}.`,true)}})}
+let museumRetry=null;
+function renderMuseum(){const l=$('#museumList');l.innerHTML='';const ms=(S.misses||[]).map((m,i)=>({m,i})).reverse();if(!ms.length){l.appendChild(el('div','page','Nothing here yet. A slip is not a bad thing: it is how we find out what to look at next.'));return}
+  ms.forEach(({m,i})=>{const t=SK[m.s]?SK[m.s].title:m.s;const c=el('div','page museum'+(m.beaten?' beaten':''));c.innerHTML=`<b>${m.beaten?'🏆 ':''}${t}</b><div>${(m.st||m.p).replace(/</g,'&lt;')}</div><small>${new Date(m.d).toLocaleDateString(undefined,{month:'long',day:'numeric'})}${m.beaten?' · beaten '+new Date(m.beaten).toLocaleDateString(undefined,{month:'long',day:'numeric'}):''}</small>`;
+    if(!m.beaten&&SK[m.s]){const b=el('button','btn quiet','Try one like it');b.onclick=()=>{if(gardenClosed())return showClosed();S.m[m.s]=S.m[m.s]||{lv:1,streak:0,low:0};S.m[m.s].lv=Math.min(m.lv,SK[m.s].levels);S.trail={door:SK[m.s].room,steps:[m.s],i:0,lit:[false]};museumRetry=i;save();show('play');play(m.s)};c.appendChild(b)}l.appendChild(c)})}
+function renderBook(){$('#bookTitle').textContent=S.name?`${S.name}'s Book`:'My Book';const sh=$('#shelf');sh.innerHTML='';BADGES.forEach(b=>{const e=el('div','badge'+(S.badges[b.id]?'':' locked'),`<span>${S.badges[b.id]?'🏅':'○'}</span>${b.name}`);e.title=b.text;sh.appendChild(e)});
+  const pg=$('#pages');pg.innerHTML='';if(!S.book.length)pg.appendChild(el('div','page',`This book is empty. Every problem ${KID()} solves writes a line here.`));
+  S.book.forEach(e=>{const d=new Date(e.d);pg.appendChild(el('div','page'+(e.big?' big':''),`${e.t}<small>${d.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})}</small>`))})}
+
+/* tap-to-count: the child touches each object and it gets her number */
+function tapCount(container,selector,onCount){let order=[];const items=()=>Array.from(container.querySelectorAll(selector));
+  const renumber=()=>{items().forEach(d=>{const b=d.querySelector('b.tc');if(b)b.remove()});order.forEach((d,i)=>{const b=el('b','tc',i+1);d.appendChild(b)});if(onCount)onCount(order.length)};
+  items().forEach(d=>{d.style.cursor='pointer';d.addEventListener('click',()=>{if(ctx&&ctx.done)return;if(order.includes(d))order=order.filter(x=>x!==d);else order.push(d);renumber()})})}
+/* ---------- visuals ---------- */
+const shapes={heart:c=>`<path d="M20 35 L6 20 A8 8 0 0 1 20 10 A8 8 0 0 1 34 20z" fill="${c}"/>`,diamond:c=>`<path d="M20 3L36 20 20 37 4 20z" fill="${c}"/>`,moon:c=>`<path d="M24 4a16 16 0 1 0 12 26 12 12 0 1 1-12-26z" fill="${c}"/>`,cross:c=>`<path d="M14 4h12v10h10v12H26v10H14V26H4V14h10z" fill="${c}"/>`,hex:c=>`<path d="M20 3l15 8.5v17L20 37 5 28.5v-17z" fill="${c}"/>`,circle:c=>`<circle cx="20" cy="20" r="16" fill="${c}"/>`,square:c=>`<rect x="5" y="5" width="30" height="30" rx="4" fill="${c}"/>`,tri:c=>`<path d="M20 4L37 35H3z" fill="${c}"/>`,star:c=>`<path d="M20 3l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1z" fill="${c}"/>`};
+const svgShape=(s,c)=>{const e=el('div');e.innerHTML=`<svg class="shape" viewBox="0 0 40 40">${shapes[s](c)}</svg>`;return e.firstChild};
+function tenFrame(k,cls){const f=el('div','frame'+(cls?' '+cls:''));f.cells=[];for(let i=0;i<10;i++){const c=el('div','cell');const d=el('i');if(i>=k)d.className='empty';c.appendChild(d);f.appendChild(c);f.cells.push(d)}return f}
+
