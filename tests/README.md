@@ -4,9 +4,11 @@ Headless checks against the local `index.html` in Chromium. Nothing is published
 
 ```
 npm i -D playwright && npx playwright install chromium
-tests/run.sh            # everything
+tests/run.sh            # everything, one suite at a time, with a summary at the end
 node tests/books.js "Even and odd"   # one book
 ```
+
+`run.sh` works from any directory, runs the suites sequentially (parallel Chromiums crash), prints which passed and failed, and exits non-zero on any failure. GitHub Actions runs it on every push to `master` and every pull request (`.github/workflows/tests.yml`, about 15 to 25 minutes, 45-minute timeout); screenshots and the log are uploaded as the `test-output` artifact.
 
 | script | checks |
 |---|---|
@@ -15,10 +17,14 @@ node tests/books.js "Even and odd"   # one book
 | `trails.js` | every door builds five-stone trails from its own games, no neighbours alike |
 | `books.js` | every page of every Big Idea draws, interactive pages respond, try-its run; fails on any draw warning |
 | `sync.js` | two simulated devices against a mocked Firestore: join, win on each side, foreground refresh |
+| `tellpip.js` | Tell Pip: the six big choices on the play card and in a picture book; the report kept on the device, sent to the reports collection, listed for grown-ups, retried when a send fails |
 | `solve-profiles.js` | children on one device: add, switch, each keeps its own garden, remove |
 | `solve-bricks.js` | brick builds: the tab, picking a set, a brick per trail, the finished set on the shelf, flowers untouched |
 | `solve-arrays-chart.js` | Rows of how many at every level and the hundred chart toy |
 | `solve-pick-museum.js` | Pip's pick from a built log (due, stale, think in the middle, no repeats), a slip recorded, retried and beaten in the museum, the sound and speech switches |
+=======
+| `tellpip.js` | Tell Pip: the six big choices on the play card and in a picture book; the report kept on the device, sent to the reports collection, listed for grown-ups, retried when a send fails |
+>>>>>>> theirs
 | `solve-limit.js` | the daily play limit (counts only on playing views, closes at the next stone, rests the home screen, ten more minutes, no limit, a new day) and the current question marked in You hide the number |
 | `solve-setsudoku.js` | You set the sudoku: a clash while setting refused, too few clues refused, Pip stuck on ambiguous clues, solved on a full set, and her slips caught by tapping the square |
 | `solve-story-seasons.js` | the garden in each season under a fixed clock (falling bits, snow, sun, orange tree, flowers kept) and Pip's story: the door text, pages per ten flowers, locked pages, read-aloud, the done screen's new-page button |

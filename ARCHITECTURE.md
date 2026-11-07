@@ -182,6 +182,8 @@ Nothing is published until it passes a headless run. The checks, all Playwright 
 
 The scripts live in `tests/` (`tests/run.sh` runs them all; `tests/README.md` lists them).
 
+The same run happens on GitHub Actions (`.github/workflows/tests.yml`) for every push to `master` and every pull request: one Ubuntu job installs Playwright and Chromium, runs `tests/run.sh` with the suites one after another (several Chromiums at once crash the browser), and fails the check if any suite fails. The whole run takes 15 to 25 minutes; screenshots and the log are kept as a build artifact for a week.
+
 ## 12. Conventions
 
 - Edit `src/`, never `index.html` by hand; run `sh tools/build.sh` and commit `src/` and the regenerated `index.html` together (`sh tools/check-build.sh` tells you when they have drifted).
