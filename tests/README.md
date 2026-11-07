@@ -22,9 +22,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-bricks.js` | brick builds: the tab, picking a set, a brick per trail, the finished set on the shelf, flowers untouched |
 | `solve-arrays-chart.js` | Rows of how many at every level and the hundred chart toy |
 | `solve-pick-museum.js` | Pip's pick from a built log (due, stale, think in the middle, no repeats), a slip recorded, retried and beaten in the museum, the sound and speech switches |
-=======
 | `tellpip.js` | Tell Pip: the six big choices on the play card and in a picture book; the report kept on the device, sent to the reports collection, listed for grown-ups, retried when a send fails |
->>>>>>> theirs
 | `solve-limit.js` | the daily play limit (counts only on playing views, closes at the next stone, rests the home screen, ten more minutes, no limit, a new day) and the current question marked in You hide the number |
 | `solve-setsudoku.js` | You set the sudoku: a clash while setting refused, too few clues refused, Pip stuck on ambiguous clues, solved on a full set, and her slips caught by tapping the square |
 | `solve-story-seasons.js` | the garden in each season under a fixed clock (falling bits, snow, sun, orange tree, flowers kept) and Pip's story: the door text, pages per ten flowers, locked pages, read-aloud, the done screen's new-page button |
