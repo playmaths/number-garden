@@ -80,7 +80,19 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 @keyframes grow{0%{transform:scale(0) rotate(-20deg)}100%{transform:scale(1)}}
 .shelf{display:flex;gap:8px;flex-wrap:wrap}
 .badge{background:var(--card);border-radius:14px;padding:8px 12px;font-family:var(--display);font-size:.95rem;display:flex;gap:8px;align-items:center}
-.badge.locked{opacity:.4}
+.badge.locked{opacity:.4}.badge svg{width:34px;height:auto;display:block}
+.finalebox{width:100%;margin-bottom:6px}.builtone{background:transparent;border:0;padding:2px;border-radius:10px}.builtone:active{background:var(--bg)}
+.fin-car{animation:fincar 3.4s ease-in-out both}@keyframes fincar{0%{transform:none}8%{transform:translate(-2px,1px)}16%{transform:translate(2px,-1px)}24%{transform:translate(-2px,1px)}32%{transform:translate(2px,0)}38%{transform:translateX(0)}66%{transform:translateX(900px)}66.1%{transform:translateX(-900px)}100%{transform:none}}
+.fin-lines{opacity:0;animation:finlines 3.4s both}@keyframes finlines{0%,36%{opacity:0}44%{opacity:1}60%{opacity:0}100%{opacity:0}}
+.fin-bob{animation:finbob .6s ease-in-out 5 alternate}@keyframes finbob{from{transform:translateY(0)}to{transform:translateY(-5px)}}
+.fin-fire{opacity:0;animation:finfire 3.6s both}@keyframes finfire{0%,12%{opacity:0}18%{opacity:1}85%{opacity:1}100%{opacity:0}}.flame{animation:flame .22s ease-in-out infinite alternate}.flame.f2{animation-delay:.08s}.flame.f3{animation-delay:.15s}@keyframes flame{from{transform:scale(.8,.85)}to{transform:scale(1.15,1.1)}}
+.fw{opacity:0;animation:fw 1.7s ease-out 2 both}@keyframes fw{0%{transform:scale(.1);opacity:0}10%{opacity:1}70%{opacity:.9}100%{transform:scale(1.25);opacity:0}}
+.fin-rocket{animation:finrocket 4.2s cubic-bezier(.55,0,1,.45) both}@keyframes finrocket{0%{transform:none}5%{transform:translate(-2px,1px)}10%{transform:translate(2px,-1px)}15%{transform:translate(-2px,1px)}20%{transform:translate(1px,0)}25%{transform:translateY(0)}100%{transform:translateY(-900px)}}
+.exhaust{animation:exhaust .1s ease-in-out infinite alternate}@keyframes exhaust{from{transform:scale(.9,.8)}to{transform:scale(1.1,1.15)}}
+.smoke{opacity:0;animation:smoke 2.8s ease-out both}@keyframes smoke{0%{transform:scale(.2);opacity:0}15%{opacity:.9}100%{transform:scale(3.2) translateY(-8px);opacity:0}}
+.fin-ship{animation:finship 2.1s ease-in-out infinite alternate}@keyframes finship{from{transform:rotate(-3deg) translateY(0)}to{transform:rotate(3deg) translateY(-3px)}}
+.waves{animation:waves 1.6s linear infinite}@keyframes waves{from{transform:translateX(0)}to{transform:translateX(19.6px)}}
+.cannon{opacity:0;animation:cannon 1.4s ease-out 1.4s both}@keyframes cannon{0%{transform:scale(.2);opacity:0}15%{opacity:1}100%{transform:scale(2.2) translate(6px,-6px);opacity:0}}
 .pages{display:flex;flex-direction:column;gap:8px}
 .page{background:var(--card);border-radius:16px;padding:12px 16px;font-size:1.15rem;line-height:1.5;font-weight:700}
 .page.big{border:3px solid var(--sun)}
