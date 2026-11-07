@@ -102,6 +102,10 @@ Three games carry strategies rather than facts, after the Russian and Singapore 
 
 `win()` and a Big Idea read append to `S.log` (`{d, s, h, lv}` or `{d, idea}`, last 400). `weekData()` folds the last seven days into days played, wins, flowers, her own words, level-ups (from the book), think problems, games tried with clean and hinted counts, and from those the solid and the worth-doing-together games. `letterText()` writes it as plain text (so it copies into any message) and `renderLetter()` lays the same lines out. `TABLE_TALK` maps each game to one sentence a grown-up can say at the table; the letter picks up to three by what was played most.
 
+## 5f. Playing over weeks: Pip's pick, the museum, bricks, children, the limit
+
+`pickTrail()` reads `S.log` and `S.last`: due games (a hinted entry with no clean one after it), stale games (not played for five days), fresh games (never played), think stone in the middle. The **mistake museum** records the first `miss()` on a problem in `S.misses` with the prompt; a clean win on the same game at that level or below marks older slips beaten, and *Try one like it* replays the game at the slip's level. **Bricks**: `MODELS` are strings of colour letters; `layBrick()` runs in `finishTrail` and adds one brick per trail to `S.build`, moving a finished set to `S.built`; the home card has a Garden / Bricks tab and the flowers keep growing underneath. **Children**: `PROFILES` (`ng2_profiles`) lists gardens; the active child's state stays under the plain `ng2` key so nothing else changes, the others sleep under `ng2_<id>`, and switching swaps the keys and reloads. **The daily limit**: `S.today` counts five-second ticks while a playing view is visible; `gardenClosed()` is checked when a trail starts and at each next stone, never mid-problem; no clock is shown to the child.
+
 ## 6. Big Ideas
 
 A Big Idea is a concept taught, not a game dressed up. Every book follows the same order, and *Even and odd* is the model:

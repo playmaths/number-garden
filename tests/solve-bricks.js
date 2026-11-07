@@ -1,0 +1,18 @@
+// brick builds: the tab, picking a set, one brick per finished trail, the done screen line, a finished set on the shelf, flowers untouched
+const {open,done}=require('./lib');
+(async()=>{const {br,pg,errs}=await open();
+  await pg.evaluate(()=>{localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:0,m:{},book:[],flowers:[],counts:{},days:[],badges:{}}))});await pg.reload();
+  if(!await pg.locator('#gardenWrap').isVisible()||await pg.locator('#bricks').isVisible())errs.push('garden tab should show first');
+  await pg.locator('#tabBricks').click();if(!await pg.locator('#bricks').isVisible())errs.push('bricks tab did not open');const cards=await pg.locator('.modelcard').count();if(cards!==5)errs.push(`${cards} sets on offer`);
+  await pg.locator('.modelcard',{hasText:'race car'}).click();await pg.waitForTimeout(100);if(!/race car: brick 0 of/.test(await pg.locator('#bricks').innerText()))errs.push('set not started: '+await pg.locator('#bricks').innerText());
+  const total=await pg.evaluate(()=>+document.querySelector('.buildtext').textContent.match(/of (\d+)/)[1]);
+  const finish=async()=>{await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.trail={door:'warm',steps:['dots','dots','think','dots','dots'],i:4,lit:[1,1,1,1,0]};s.skill='dots';s.m.dots={lv:1,streak:0,low:0};s.taught={'dots:1':1};localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();await pg.waitForTimeout(100);await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(150);await pg.getByRole('button',{name:'Plant the flower'}).click();await pg.waitForTimeout(200)};
+  await finish();if(!/Brick 1 of/.test(await pg.locator('#doneText').innerText()))errs.push('done screen does not mention the brick: '+await pg.locator('#doneText').innerText());if(!await pg.locator('#done .buildnow svg').count())errs.push('done screen has no brick picture');
+  const st=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')));if(!st.build||st.build.placed!==1)errs.push('brick not laid: '+JSON.stringify(st.build));if(st.flowers.length!==1)errs.push('the flower was not planted too');
+  /* finish the set */
+  await pg.evaluate(t=>{const s=JSON.parse(localStorage.getItem('ng2'));s.build.placed=t-1;localStorage.setItem('ng2',JSON.stringify(s))},total);await finish();
+  if(!/race car is finished/.test(await pg.locator('#doneText').innerText()))errs.push('finish not announced: '+await pg.locator('#doneText').innerText());
+  const st2=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')));if(st2.build)errs.push('build still open after finishing');if(!(st2.built||[]).includes('car'))errs.push('finished set not on the shelf');if(!/finished building the race car/.test(st2.book[0].t+st2.book[1].t))errs.push('book line missing');
+  await pg.locator('#homeBtn').click();await pg.waitForTimeout(100);if(!await pg.locator('#bricks').isVisible())errs.push('home did not come back on the bricks tab');if(!await pg.locator('.builtshelf .builtone').count())errs.push('shelf empty after a finished set');if(await pg.locator('.modelcard').count()!==5)errs.push('a new set should be on offer');
+  await pg.locator('#tabGarden').click();if(!await pg.locator('#gardenWrap').isVisible())errs.push('garden tab did not come back');if(await pg.locator('#gardenSvg line').count()<2)errs.push('flowers missing from the garden');
+  console.log('bricks checked');done('solve-bricks',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});
