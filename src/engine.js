@@ -138,12 +138,18 @@ function win(text,noMastery){
     if(S.streakNow===5){setTimeout(()=>{say(`Five in a row! ${KID()} is unstoppable today.`,true);confetti()},900);addPage(`${KID()} got five right in a row, no clues needed.`,true)}
     if(S.streakNow===10){setTimeout(()=>{say(`TEN in a row! Papa, come and see this.`,true);confetti()},900);addPage(`${KID()} got TEN right in a row. Best streak ever: ${S.bestStreak}.`,true)}
     renderStreak();
-    const line=ctx.help&&ctx.help.book?ctx.help.book:`finished a ${SK[S.skill].title} problem`;addPage(`${KID()} ${line}.`,false);S.log=((S.log||[]).concat({d:Date.now(),s:S.skill,h:ctx.hints,lv:m.lv})).slice(-400);if(ctx.hints===0)(S.misses||[]).forEach(x=>{if(x.s===S.skill&&!x.beaten&&x.lv<=m.lv){x.beaten=Date.now()}});if(museumRetry!=null){const x=(S.misses||[])[museumRetry];if(x&&ctx.hints===0)x.beaten=Date.now();museumRetry=null} // a clean win beats every old slip on that game at that level or below
+    const line=ctx.help&&ctx.help.book?ctx.help.book:`finished a ${SK[S.skill].title} problem`;addPage(`${KID()} ${line}.`,false);var entry={d:Date.now(),s:S.skill,h:ctx.hints,lv:m.lv};S.log=((S.log||[]).concat(entry)).slice(-400);if(ctx.hints===0)(S.misses||[]).forEach(x=>{if(x.s===S.skill&&!x.beaten&&x.lv<=m.lv){x.beaten=Date.now()}});if(museumRetry!=null){const x=(S.misses||[])[museumRetry];if(x&&ctx.hints===0)x.beaten=Date.now();museumRetry=null} // a clean win beats every old slip on that game at that level or below
     if(levelUp){addPage(`${KID()} moved up in ${SK[S.skill].title}. ${SK[S.skill].grow?SK[S.skill].grow(m.lv):'The problems get a little bigger now.'}`,true);setTimeout(()=>{say(text+' You moved up!',true);confetti()},700)}
     checkBadges()}
   if(S.trail)S.trail.lit[S.trail.i]=true;
-  S.turn=1-S.turn;save();ding();renderTrail();const hr=controls.querySelector('#helpRow');if(hr)hr.remove();controls.appendChild(nextBtn());if(mine)tellPapa();
+  S.turn=1-S.turn;save();ding();renderTrail();const hr=controls.querySelector('#helpRow');if(hr)hr.remove();controls.appendChild(nextBtn());if(mine&&!howKnow(entry))tellPapa();
 }
+/* how did you know: a game with no why or another-way gate still gets asked for its reason, about one win in four (the game's 2nd, 6th, 10th… win, so a check can set the count). The star and Next are already there, so the card never holds the child: one tap answers it, and a wrong tap is not a miss, Pip just says the real reason. The log entry gets how:1, and howOk once the first tap lands, for the weekly letter to read later */
+const HOW_WRONG=['I guessed.','It is my favourite number.','The picture was big.'];
+function howKnow(entry){const h=ctx.help;if(!h||ctx.lesson||h.reasons||h.ways||!h.why||!entry||(S.counts[S.skill]||0)%4!==2)return false;const right=h.why.replace(/<[^>]+>/g,'').split(/(?<=[.!?])\s+/)[0].trim();if(!right)return false;
+  const opts=shuffle([{t:right,ok:true}].concat(shuffle(HOW_WRONG).slice(0,2).map(t=>({t}))));const card=el('div','note gate how',`<small>How did you know?</small>Tell me how you knew it was ${h.answer!=null?h.answer:'that'}.`);const r=el('div','row cards');entry.how=1;save();
+  opts.forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>{x.disabled=true;if(x.dataset.right)x.classList.add('hit')});if(entry.howOk==null){entry.howOk=!!o.ok;save()}if(o.ok){say('Yes, that is how. '+h.why,true);bugs('happy')}else{say('Here is the real reason: '+h.why,true);bugs('think')}};r.appendChild(b)});
+  card.appendChild(r);stage.appendChild(card);card.scrollIntoView({block:'nearest',behavior:'smooth'});return true}
 function addPage(text,big){S.book.unshift({t:text,d:Date.now(),big:!!big});if(S.book.length>200)S.book.length=200}
 const KID=()=>S.name||'Sprout'; // a garden nickname until a name is typed in the grown-ups screen
 /* pronouns, chosen in the grown-ups screen: P().s = she/he/they, .o = her/him/them, .p = her/his/their, .pp = hers/his/theirs, .self; vb(singular, plural) picks the verb form, so 'they' reads "they have" */
