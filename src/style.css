@@ -450,3 +450,90 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .doors.gscene.resting .door{opacity:.45}
 @media (max-width:380px){.today .today b{font-size:.95rem}.today .today{min-height:150px;padding:10px 4px 10px}.tpic svg{width:60px;height:60px}.gscene .door b{font-size:1.05rem;padding:4px 10px}.gscene .door{min-height:140px}}
 @media (min-width:700px){.gscene{grid-template-columns:repeat(3,1fr);padding:26px 14px 30px}.gscene .door:nth-child(even){margin-top:0}.gscene .door:nth-child(3n+2){margin-top:34px}.today{gap:12px}.today .today{min-height:190px}.tpic svg{width:88px;height:88px}.today .today b{font-size:1.25rem}.gscene .door b{font-size:1.3rem}}
+
+/* ---------- touch and feedback pass: the trail as a path, 48px tap targets with 8px gaps, a bounce on a right answer and a wobble on a miss, prompts that never run past three lines ---------- */
+/* the play header: round 48px buttons, the trail between them */
+.playtop{gap:8px;flex-wrap:wrap}
+.back,.playtop .spk{width:48px;height:48px;position:static}
+.playtop .spk{background:var(--card);font-size:1.3rem;margin-left:auto}
+.tell{min-height:48px;padding:6px 14px;font-size:.95rem}
+@media (max-width:480px){.tell{width:48px;padding:0;justify-content:center;font-size:1.35rem}.tell span{display:none}}
+/* the trail: a winding path drawn in SVG, five stones on it, Pip on the current one. On a phone it has its own row under the header buttons so the path is big enough to read; from 700px it sits between them. The stones are SVG groups, so the old box rules are switched off for them */
+.trail{flex:1 1 100%;order:9;height:56px;min-width:0;display:flex;justify-content:center;align-items:center}
+.trailsvg{width:100%;height:56px;display:block;overflow:visible}
+@media (min-width:700px){.trail{flex:1 1 auto;order:0}.playtop .spk{margin-left:0}}
+#trail .stone{width:auto;height:auto;background:none;box-shadow:none;transition:none;animation:none;display:inline;transform-box:fill-box;transform-origin:50% 50%}
+#trail .stone.lit{transform:scale(1.15);animation:none}
+#trail .stone .base{transition:fill .4s}
+#trail .stone.lit .base{filter:drop-shadow(0 0 3px rgba(255,200,61,.8))}
+#trail .stone.now .ring{animation:trailring 6s linear infinite;transform-box:fill-box;transform-origin:50% 50%}
+@keyframes trailring{to{transform:rotate(360deg)}}
+#trail .stone.fresh .base{animation:stonepop .45s cubic-bezier(.34,1.56,.64,1);transform-box:fill-box;transform-origin:50% 50%}
+@keyframes stonepop{0%{transform:scale(.6)}60%{transform:scale(1.3)}100%{transform:scale(1)}}
+#trail .stone.think .base{fill:var(--sun)}
+#trail .stone.think.lit .base{fill:#ff9f1c}
+#trail .tbud{transform-box:fill-box;transform-origin:50% 100%;animation:budsway 3s ease-in-out infinite}
+@keyframes budsway{0%,100%{transform:translate(0,-12px) rotate(-4deg)}50%{transform:translate(0,-12px) rotate(4deg)}}
+#trail .stone.lit .tbud{animation:budopen .6s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes budopen{0%{transform:translate(0,-12px) scale(1)}100%{transform:translate(0,-12px) scale(1.5)}}
+.trailpip{transition:transform .55s cubic-bezier(.4,0,.2,1)}
+.hopg{transform-box:fill-box;transform-origin:50% 100%}
+.hopg.hop{animation:trailhop .55s cubic-bezier(.3,.7,.5,1)}
+@keyframes trailhop{0%{transform:translateY(0) scale(1,1)}10%{transform:translateY(2px) scale(1.15,.85)}45%{transform:translateY(-16px) scale(.95,1.1) rotate(-8deg)}85%{transform:translateY(1px) scale(1.1,.9)}100%{transform:translateY(0) scale(1,1)}}
+.hopg.cheer{animation:trailcheer .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes trailcheer{0%,100%{transform:translateY(0)}40%{transform:translateY(-9px) scale(1.1)}70%{transform:translateY(0) scale(1.05,.92)}}
+.trailsvg .pip-eyes{animation:none}
+/* tap targets: every control a child presses is at least 48px tall and wide, with 8px between neighbours. Visuals grow, class names do not change */
+.choice{min-height:48px;min-width:64px;box-sizing:border-box}
+.btn,.btn.quiet{min-height:48px;box-sizing:border-box}
+.turnrow .btn{min-height:48px;padding:10px 16px}
+.readbtn{min-height:48px;padding:10px 18px}
+.tab{min-height:48px;padding:8px 18px;box-sizing:border-box}
+.gtabs{gap:8px}
+.chip{min-height:48px;padding:8px 16px;box-sizing:border-box}
+.chip .x{min-width:36px;min-height:36px;display:grid;place-items:center;margin-right:-8px}
+.pick .num{min-width:56px}
+.bead{width:48px;height:48px}
+.dz{width:48px;height:48px}
+.frame .cell.dz{width:48px;height:48px}
+.cell{width:48px;height:48px}.cell i{width:34px;height:34px}
+.frame{gap:8px;padding:6px}
+.logic .lc{height:48px;min-width:48px}
+.ones{gap:8px}
+button.one{width:48px;height:48px;background:radial-gradient(circle closest-side,var(--c,var(--dot)) 68%,transparent 72%)}
+button.one.gone{--c:var(--dot-gone);background:radial-gradient(circle closest-side,var(--dot-gone) 68%,transparent 72%)}
+button.rod{min-width:48px;min-height:48px;justify-content:center}
+.srow{gap:8px}
+.srow .it2{width:48px;height:48px}
+.coin{min-width:48px;min-height:48px}
+.seq .it{width:48px;height:48px}
+.wodb .choice{min-height:72px}
+.build .choice.emo{min-width:56px;min-height:56px}
+.lvl button{width:36px;height:36px}
+.toybtns .num{min-width:64px;min-height:56px}
+/* grids that cannot give every cell 48px at 360px are scaled so the whole grid fits with no sideways scroll: the hundred chart, the 6x6 and 9x9 sudoku. Four-by-four stays at 48 */
+.hchart{gap:3px;max-width:100%}
+.hc{font-size:clamp(.7rem,3vw,1rem)}
+.sud.n6 .sq,.sud.six .sq{width:44px;height:44px}
+.sud.n9 .sq{width:32px;height:32px}
+@media (max-width:430px){.sq{width:48px;height:48px}.sud.n6 .sq,.sud.six .sq{width:42px;height:42px}.sud.n9 .sq{width:29px;height:29px;font-size:1rem}.cell{width:48px;height:48px}.cell i{width:34px;height:34px}.dot{width:32px;height:32px}.num{height:52px;font-size:1.4rem}.seq .it{width:44px;height:44px}}
+@media (max-width:380px){.pad.six{grid-template-columns:repeat(4,1fr)}} /* 0 to 10 in four columns: six 48px buttons with gaps do not fit a 360px phone */
+@media (max-width:370px){.sud.n6 .sq,.sud.six .sq{width:40px;height:40px;font-size:1.2rem}.sud.n9 .sq{width:28px;height:28px;font-size:.95rem}}
+/* a right answer bounces the tapped control and the picture joins in; a miss wobbles it, softly */
+.bounce{animation:tapbounce .25s cubic-bezier(.34,1.56,.64,1)!important}
+@keyframes tapbounce{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}
+.wobble{animation:tapwobble .4s ease-in-out!important}
+@keyframes tapwobble{0%,100%{transform:translateX(0) rotate(0)}20%{transform:translateX(-5px) rotate(-3deg)}50%{transform:translateX(5px) rotate(3deg)}80%{transform:translateX(-3px) rotate(-1.5deg)}}
+#stage.cheer .dot,#stage.cheer .cell i,#stage.cheer .one,#stage.cheer .it2:not(.slot),#stage.cheer .rod .u,#stage.cheer .bead.on{animation:dotpulse .5s ease-out}
+#stage.cheer .dot:nth-child(2n),#stage.cheer .cell:nth-child(2n) i,#stage.cheer .it2:nth-child(2n){animation-delay:.07s}
+#stage.cheer .dot:nth-child(3n),#stage.cheer .cell:nth-child(3n) i,#stage.cheer .it2:nth-child(3n){animation-delay:.14s}
+@keyframes dotpulse{0%{transform:scale(1)}40%{transform:scale(1.25)}100%{transform:scale(1)}}
+#stage.cheer .nline circle:last-of-type,#stage.cheer .walksvg .walkbug{animation:dotland .45s cubic-bezier(.34,1.56,.64,1);transform-box:fill-box;transform-origin:50% 100%}
+@keyframes dotland{0%{transform:translateY(-10px) scale(1)}60%{transform:translateY(1px) scale(1.25,.8)}100%{transform:translateY(0) scale(1)}}
+#stage.cheer .nline svg{animation:nlbounce .45s ease-out}
+@keyframes nlbounce{0%{transform:translateY(0)}40%{transform:translateY(3px)}100%{transform:translateY(0)}}
+/* readability: capped sizes and set line heights, so fitText() in engine.js can keep a prompt to three lines and a bubble to four */
+.prompt{line-height:1.25}
+.bubble{line-height:1.45}
+.pipsay .msg{line-height:1.4}
+@media (max-width:430px){.prompt{font-size:1.35rem}.bubble{font-size:1.1rem}.pipsay .msg{font-size:1.05rem}}
