@@ -15,7 +15,7 @@ async function parts(lv,missFirst){await go('parts',lv);const before=await stars
   if(lv===1){const info=await pg.evaluate(()=>{const ps=[...document.querySelectorAll('#stage svg path,#stage svg rect,#stage svg circle')];return{d:ps.length,n:ps.filter(p=>p.getAttribute('fill').includes('accent')).length}});
     const t=info.d===1?'the whole thing':info.d===2?'half':info.n===1?'a quarter':'three quarters';if(missFirst){await clickChoice(t==='half'?'a quarter':'half');console.log('  miss:',(await msg()).slice(0,60))}await clickChoice(new RegExp('^'+t+'$'));await check(`parts lv1 ${info.n}/${info.d}`,before)}
   else{const p=await pg.locator('#prompt').innerText();const m=p.match(/Tap (.+?) of the (\d+)/);const need=+m[2]/(m[1]==='half'?2:4);const dots=pg.locator('#stage .it2');
-    if(missFirst){await dots.nth(0).click();await pg.getByRole('button',{name:'Done'}).click();console.log('  miss:',(await msg()).slice(0,60));await dots.nth(0).click()}
+    if(missFirst){const wrong=need===1?2:1;for(let i=0;i<wrong;i++)await dots.nth(i).click();await pg.getByRole('button',{name:'Done'}).click();console.log('  miss:',(await msg()).slice(0,60));for(let i=0;i<wrong;i++)await dots.nth(i).click()}
     for(let i=0;i<need;i++)await dots.nth(i).click();await pg.getByRole('button',{name:'Done'}).click();await check(`parts lv${lv} ${m[1]} of ${m[2]}=${need}`,before)}}
 async function measure(lv,missFirst){await go('measure',lv);const before=await stars();const p=await pg.locator('#prompt').innerText();
   const counts=await pg.evaluate(()=>[...document.querySelectorAll('#stage svg')].map(s=>s.querySelectorAll('rect').length-1));let ans;if(lv===1)ans=counts[0];else if(lv===2)ans=Math.abs(counts[0]-counts[1]);else ans=+p.match(/is (\d+) big/)[1]*2;
