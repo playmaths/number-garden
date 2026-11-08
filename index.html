@@ -131,15 +131,57 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .view{animation:fadein .25s ease}
 @keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 .stone.lit{animation:badge .4s cubic-bezier(.34,1.56,.64,1)}
-.bug{width:56px;height:56px;display:block}
+.bug{width:56px;height:56px;display:block;overflow:visible}
 .bug.idle{animation:bob 2.4s ease-in-out infinite}
 .bug.happy{animation:jump .7s cubic-bezier(.34,1.56,.64,1)}
-.bug.think{animation:tilt 1.2s ease-in-out infinite}
+.bug.wave{animation:bob .6s ease-in-out 3}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes jump{0%{transform:translateY(0) scale(1)}35%{transform:translateY(-26px) scale(1.15) rotate(-8deg)}70%{transform:translateY(0) scale(.95)}100%{transform:none}}
 @keyframes tilt{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg)}}
-#cardBug{position:absolute;top:-22px;right:12px;width:44px;height:44px}
 .card{position:relative}
+/* ---- Pip's moods: the parts of the drawing (see BUG in playground.js) move with the mood class on the .bug svg. idle: a blink every few seconds and a slow wing flutter. happy: the jump above, wings open, big eyes, sparkles. think: head tilt and a "..." mark (live = set by bugs(), not a lesson's own still Pip). puzzled: antennae droop, head cocked, never sad. wave: a leg waves. Everything is CSS; bugs() only swaps the class ---- */
+.bug *{transform-box:fill-box}
+.pip-head,.pip-ant,.pip-wing,.pip-eyes{transition:transform .35s ease}
+.pip-spark,.pip-dots,.pip-arm{opacity:0;transition:opacity .2s}
+.bug .pip-eyes{transform-origin:50% 50%;animation:pipblink 4.6s ease-in-out infinite}
+@keyframes pipblink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+.bug.idle .pip-wl,.bug.wave .pip-wl{transform-origin:100% 50%;animation:pipwingl 3.4s ease-in-out infinite}
+.bug.idle .pip-wr,.bug.wave .pip-wr{transform-origin:0% 50%;animation:pipwingr 3.4s ease-in-out infinite}
+@keyframes pipwingl{0%,100%{transform:none}50%{transform:translate(-1.2px,-.6px) rotate(-6deg)}}
+@keyframes pipwingr{0%,100%{transform:none}50%{transform:translate(1.2px,-.6px) rotate(6deg)}}
+.bug.happy .pip-wl{transform-origin:100% 50%;transform:translate(-3px,-3px) rotate(-22deg)}
+.bug.happy .pip-wr{transform-origin:0% 50%;transform:translate(3px,-3px) rotate(22deg)}
+.bug.happy .pip-eyes{animation:none;transform:scale(1.3)}
+.bug.happy .pip-spark{opacity:1;animation:pipspark .7s ease-in-out}
+@keyframes pipspark{0%{transform:scale(.3) rotate(0)}60%{transform:scale(1.15) rotate(20deg)}100%{transform:scale(1) rotate(30deg)}}
+.pip-head{transform-origin:50% 95%}
+.bug.think .pip-head{transform:rotate(-12deg)}
+.bug.think.live .pip-dots{opacity:1;animation:pipdots 1.2s ease-in-out infinite}
+@keyframes pipdots{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
+.bug.puzzled .pip-head{transform:rotate(8deg)}
+.bug.puzzled .pip-al{transform-origin:100% 100%;transform:rotate(-45deg)}
+.bug.puzzled .pip-ar{transform-origin:0% 100%;transform:rotate(45deg)}
+.bug.wave .pip-arm{opacity:1;transform-origin:100% 100%;animation:pipwave .45s ease-in-out 4 alternate}
+@keyframes pipwave{from{transform:rotate(-8deg)}to{transform:rotate(28deg)}}
+.donebug{width:52px;height:52px}
+/* in the dark, a faint rim keeps Pip's black head and legs readable on the dark card */
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .bug .pip-face,:root:not([data-theme="light"]) .bug .pip-legs,:root:not([data-theme="light"]) .bug .pip-ant path{stroke:rgba(255,255,255,.4)}:root:not([data-theme="light"]) .bug .pip-face{stroke-width:1.2}:root:not([data-theme="light"]) .bug .pip-legs,:root:not([data-theme="light"]) .bug .pip-ant path{stroke-width:2.4}}
+:root[data-theme="dark"] .bug .pip-face,:root[data-theme="dark"] .bug .pip-legs,:root[data-theme="dark"] .bug .pip-ant path{stroke:rgba(255,255,255,.4)}:root[data-theme="dark"] .bug .pip-face{stroke-width:1.2}:root[data-theme="dark"] .bug .pip-legs,:root[data-theme="dark"] .bug .pip-ant path{stroke-width:2.4}
+/* Pip's speech bubble on the play card: #msg sits beside Pip and pops in with each new message. Empty, it is just the space, so the card does not jump */
+.pipsay{display:flex;align-items:flex-start;gap:8px;min-height:48px}
+.pipsay .bug{flex:none;width:52px;height:52px;margin-top:0}
+.pipsay .msg{flex:1;min-height:0;text-align:left;position:relative;border-radius:18px;padding:10px 14px;background:var(--bg);color:var(--fg);font-size:1.1rem;line-height:1.4;transform-origin:0 50%}
+.pipsay .msg::before{content:"";position:absolute;left:-9px;top:14px;border:8px solid transparent;border-right-color:var(--bg);border-left:0}
+.pipsay .msg:empty{background:none;padding:0}.pipsay .msg:empty::before{display:none}
+.pipsay .msg.good{color:var(--leaf)}
+.msg.in{animation:bubblein .35s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bubblein{0%{transform:scale(.6);opacity:0}100%{transform:none;opacity:1}}
+/* the speaker in the play header: Pip talks (on) or is quiet (off) */
+.spk{width:44px;height:44px;border-radius:50%;background:var(--card);font-size:1.3rem;display:grid;place-items:center;flex:none}
+.spk.off{opacity:.55}
+/* press feedback: a quick squeeze under the finger */
+.choice,.num,.pad button,.door,.btn,.back,.spk,.tab,.chip{transition:transform .12s ease}
+.choice:active,.num:active,.pad button:active,.door:active,.btn:active,.back:active,.spk:active{transform:scale(.94)}
 .homebug{display:flex;align-items:flex-end;gap:10px}.homebug .bug{flex:none;width:56px;height:56px}
 .toys{display:flex;flex-direction:column;gap:10px}
 .toy{background:var(--card);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;box-shadow:0 6px 18px rgba(20,60,40,.08)}
@@ -439,13 +481,12 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 </div>
 
 <div id="play" class="view" hidden>
-  <div class="playtop"><button class="back" id="backBtn" aria-label="back to garden">‹</button><div class="trail" id="trail"></div><button class="tell" id="tellBtn" aria-label="tell Pip something">🐞<span>Tell Pip</span></button><div class="streak" id="streakChip" hidden></div><div class="turn" id="turn"></div></div>
+  <div class="playtop"><button class="back" id="backBtn" aria-label="back to garden">‹</button><div class="trail" id="trail"></div><button class="spk" id="speakBtn" aria-label="Pip talks out loud. Tap to make her quiet">🔊</button><button class="tell" id="tellBtn" aria-label="tell Pip something">🐞<span>Tell Pip</span></button><div class="streak" id="streakChip" hidden></div><div class="turn" id="turn"></div></div>
   <div class="card" id="card">
-    <svg class="bug idle" id="cardBug" viewBox="0 0 60 60"></svg>
     <div class="where" id="where"></div>
     <div class="prompt" id="prompt"></div>
     <div class="stage" id="stage"></div>
-    <div class="msg" id="msg"></div>
+    <div class="pipsay"><svg class="bug idle" id="cardBug" viewBox="0 0 60 60"></svg><div class="msg" id="msg"></div></div>
     <div id="controls"></div>
   </div>
 </div>
@@ -458,6 +499,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 <div id="done" class="view" hidden>
   <div class="donecard">
     <div class="bigflower" id="bigflower"></div>
+    <svg class="bug idle donebug" id="doneBug" viewBox="0 0 60 60"></svg>
     <h2 id="doneTitle"></h2>
     <p id="doneText"></p>
     <div class="row"><button class="btn" id="againBtn">Another trail</button><button class="btn quiet" id="homeBtn">Back to the garden</button></div>
@@ -638,22 +680,37 @@ const MAX=id=>SK[id].levels;
 const lvl=id=>{const m=S.m[id]||(S.m[id]={lv:1,streak:0,low:0});return m.lv};
 
 /* read aloud (Web Speech, if the browser has it) */
-function speak(text){try{if(!window.speechSynthesis||S.speech===false)return false;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text.replace(/<[^>]+>/g,''));u.rate=.9;u.pitch=1.05;const v=speechSynthesis.getVoices().find(v=>/en/i.test(v.lang)&&/female|zira|samantha|karen|google us english/i.test(v.name));if(v)u.voice=v;speechSynthesis.speak(u);return true}catch(e){return false}}
+/* Pip's voice: a local English voice if there is one, a warm-sounding one by name first, a little slower than normal. Voices arrive late in some browsers, so the choice is made again when they change. Every call is guarded: a browser (or a headless test) without speech must never throw */
+let pipVoice=null,pipVoiceT=0;
+function pickVoice(){try{const vs=speechSynthesis.getVoices().filter(v=>/^en/i.test(v.lang));const score=v=>(v.localService?4:0)+(/samantha|karen|moira|tessa|zira|google (uk|us) english|female|fiona|serena/i.test(v.name)?2:0)+(/en-(GB|US|AU)/i.test(v.lang)?1:0);pipVoice=vs.sort((a,b)=>score(b)-score(a))[0]||null}catch(e){pipVoice=null}}
+try{if(window.speechSynthesis){pickVoice();speechSynthesis.onvoiceschanged=pickVoice}}catch(e){}
+function speak(text){try{if(!window.speechSynthesis||S.speech===false)return false;const t=String(text||'').replace(/<[^>]+>/g,'').replace(/[🔊🐞✨]/g,'').replace(/\s+/g,' ').trim();if(!t)return false;speechSynthesis.cancel();if(!pipVoice)pickVoice();
+  const u=new SpeechSynthesisUtterance(t);u.rate=.95;u.pitch=1.05;if(pipVoice)u.voice=pipVoice;const my=++pipVoiceT;setTimeout(()=>{if(my===pipVoiceT)try{speechSynthesis.speak(u)}catch(e){}},40);return true}catch(e){return false}} // the short pause after cancel() keeps Chrome from dropping the new utterance
 function readBtn(getText){if(!window.speechSynthesis||S.speech===false)return el('span');const b=el('button','readbtn','🔊 Read it to me');b.onclick=()=>speak(getText());return b}
+/* auto-speech: when the switch is on, Pip reads the prompt, her messages and her bubbles aloud as they appear, so a child who cannot read yet can play alone. One observer watches the few places Pip talks from; changes within a tick are gathered (a problem may be re-rolled, a lesson sets its bubble step by step) and read once, in page order, the newest utterance cancelling the one before. The same words are not read twice in a row, so a lesson's own narration is never doubled */
+const SPEAK_FROM='#prompt,#msg,#bubble,#tellBubble,.bubble';let speakQ=new Set(),speakT=0,spokeLast='',spokeAt=0;
+const speakText=n=>[...n.childNodes].filter(c=>!(c.nodeType===1&&(c.classList.contains('readbtn')||c.querySelector('.readbtn')))).map(c=>c.textContent).join(' ');
+function flushSpeak(){const nodes=[...speakQ].filter(n=>n.isConnected&&!n.closest('[hidden]')).sort((a,b)=>a.compareDocumentPosition(b)&4?-1:1);speakQ=new Set();const t=nodes.map(speakText).join(' ').replace(/\s+/g,' ').trim();if(!t)return;if(t===spokeLast&&Date.now()-spokeAt<4000)return;spokeLast=t;spokeAt=Date.now();speak(t)}
+function queueSpeak(n){if(S.speech===false||!window.speechSynthesis)return;speakQ.add(n);clearTimeout(speakT);speakT=setTimeout(flushSpeak,180)}
+try{new MutationObserver(ms=>{for(const m of ms){const t=m.target.nodeType===1?m.target:m.target.parentElement;const n=t&&t.closest(SPEAK_FROM);if(n)queueSpeak(n)}}).observe(document.body,{childList:true,characterData:true,subtree:true})}catch(e){}
+/* the speaker button in the play header and the grown-ups' switch are one setting */
+function setSpeech(on){S.speech=!!on;save();const c=$('#speechOn');if(c)c.checked=S.speech;renderSpeakBtn();if(!on)try{speechSynthesis.cancel()}catch(e){}}
+function renderSpeakBtn(){const b=$('#speakBtn');if(!b)return;const on=S.speech!==false;b.textContent=on?'🔊':'🔇';b.classList.toggle('off',!on);b.setAttribute('aria-label',on?'Pip talks out loud. Tap to make her quiet':'Pip is quiet. Tap to make her talk')}
+(()=>{const b=$('#speakBtn');if(b)b.onclick=()=>{setSpeech(S.speech===false);if(S.speech!==false)speak('I will read everything to you.')};const c=$('#speechOn');if(c)c.addEventListener('change',renderSpeakBtn);renderSpeakBtn()})();
 /* ---------- shared UI ---------- */
 const prompt=$('#prompt'),stage=$('#stage'),msg=$('#msg'),controls=$('#controls'),turnEl=$('#turn');
 const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],reason:['Reasoning','Spot the rule'],make:['Makes it','You hide, I guess']};
 const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
-function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
 let ctx=null; // current problem context
 window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday}); // read-only hook for the headless checks
-function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'')}
+function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'');if(t){void msg.offsetWidth;msg.classList.add('in')}} // the reflow restarts the bubble's pop-in on every new message
 function cheer(){const c=pick(['Nice thinking!','You got it!','Yes!','That\'s it!','Great counting!','Clever!']);const who=S.duo&&ctx.turn===1?'Dad':S.name;return who?`${c.replace('!','')}, ${who}!`:c}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;let c=document.getElementById('confetti');if(!c){c=document.createElement('canvas');c.id='confetti';document.body.appendChild(c)}
   const x=c.getContext('2d');c.width=innerWidth;c.height=innerHeight;const cols=['#ff7a59','#ffc83d','#4cae7c','#5aa9e6','#9b6bd6'];
   const P=Array.from({length:70},()=>({x:innerWidth/2+(Math.random()-.5)*120,y:innerHeight*.35,vx:(Math.random()-.5)*14,vy:-Math.random()*12-4,r:4+Math.random()*4,c:cols[rnd(0,4)],a:Math.random()*6,s:(Math.random()-.5)*.3}));
   let t=0;if(window.__cf)cancelAnimationFrame(window.__cf);(function f(){x.clearRect(0,0,c.width,c.height);for(const p of P){p.x+=p.vx;p.y+=p.vy;p.vy+=.45;p.vx*=.99;p.a+=p.s;x.save();x.translate(p.x,p.y);x.rotate(p.a);x.fillStyle=p.c;x.fillRect(-p.r,-p.r/2,p.r*2,p.r);x.restore()}if(++t<70)window.__cf=requestAnimationFrame(f);else x.clearRect(0,0,c.width,c.height)})()}
-let ac;function ding(){if(S.sound===false)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;[523,659,784].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.0001,t+i*.09);g.gain.exponentialRampToValueAtTime(.15,t+i*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.09+.25);o.start(t+i*.09);o.stop(t+i*.09+.3)})}catch(e){}}
+let ac;function ding(){if(S.sound===false)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const t=ac.currentTime;[523,659,784].forEach((f,i)=>{const o=ac.createOscillator(),g=ac.createGain();o.frequency.value=f;o.connect(g);g.connect(ac.destination);g.gain.setValueAtTime(.0001,t+i*.09);g.gain.exponentialRampToValueAtTime(.15,t+i*.09+.02);g.gain.exponentialRampToValueAtTime(.0001,t+i*.09+.25);o.start(t+i*.09);o.stop(t+i*.09+.3)})}catch(e){}}
 function pad(max,onPick,cls){const p=el('div','pad'+(max>9?' six':'')+(cls?' '+cls:''));for(let i=0;i<=max;i++){const b=el('button','num',i);b.onclick=()=>onPick(i,b);p.appendChild(b)}return p}
 function lock(p){p.querySelectorAll('button').forEach(b=>b.disabled=true)}
 function numpad(onSubmit,digits){digits=digits||2;const nm=el('div','pad');let typed='';const show=el('div','typed','_');nm.appendChild(show);
@@ -677,12 +734,12 @@ function tellPapa(){S.tellCount=(S.tellCount||0)+1;if(!ctx||(S.skill!=='think'&&
 /* a right number is not the end. Where a game offers a reason or a second way, the star waits for one: odd problems ask why, even ones ask for another way. A level-up needs at least one right reason at this level */
 function nextGate(){const h=ctx.help;if(!h||ctx.lesson||ctx.gated)return null;const has=[h.reasons&&'why',h.ways&&'ways'].filter(Boolean);if(!has.length)return null;S.gateTurn=(S.gateTurn||0)+1;const kind=has.length===2?(S.gateTurn%2?'why':'ways'):has[0];return Object.assign({kind},kind==='why'?h.reasons:h.ways)}
 function askGate(g,go){ctx.gated=true;const card=el('div','note gate',`<small>${g.kind==='why'?'Why?':'Another way'}</small>${g.q}`);const r=el('div','row cards');let tries=0;
-  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{if(o.ok){b.classList.add('hit');r.querySelectorAll('button').forEach(x=>x.disabled=true);if(tries===0&&g.kind==='why'){const m=S.m[S.skill];if(m)m.why=(m.why||0)+1}say(g.why||'That is the reason.',true);bugs('happy');setTimeout(go,800)}
-      else{b.classList.add('miss');b.disabled=true;tries++;ctx.hints++;say(o.no||'Not that one. Look at the picture and think again.',false);bugs('think');if(tries>=2){r.querySelectorAll('button').forEach(x=>{if(x.dataset.right)x.classList.add('hit');x.disabled=true});setTimeout(()=>{say(`${g.why||''} Next time, think it through first.`,false);setTimeout(go,900)},900)}}};r.appendChild(b)});
+  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{if(o.ok){b.classList.add('hit');r.querySelectorAll('button').forEach(x=>x.disabled=true);if(tries===0&&g.kind==='why'){const m=S.m[S.skill];if(m)m.why=(m.why||0)+1}say(g.why||'That is the reason.',true);bugs('happy');sfx('pop');setTimeout(go,800)}
+      else{b.classList.add('miss');b.disabled=true;tries++;ctx.hints++;say(o.no||'Not that one. Look at the picture and think again.',false);bugs('puzzled');if(tries>=2){r.querySelectorAll('button').forEach(x=>{if(x.dataset.right)x.classList.add('hit');x.disabled=true});setTimeout(()=>{say(`${g.why||''} Next time, think it through first.`,false);setTimeout(go,900)},900)}}};r.appendChild(b)});
   card.appendChild(r);stage.appendChild(card);say(g.kind==='why'?'Right number! Now tell me why.':'Right! Now show me another way.',true);bugs('happy');card.scrollIntoView({block:'nearest',behavior:'smooth'})}
 /* think first: before the numpad, one tap about the shape of the answer (more or fewer, bigger or smaller). A wrong guess costs nothing but a sentence; the point is to think before touching a number */
 function guessGate(g){const kids=[...controls.children];kids.forEach(k=>k.hidden=true);const card=el('div','note guess',`<small>Think first</small>${g.q}`);const r=el('div','row');
-  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>x.disabled=true);if(o.ok){b.classList.add('hit');say(o.why||'Good thinking. Now the number.',true);bugs('happy')}else{b.classList.add('miss');say(o.why||g.why||'Hmm. Read the story again, then the number.',false);bugs('think')}setTimeout(()=>{card.remove();kids.forEach(k=>k.hidden=false)},1000)};r.appendChild(b)});card.appendChild(r);stage.appendChild(card)}
+  shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>x.disabled=true);if(o.ok){b.classList.add('hit');say(o.why||'Good thinking. Now the number.',true);bugs('happy');sfx('pop')}else{b.classList.add('miss');say(o.why||g.why||'Hmm. Read the story again, then the number.',false);bugs('puzzled')}setTimeout(()=>{card.remove();kids.forEach(k=>k.hidden=false)},1000)};r.appendChild(b)});card.appendChild(r);stage.appendChild(card);bugs('think')}
 function win(text,noMastery){
   if(ctx.done)return;const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
   ctx.done=true;say(text,true);bugs('happy');
@@ -706,20 +763,20 @@ function win(text,noMastery){
 const HOW_WRONG=['I guessed.','It is my favourite number.','The picture was big.'];
 function howKnow(entry){const h=ctx.help;if(!h||ctx.lesson||S.skill==='think'||h.reasons||h.ways||!h.why||!entry||(S.counts[S.skill]||0)%4!==2)return false;const right=h.why.replace(/<[^>]+>/g,'').split(/(?<=[.!?])\s+/)[0].trim();if(!right)return false;
   const opts=shuffle([{t:right,ok:true}].concat(shuffle(HOW_WRONG).slice(0,2).map(t=>({t}))));const card=el('div','note gate how',`<small>How did you know?</small>Tell me how you knew it was ${h.answer!=null?h.answer:'that'}.`);const r=el('div','row cards');entry.how=1;save();
-  opts.forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>{x.disabled=true;if(x.dataset.right)x.classList.add('hit')});if(entry.howOk==null){entry.howOk=!!o.ok;save()}if(o.ok){say('Yes, that is how. '+h.why,true);bugs('happy')}else{say('Here is the real reason: '+h.why,true);bugs('think')}};r.appendChild(b)});
+  opts.forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>{x.disabled=true;if(x.dataset.right)x.classList.add('hit')});if(entry.howOk==null){entry.howOk=!!o.ok;save()}if(o.ok){say('Yes, that is how. '+h.why,true);bugs('happy');sfx('pop')}else{say('Here is the real reason: '+h.why,true);bugs('think')}};r.appendChild(b)});
   card.appendChild(r);stage.appendChild(card);card.scrollIntoView({block:'nearest',behavior:'smooth'});return true}
 function addPage(text,big){S.book.unshift({t:text,d:Date.now(),big:!!big});if(S.book.length>200)S.book.length=200}
 const KID=()=>S.name||'Sprout'; // a garden nickname until a name is typed in the grown-ups screen
 /* pronouns, chosen in the grown-ups screen: P().s = she/he/they, .o = her/him/them, .p = her/his/their, .pp = hers/his/theirs, .self; vb(singular, plural) picks the verb form, so 'they' reads "they have" */
 const PRO={she:{s:'she',o:'her',p:'her',pp:'hers',self:'herself'},he:{s:'he',o:'him',p:'his',pp:'his',self:'himself'},they:{s:'they',o:'them',p:'their',pp:'theirs',self:'themself'}};
 const P=()=>PRO[S.pro]||PRO.she;const vb=(sg,pl)=>P().s==='they'?pl:sg;const cap=w=>w[0].toUpperCase()+w.slice(1);
-function miss(hint){ctx.hints++;say(hint,false);bugs('think');
+function miss(hint){ctx.hints++;say(hint,false);bugs('puzzled');
   if(ctx.hints===1&&!ctx.lesson&&S.skill&&SK[S.skill]){const st=$('#stage .story');S.misses=((S.misses||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,p:$('#prompt').textContent.slice(0,120),st:st?st.textContent.slice(0,160):'',beaten:false})).slice(-60);save()} // the first slip on a problem goes in the museum
   if(ctx.hints===2&&SK[S.skill]&&SK[S.skill].idea){const l=controls.querySelector('.learn');if(l){l.classList.add('glow');setTimeout(()=>say(hint+' Want Pip to show you the idea? Tap Learn.',false),1200)}}if(S.streakNow){S.streakNow=0;renderStreak()}const t=controls.querySelector('.typed');if(t){t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake')}}
 /* every game declares help({clues:[...], answer, why, show}) so the Clue / Show me buttons work the same everywhere */
 function help(o){ctx.help=o;ctx.clueIdx=0;if(o.reasons&&SK[S.skill])SK[S.skill].hasReasons=true}
 function helpRow(){const r=el('div','row');r.id='helpRow';const c=el('button','btn quiet','Clue'),s=el('button','btn quiet','Show me');
-  c.onclick=()=>{if(ctx.done||!ctx.help)return;const cl=ctx.help.clues;say(cl[Math.min(ctx.clueIdx,cl.length-1)]);ctx.clueIdx++;ctx.hints++};
+  c.onclick=()=>{if(ctx.done||!ctx.help)return;const cl=ctx.help.clues;say(cl[Math.min(ctx.clueIdx,cl.length-1)]);bugs('think');ctx.clueIdx++;ctx.hints++};
   s.onclick=()=>{if(ctx.done||!ctx.help)return;reveal()};r.append(c,s);
   if(SK[S.skill]&&SK[S.skill].teach){const w=el('button','btn quiet','Watch');w.onclick=()=>{if(ctx.done)return;const lv=S.m[S.skill].lv;teachNow(S.skill,lv,()=>play(S.skill))};r.appendChild(w)}
   if(SK[S.skill]&&SK[S.skill].idea){const l=el('button','btn quiet learn','Learn');l.onclick=()=>{const idea=IDEAS.find(i=>i.id===SK[S.skill].idea);if(idea)openIdea(idea,true)};r.appendChild(l)}return r}
@@ -938,7 +995,7 @@ const FINALE={
 };
 function finale(d,m,size){const f=FINALE[m.id];const tok=d.finTok=(d.finTok||0)+1;if(!f){turntable(d,m,size);return}d.innerHTML=brickSvg(m,m.total,size,{theta:f.theta,max:340,pad:f.pad,gclass:f.cls,origin:f.origin,inner:f.inner,extra:f.extra});sfx(f.sfx);setTimeout(()=>{if(d.isConnected&&d.finTok===tok)turntable(d,m,size)},f.dur)}
 /* little sounds for the finales, made on the spot */
-function sfx(kind){if(S.sound===false)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();const t=ac.currentTime;
+function sfx(kind){if(S.sound===false)return;try{ac=ac||new (window.AudioContext||window.webkitAudioContext)();if(ac.state==='suspended')ac.resume();const t=ac.currentTime;
   const osc=(type,f0,f1,dur,vol,at)=>{const o=ac.createOscillator(),g=ac.createGain();o.type=type;o.frequency.setValueAtTime(f0,t+at);o.frequency.exponentialRampToValueAtTime(f1,t+at+dur);g.gain.setValueAtTime(.0001,t+at);g.gain.exponentialRampToValueAtTime(vol,t+at+.05);g.gain.exponentialRampToValueAtTime(.0001,t+at+dur);o.connect(g);g.connect(ac.destination);o.start(t+at);o.stop(t+at+dur+.05)};
   const noise=(dur,f0,f1,vol,at)=>{const n=Math.floor(ac.sampleRate*dur),b=ac.createBuffer(1,n,ac.sampleRate),d=b.getChannelData(0);for(let i=0;i<n;i++)d[i]=Math.random()*2-1;const src=ac.createBufferSource();src.buffer=b;const flt=ac.createBiquadFilter();flt.type='lowpass';flt.frequency.setValueAtTime(f0,t+at);flt.frequency.exponentialRampToValueAtTime(f1,t+at+dur);const g=ac.createGain();g.gain.setValueAtTime(.0001,t+at);g.gain.exponentialRampToValueAtTime(vol,t+at+.1);g.gain.exponentialRampToValueAtTime(.0001,t+at+dur);src.connect(flt);flt.connect(g);g.connect(ac.destination);src.start(t+at);src.stop(t+at+dur)};
   if(kind==='vroom'){osc('sawtooth',70,95,1.1,.1,0);osc('sawtooth',95,480,1.3,.12,1.1);noise(1.2,400,2500,.12,1.2);osc('square',880,880,.12,.06,2.5);osc('square',880,880,.12,.06,2.7)}
@@ -948,7 +1005,11 @@ function sfx(kind){if(S.sound===false)return;try{ac=ac||new (window.AudioContext
   else if(kind==='sea'){noise(3.5,500,900,.1,0);noise(.9,180,50,.35,1.4)}
   else if(kind==='bell'){osc('sine',659,659,.7,.15,.2);osc('sine',523,523,1,.15,.75)}
   else if(kind==='chuff'){[0,.45,.9,1.35,1.8,2.25].forEach(at=>noise(.3,900,200,.2,at));osc('triangle',880,880,.5,.1,2.6);osc('triangle',1109,1109,.9,.1,2.9)}
-  else if(kind==='sparkle'){[1319,1568,1976,2637,1976,2637].forEach((f,i)=>osc('triangle',f,f,.35,.08,i*.16));osc('sawtooth',500,380,.5,.05,1.4);osc('sawtooth',380,520,.4,.05,1.9)}}catch(e){}}
+  else if(kind==='sparkle'){[1319,1568,1976,2637,1976,2637].forEach((f,i)=>osc('triangle',f,f,.35,.08,i*.16));osc('sawtooth',500,380,.5,.05,1.4);osc('sawtooth',380,520,.4,.05,1.9)}
+  else if(kind==='tap')osc('sine',720,480,.06,.05,0) /* a soft click under every tap */
+  else if(kind==='pop'){osc('sine',520,1040,.09,.12,0);osc('triangle',1040,1560,.08,.05,.07)}}catch(e){}} /* a bubble pop for a right answer */
+/* the tap click under every big button, from the gesture itself so the audio context may start */
+document.addEventListener('pointerdown',e=>{const b=e.target&&e.target.closest&&e.target.closest('.choice,.num,.pad button,.door,.btn,.back,.tab,.chip,.spk');if(b&&!b.disabled)sfx('tap')},{passive:true});
 /* a finished set turns slowly on the done screen for a little while */
 function turntable(d,m,size){let th=.3,n=0;const tok=d.finTok;const tick=()=>{if(!d.isConnected||d.finTok!==tok||n++>360)return;th+=.02;d.innerHTML=brickSvg(m,m.total,size,{theta:th,max:280});setTimeout(tick,50)};tick()}
 function setGardenView(v){S.gview=v;save();$('#gardenWrap').hidden=v==='bricks';$('#bricks').hidden=v!=='bricks';$('#tabGarden').classList.toggle('on',v!=='bricks');$('#tabBricks').classList.toggle('on',v==='bricks');renderBricks()}
@@ -2289,8 +2350,18 @@ function openIdea(idea,fromGame){learnFromGame=!!fromGame;show('learn');$('#lear
 
 
 /* ================= MASCOT ================= */
-const BUG=`<ellipse cx="30" cy="34" rx="20" ry="17" fill="#e63946"/><path d="M30 17v34" stroke="#1a1a1a" stroke-width="2.5"/><circle cx="30" cy="16" r="9" fill="#1a1a1a"/><circle cx="26" cy="14" r="2.2" fill="#fff"/><circle cx="34" cy="14" r="2.2" fill="#fff"/><circle cx="26.6" cy="14.4" r="1" fill="#1a1a1a"/><circle cx="34.6" cy="14.4" r="1" fill="#1a1a1a"/><g fill="#1a1a1a"><circle cx="20" cy="30" r="3"/><circle cx="40" cy="30" r="3"/><circle cx="23" cy="42" r="2.6"/><circle cx="37" cy="42" r="2.6"/><circle cx="30" cy="48" r="2"/></g><path d="M22 10l-5-6M38 10l5-6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/>`;
-function bugs(cls){document.querySelectorAll('.bug').forEach(b=>{b.innerHTML=BUG;b.className.baseVal='bug '+cls});if(cls!=='idle')setTimeout(()=>document.querySelectorAll('.bug').forEach(b=>b.className.baseVal='bug idle'),cls==='happy'?800:2500)}
+/* Pip is drawn in parts so the moods in style.css can move them: two wings (pip-wl, pip-wr) over a dark body, a head with eyes (pip-eyes) and antennae (pip-al, pip-ar), legs, and three parts that stay invisible until a mood asks for them: sparkles (pip-spark, happy), a "..." thought mark (pip-dots, think) and a waving leg (pip-arm, wave) */
+const BUG=`<g class="pip-legs" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round" fill="none"><path d="M13 35l-5 2M13 42l-5 4M47 35l5 2M47 42l5 4"/></g><ellipse class="pip-body" cx="30" cy="35" rx="17" ry="15" fill="#1a1a1a"/>`+
+ `<g class="pip-wing pip-wl"><path d="M30 17A20 17 0 0 0 30 51Z" fill="#e63946"/><g fill="#1a1a1a"><circle cx="20" cy="30" r="3"/><circle cx="23" cy="42" r="2.6"/></g></g>`+
+ `<g class="pip-wing pip-wr"><path d="M30 17A20 17 0 0 1 30 51Z" fill="#e63946"/><g fill="#1a1a1a"><circle cx="40" cy="30" r="3"/><circle cx="37" cy="42" r="2.6"/></g></g><path d="M30 17v34" stroke="#1a1a1a" stroke-width="2.5" stroke-linecap="round"/>`+
+ `<g class="pip-head"><g class="pip-ant pip-al"><path d="M22 10l-5-6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/><circle cx="17" cy="4" r="1.7" fill="#1a1a1a"/></g><g class="pip-ant pip-ar"><path d="M38 10l5-6" stroke="#1a1a1a" stroke-width="2" stroke-linecap="round"/><circle cx="43" cy="4" r="1.7" fill="#1a1a1a"/></g>`+
+ `<circle class="pip-face" cx="30" cy="16" r="9" fill="#1a1a1a"/><g class="pip-eyes"><circle cx="26" cy="14" r="2.4" fill="#fff"/><circle cx="34" cy="14" r="2.4" fill="#fff"/><circle cx="26.6" cy="14.5" r="1.1" fill="#1a1a1a"/><circle cx="34.6" cy="14.5" r="1.1" fill="#1a1a1a"/></g><path class="pip-smile" d="M27 19.6q3 2.6 6 0" stroke="#fff" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>`+
+ `<g class="pip-spark" fill="#ffc83d"><path d="M11 9l1.3 3.2 3.2 1.3-3.2 1.3L11 18l-1.3-3.2L6.5 13.5l3.2-1.3z"/><path d="M50 4l1 2.4 2.4 1-2.4 1-1 2.4-1-2.4-2.4-1 2.4-1z"/><circle cx="46" cy="14" r="1.3"/></g>`+
+ `<g class="pip-dots" fill="var(--fg,#1a1a1a)"><circle cx="45" cy="11" r="1.5"/><circle cx="49.5" cy="8" r="2"/><circle cx="55" cy="4.5" r="2.6"/></g>`+
+ `<g class="pip-arm"><path d="M13 31q-6-6-3-13" stroke="#1a1a1a" stroke-width="2.4" fill="none" stroke-linecap="round"/><circle cx="10" cy="18" r="2.2" fill="#1a1a1a"/></g>`;
+/* one mood for every Pip on the page: idle, happy, think, puzzled or wave. A mood that is not idle comes back to idle by itself; one shared timer, so a new mood simply replaces the old one. The hover class (a streak at home) is kept */
+let bugT=0;const BUG_MS={happy:900,think:2500,puzzled:2500,wave:1800};
+function bugs(cls){document.querySelectorAll('.bug').forEach(b=>{if(!b.firstChild)b.innerHTML=BUG;b.setAttribute('class','bug '+cls+(cls==='idle'?'':' live')+(b.classList.contains('hover')?' hover':''))});clearTimeout(bugT);if(cls!=='idle')bugT=setTimeout(()=>bugs('idle'),BUG_MS[cls]||2000)}
 
 /* ================= PLAYGROUND ================= */
 const TOYS=[
