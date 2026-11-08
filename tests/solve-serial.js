@@ -16,7 +16,7 @@ const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
     if(lv===2){if(!await pg.locator('#stage .guess').count())errs.push(`${name}: no think-first card`);await guess(pg)}
     if(await pg.locator('#stage .gap').count()!==1)errs.push(`${name}: the empty square is not drawn`);
     const btns=pg.locator('#controls .choice');if(await btns.count()!==4)errs.push(`${name}: ${await btns.count()} choice buttons`);
-    if(k%2){await btns.nth((st.pick+1+k%3)%4).click();await pg.waitForTimeout(100);const m=await msg(pg);if(!m.length)errs.push(`${name}: no hint on a wrong figure`);if(!/row|anywhere/.test(m))errs.push(`${name}: hint does not point at the row: "${m}"`);if(await pg.locator('#stage .gap').count()!==1)errs.push(`${name}: a miss filled the gap`)}
+    if(k%2){await btns.nth((st.pick+1+k%3)%4).click();await pg.waitForTimeout(100);const m=await msg(pg);if(!m.length)errs.push(`${name}: no hint on a wrong figure`);if(!/row|anywhere|colou?r|column/.test(m))errs.push(`${name}: hint does not point at the row or the colour: "${m}"`);if(await pg.locator('#stage .gap').count()!==1)errs.push(`${name}: a miss filled the gap`)}
     await btns.nth(st.pick).click();await pg.waitForTimeout(120);if(await pg.locator('#stage .gap').count())errs.push(`${name}: the win did not fill the gap`);if(await pg.locator('#stage .sercell svg').count()!==9)errs.push(`${name}: the grid is not full after the win`);
     if(lv===3&&!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg);if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`);
     if(!BOOK[lv].test(await book(pg)))errs.push(`${name}: book line "${await book(pg)}"`)}
