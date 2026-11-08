@@ -711,6 +711,7 @@ button.rod{min-width:48px;min-height:48px;justify-content:center}
   <label>Me &amp; Dad mode (take turns) <input type="checkbox" id="duo"></label>
   <label>Sounds (notes and dings) <input type="checkbox" id="soundOn"></label>
   <label>Pip talks out loud <input type="checkbox" id="speechOn"></label>
+  <label>Say it button (microphone) <input type="checkbox" id="micOn"></label><p class="cloud">Off unless you switch it on. Say it lets the child speak her answer in her own words; the browser sends that sound to its maker (Google, for Chrome) to turn it into text. Type it and I said it out loud are always there.</p>
   <label>Pip's voice <select id="voicePick" aria-label="Pip's voice"></select></label>
   <div class="row" style="justify-content:flex-start"><button class="btn quiet" id="hearVoice" type="button">Hear Pip</button></div><p id="voiceTip" class="cloud"></p>
   <label>Play per day <select id="limit"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="0">no limit</option></select></label>
@@ -863,7 +864,7 @@ function tellPapa(){S.tellCount=(S.tellCount||0)+1;if(!ctx||(S.skill!=='think'&&
   const card=el('div','note said',`<small>In your own words</small>How did you know? Say it out loud: "I knew because…"`);const r=el('div','row');card.appendChild(r);stage.appendChild(card);
   const keep=t=>{t=(t||'').trim().slice(0,160);if(!t)return;S.said=(S.said||[]).slice(0,19);S.said.unshift({t,skill:S.skill,d:Date.now()});addPage(`${KID()} said: "${t}"`,true);save();card.innerHTML=`<small>In your own words</small>"${t.replace(/</g,'&lt;')}" — written in ${P().pp} book.`;bugs('happy')};
   const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(SR){const mic=el('button','btn','🎤 Say it');mic.onclick=()=>{try{const rec=new SR();rec.lang='en-US';rec.interimResults=false;mic.textContent='Listening…';mic.disabled=true;rec.onresult=e=>keep(e.results[0][0].transcript);rec.onerror=()=>{mic.textContent='🎤 Say it';mic.disabled=false;say('I could not hear that. Try again, or type it.',false)};rec.onend=()=>{mic.textContent='🎤 Say it';mic.disabled=false};rec.start()}catch(e){mic.hidden=true}};r.appendChild(mic)}
+  if(SR&&S.mic===true){/* the microphone sends audio to the browser maker's servers, so it is a grown-ups' choice, off unless switched on */const mic=el('button','btn','🎤 Say it');mic.onclick=()=>{try{const rec=new SR();rec.lang='en-US';rec.interimResults=false;mic.textContent='Listening…';mic.disabled=true;rec.onresult=e=>keep(e.results[0][0].transcript);rec.onerror=()=>{mic.textContent='🎤 Say it';mic.disabled=false;say('I could not hear that. Try again, or type it.',false)};rec.onend=()=>{mic.textContent='🎤 Say it';mic.disabled=false};rec.start()}catch(e){mic.hidden=true}};r.appendChild(mic)}
   const typ=el('button','btn quiet','✏️ Type it');typ.onclick=()=>{typ.hidden=true;const inp=el('input','saidin');inp.placeholder='I knew because…';inp.maxLength=160;const ok=el('button','btn','Keep');ok.onclick=()=>keep(inp.value);r.append(inp,ok);inp.focus()};r.appendChild(typ);
   const told=el('button','btn quiet','I said it out loud');told.onclick=()=>{told.disabled=true;told.textContent='Said!';addPage(`${KID()} explained out loud how ${P().s} solved a ${SK[S.skill].title} problem.`,false);save()};r.appendChild(told)}
 
@@ -4352,7 +4353,7 @@ function renderKids(){const l=$('#kidList');if(!l)return;l.innerHTML='';PROFILES
 $('#addKid').onclick=()=>{const n=$('#newKid').value.trim();if(!n)return;addProfile(n)};
 $('#pro').value=S.pro||'she';$('#pro').onchange=e=>{S.pro=e.target.value;save();renderLevels()};
 $('#duo').checked=S.duo;$('#duo').onchange=e=>{S.duo=e.target.checked;save()};
-$('#soundOn').checked=S.sound!==false;$('#soundOn').onchange=e=>{S.sound=e.target.checked;save()};$('#speechOn').checked=S.speech!==false;$('#speechOn').onchange=e=>{S.speech=e.target.checked;save()};
+$('#soundOn').checked=S.sound!==false;$('#soundOn').onchange=e=>{S.sound=e.target.checked;save()};$('#micOn').checked=S.mic===true;$('#micOn').onchange=e=>{S.mic=e.target.checked;save()};$('#speechOn').checked=S.speech!==false;$('#speechOn').onchange=e=>{S.speech=e.target.checked;save()};
 $('#limit').onchange=e=>{S.limit=+e.target.value;save();renderLimit()};$('#moreToday').onclick=()=>{const t=playToday();t.extra=(t.extra||0)+600000;save();renderLimit();renderHome()};
 function renderLimit(){$('#limit').value=String(S.limit==null?20:S.limit);const t=playToday();const used=Math.round(t.ms/60000);const lim=S.limit==null?20:S.limit;$('#limitNote').textContent=lim?`${used} minute${used===1?'':'s'} played today of ${lim}${t.extra?` (+${t.extra/60000} extra today)`:''}. When the time is up, the current problem finishes and the garden closes until tomorrow. No clock is ever shown to the child.`:`${used} minute${used===1?'':'s'} played today. No limit set.`}
 $('#note').value=S.note||'';$('#note').oninput=e=>{S.note=e.target.value;save()};

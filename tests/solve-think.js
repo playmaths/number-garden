@@ -31,6 +31,7 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
   const m2=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).m.make);if(m2.lv!==1)errs.push(`make: should not level up without a right reason: ${JSON.stringify(m2)}`);
   /* the own-words card keeps a typed explanation, writes it in the book and the greeting leads with it */
   await go(pg,'think',1,'think');{const {answer}=await H();const num=await pg.locator('#controls .num').count();if(num)await type(answer);else await pg.locator('#controls .choice[data-right="1"]').first().click();await gate(pg)}
+  if(await pg.getByRole('button',{name:'Say it'}).count())errs.push('the Say it microphone button shows without the grown-ups switch');
   await pg.getByRole('button',{name:'Type it'}).click();await pg.locator('#stage .saidin').fill('I knew because every cat has four legs');await pg.getByRole('button',{name:'Keep'}).click();await pg.waitForTimeout(100);
   const said=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).said);if(!said||!/four legs/.test(said[0].t))errs.push('own words not kept');
   const b2=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).book[0].t);if(!/said: "I knew because/.test(b2))errs.push(`own words not in the book: "${b2}"`);
