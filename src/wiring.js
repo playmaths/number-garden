@@ -1,5 +1,5 @@
 /* ---------- wiring ---------- */
-$('#gearBtn').onclick=()=>{renderLevels();show('sheet')};
+$('#gearBtn').onclick=()=>{renderLevels();renderVoices();show('sheet')};
 $('#closeSheet').onclick=()=>{renderHome();show('home')};
 $('#backBtn').onclick=()=>{if(S.welcomeStep)return endWelcome();show('home');renderHome()};
 $('#bookBtn').onclick=()=>{renderBook();show('book')};$('#tabGarden').onclick=()=>setGardenView('garden');$('#tabBricks').onclick=()=>setGardenView('bricks');

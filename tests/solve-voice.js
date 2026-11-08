@@ -1,0 +1,25 @@
+// Pip's voice: the best English voice is picked by score, the grown-ups' list is in quality order, a chosen voice is remembered, and a device without a natural voice gets a tip
+const {chromium}=require('playwright');const path=require('path');const {done}=require('./lib');
+const URL='file://'+path.resolve(__dirname,'..','index.html');
+const FAKE=(list)=>`(()=>{const vs=${JSON.stringify(list)}.map(v=>Object.assign({localService:true,default:false,voiceURI:v.name},v));const spoken=[];window.__spoken=spoken;
+  window.speechSynthesis={getVoices:()=>vs,speak:u=>spoken.push({t:u.text,v:u.voice&&u.voice.name}),cancel(){},addEventListener(){},removeEventListener(){}};
+  window.SpeechSynthesisUtterance=function(t){this.text=t;this.voice=null;this.rate=1;this.pitch=1;this.lang=''}})()`;
+const seed=`localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:2,m:{},book:[],flowers:[{room:'warm',day:20700}],counts:{dots:2},days:[],badges:{},welcomed:true}))`;
+(async()=>{const br=await chromium.launch();const errs=[];
+  const open=async(voices,ua)=>{const ctx=await br.newContext(Object.assign({viewport:{width:420,height:860}},ua?{userAgent:ua}:{}));const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push('page error: '+e.message));await pg.addInitScript(FAKE(voices));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));await pg.goto(URL);await pg.evaluate(seed);await pg.reload();await pg.waitForTimeout(150);return {ctx,pg}};
+  /* a rich device: natural, google, apple and robotic voices */
+  let {ctx,pg}=await open([{name:'eSpeak English',lang:'en-GB'},{name:'Microsoft David Desktop - English (United States)',lang:'en-US'},{name:'Google US English',lang:'en-US',localService:false},{name:'Samantha',lang:'en-US'},{name:'Microsoft Aria Online (Natural) - English (United States)',lang:'en-US',localService:false},{name:'Bubbles',lang:'en-US'},{name:'Français',lang:'fr-FR'}]);
+  await pg.locator('#gearBtn').click();await pg.waitForTimeout(100);
+  const opts=await pg.locator('#voicePick option').allInnerTexts();if(!/^Best available \(Microsoft Aria Online \(Natural\)\)/.test(opts[0]))errs.push('auto pick is not the natural voice: '+opts[0]);
+  if(!/Aria/.test(opts[1])||!/Google US English/.test(opts[2])||!/Samantha/.test(opts[3]))errs.push('list not in quality order: '+opts.slice(1,4).join(' | '));if(opts.some(o=>/Français/.test(o)))errs.push('a non-English voice is listed');if(!/Bubbles|eSpeak/.test(opts[opts.length-1]))errs.push('silly and robotic voices are not last: '+opts[opts.length-1]);
+  if(await pg.locator('#voiceTip').innerText()!=='')errs.push('tip shown although a natural voice exists: '+await pg.locator('#voiceTip').innerText());
+  await pg.locator('#hearVoice').click();await pg.waitForTimeout(150);let sp=await pg.evaluate(()=>window.__spoken);if(!sp.length||!/Pip/.test(sp[sp.length-1].t)||sp[sp.length-1].v!=='Microsoft Aria Online (Natural) - English (United States)')errs.push('Hear Pip did not use the best voice: '+JSON.stringify(sp.slice(-1)));
+  await pg.locator('#voicePick').selectOption({label:opts[3]});await pg.waitForTimeout(150);const st=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).voice);if(st!=='Samantha')errs.push('chosen voice not remembered: '+st);sp=await pg.evaluate(()=>window.__spoken);if(sp[sp.length-1].v!=='Samantha')errs.push('sample after choosing did not use the chosen voice: '+JSON.stringify(sp.slice(-1)));
+  await pg.reload();await pg.waitForTimeout(150);await pg.locator('#gearBtn').click();await pg.waitForTimeout(100);if(await pg.locator('#voicePick').inputValue()!=='Samantha')errs.push('choice lost after reload');
+  /* a game prompt is read with the chosen voice */
+  await pg.locator('#closeSheet').click();await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.taught={'dots:1':1};s.trail={door:'warm',steps:['dots','dots','dots','dots','dots'],i:0,lit:[0,0,0,0,0]};s.skill='dots';s.m.dots={lv:1,streak:0,low:0};localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();await pg.waitForTimeout(500);sp=await pg.evaluate(()=>window.__spoken);if(!sp.some(x=>/How many dots/.test(x.t)&&x.v==='Samantha'))errs.push('the prompt was not read in the chosen voice: '+JSON.stringify(sp.slice(-2)));
+  await ctx.close();
+  /* an iPhone with only the compact voice gets the download tip */
+  ({ctx,pg}=await open([{name:'Samantha',lang:'en-US'},{name:'Fred',lang:'en-US'}],'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1'));
+  await pg.locator('#gearBtn').click();await pg.waitForTimeout(100);const tip=await pg.locator('#voiceTip').innerText();if(!/Spoken Content/.test(tip))errs.push('no iPhone tip: '+tip);const o2=await pg.locator('#voicePick option').allInnerTexts();if(!/Samantha/.test(o2[0]))errs.push('Samantha should beat Fred: '+o2[0]);await ctx.close();
+  console.log('voice checked');done('solve-voice',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});

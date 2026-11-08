@@ -126,7 +126,9 @@
   <label>Pronouns <select id="pro"><option value="she">she / her</option><option value="he">he / him</option><option value="they">they / them</option></select></label>
   <label>Me &amp; Dad mode (take turns) <input type="checkbox" id="duo"></label>
   <label>Sounds (notes and dings) <input type="checkbox" id="soundOn"></label>
-  <label>Read-aloud buttons <input type="checkbox" id="speechOn"></label>
+  <label>Pip talks out loud <input type="checkbox" id="speechOn"></label>
+  <label>Pip's voice <select id="voicePick" aria-label="Pip's voice"></select></label>
+  <div class="row" style="justify-content:flex-start"><button class="btn quiet" id="hearVoice" type="button">Hear Pip</button></div><p id="voiceTip" class="cloud"></p>
   <label>Play per day <select id="limit"><option value="10">10 minutes</option><option value="15">15 minutes</option><option value="20">20 minutes</option><option value="30">30 minutes</option><option value="45">45 minutes</option><option value="0">no limit</option></select></label>
   <p id="limitNote"></p><div class="row"><button class="btn quiet" id="moreToday">Ten more minutes today</button></div>
   <label style="flex-direction:column;align-items:stretch;gap:6px">A note for the child (shows on the home screen)<input id="note" placeholder="e.g. I loved watching you count the acorns. Papa" maxlength="120"></label>
