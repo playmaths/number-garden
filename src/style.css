@@ -370,3 +370,41 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 
 @media (min-width:700px){body{max-width:960px;padding-block:20px;gap:14px}.doors{grid-template-columns:repeat(3,1fr)}.doors .door:last-child{grid-column:auto}.door{min-height:120px}.garden.big{max-height:260px}.greet{font-size:1.3rem}.num{height:62px;font-size:1.7rem}.prompt{font-size:1.8rem}.book{display:grid;grid-template-columns:1.25fr 1fr;grid-template-areas:'scene narr' 'scene nav';gap:16px}.scenebox{grid-area:scene;min-height:380px}.sceneInner{min-height:380px}.narr{grid-area:narr}.book>.row{grid-area:nav;align-self:end}.bubble{font-size:1.3rem}.learncard .stage{min-height:200px}.idealist{display:grid;grid-template-columns:1fr 1fr;gap:10px}.idealist .strand{grid-column:1/-1}.toys{display:grid;grid-template-columns:1fr 1fr 1fr}.pages{display:grid;grid-template-columns:1fr 1fr}.story{font-size:1.4rem}.it2{width:44px;height:44px}.it2 svg{width:40px;height:40px}}
 @media (min-width:1100px){body{max-width:1100px}.card{padding:28px 24px}}
+
+/* ---------- home screen for a child who cannot read yet: the Today card and the garden scene (places on a path, not a list of doors) ---------- */
+:root{--grass:#d6ecd9;--hill:#c3e2c6;--pond:#bfe0f5;--path:#ead9b7}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--grass:#1b3328;--hill:#22402f;--pond:#1f3d55;--path:#55483a}}
+:root[data-theme="dark"]{--grass:#1b3328;--hill:#22402f;--pond:#1f3d55;--path:#55483a}
+.greet{font-size:1.35rem;font-family:var(--display);font-weight:600;line-height:1.35}
+.homebug{align-items:center}
+#greetRead{align-self:flex-start;margin-top:-6px}
+.today{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.today.resting .today{opacity:.45}
+.tcard{position:relative;display:flex}
+.today .today{flex:1;min-height:160px;background:var(--card);border-radius:22px;padding:14px 6px 12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;text-align:center;box-shadow:0 6px 18px rgba(20,60,40,.08);border:3px solid transparent;color:var(--fg)}
+.today .today.door.pick{background:#ffe3e3;color:#1a1a1a;min-height:160px;align-items:center}
+.today .today.fresh{border-color:var(--sun)}
+.today .today:active{transform:scale(.97)}
+.tpic{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:76px}
+.tpic svg{width:72px;height:72px;display:block}
+.tpic svg.pip{width:64px;height:64px}
+.today .today.tbuild .tpic svg{width:auto;height:auto;max-height:90px}
+.today .today b{font-family:var(--display);font-size:1.05rem;font-weight:600;line-height:1.15}
+.today .today small{color:var(--muted);font-size:.78rem;font-weight:600;line-height:1.1}
+.today .today.door.pick small{color:#7a4a4a}
+.spk{position:absolute;top:4px;right:4px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);font-size:1.05rem;display:grid;place-items:center}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .spk{background:rgba(0,0,0,.3)}}
+:root[data-theme="dark"] .spk{background:rgba(0,0,0,.3)}
+.gscene{position:relative;padding:20px 8px 26px;gap:8px 10px;border-radius:26px;overflow:hidden;isolation:isolate}
+.gscene .scenebg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
+.gscene .door{position:relative;background:transparent;box-shadow:none;border:0;padding:4px 2px 6px;min-height:150px;align-items:center;text-align:center;gap:2px;color:var(--fg)}
+.gscene .door:nth-child(even){margin-top:30px}
+.gscene .door.sand,.gscene .door.ideas,.gscene .door.maker,.gscene .door.tale{background:transparent;color:var(--fg)}
+.gscene .door svg.place{width:100%;max-width:150px;height:auto;aspect-ratio:100/70;display:block}
+.gscene .door svg.place svg{width:28px;height:28px}
+.gscene .door b{font-size:1.15rem;line-height:1.15;background:var(--card);border-radius:999px;padding:5px 12px;margin-top:-6px;box-shadow:0 3px 10px rgba(20,60,40,.1)}
+.gscene .door small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gscene .door:active{transform:scale(.96)}
+.doors.gscene.resting .door{opacity:.45}
+@media (max-width:380px){.today .today b{font-size:.95rem}.today .today{min-height:150px;padding:10px 4px 10px}.tpic svg{width:60px;height:60px}.gscene .door b{font-size:1.05rem;padding:4px 10px}.gscene .door{min-height:140px}}
+@media (min-width:700px){.gscene{grid-template-columns:repeat(3,1fr);padding:26px 14px 30px}.gscene .door:nth-child(even){margin-top:0}.gscene .door:nth-child(3n+2){margin-top:34px}.today{gap:12px}.today .today{min-height:190px}.tpic svg{width:88px;height:88px}.today .today b{font-size:1.25rem}.gscene .door b{font-size:1.3rem}}
