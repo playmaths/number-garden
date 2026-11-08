@@ -39,6 +39,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-detective.js` | plays Story detective at every level and checks the Does-that-make-sense card on three games |
 | `solve-compose.js` | Make a shape at every level: pieces dragged with the mouse onto the outline (turned first where needed), a wrong drop slides back with a hint, the extra piece and the think-first card at level 2, the cut named and then cut by hand at level 3, Clue and Show me |
 | `solve-thinking.js` | plays Draw the bar, Rewind it and Name the trick at every level: clean, miss-then-win and Show me |
+| `solve-analogy.js` | Number pairs at every level: the rule in `ctx.rule` fits the given pairs and gives the answer, dots drawn and redrawn at level 1, the think-first card at level 2, the two-rules trap at level 3 (the first pair fits two rules, the second pins the one in `ctx.rule`), a wrong rule hinted at the other pair, the why or another-way gate, Show me |
 | `solve-howknow.js` | the How did you know? card on a game with no why gate: shown on the 2nd and 6th win only, right and wrong picks keep the star and flag the log, Next stone works, and a game with a why gate never gets it |
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
 
