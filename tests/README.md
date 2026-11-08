@@ -39,6 +39,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-askq.js` | plays You ask the question eight times: builds a scene, checks that an already-known question is refused, checks Pip's answer and types the truth when she slipped |
 | `solve-build.js` | builds every Build the stack level by tapping the floor, with a wrong build and Show me, and checks that a different stack with the same views is accepted |
 | `solve-detective.js` | plays Story detective at every level and checks the Does-that-make-sense card on three games |
+| `solve-compose.js` | Make a shape at every level: pieces dragged with the mouse onto the outline (turned first where needed), a wrong drop slides back with a hint, the extra piece and the think-first card at level 2, the cut named and then cut by hand at level 3, Clue and Show me |
 | `solve-thinking.js` | plays Draw the bar, Rewind it and Name the trick at every level: clean, miss-then-win and Show me |
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
 
