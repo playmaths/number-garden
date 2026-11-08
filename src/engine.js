@@ -121,7 +121,7 @@ function numpad(onSubmit,digits){digits=digits||2;const nm=el('div','pad');let t
   nm.shake=()=>{show.classList.remove('shake');void show.offsetWidth;show.classList.add('shake')};
   nm.append(clr,ok);return nm}
 function choices(opts,onPick){const r=el('div','row');opts.forEach(o=>{const b=el('button','choice');if(typeof o==='string'||typeof o==='number')b.textContent=o;else b.appendChild(o.node);b.onclick=()=>onPick(o,b);r.appendChild(b)});return r}
-function nextBtn(){const r=el('div','row');const last=S.trail&&S.trail.i>=S.trail.steps.length-1;const b=el('button','btn',last?(S.build?'Lay the brick':'Plant the flower'):'Next stone');b.onclick=()=>stepTrail();r.appendChild(b);return r}
+function nextBtn(){const r=el('div','row');const last=S.trail&&S.trail.i>=S.trail.steps.length-1;const b=el('button','btn',S.welcomeStep?'Next':last?(S.build?'Lay the brick':'Plant the flower'):'Next stone');b.onclick=()=>stepTrail();r.appendChild(b);return r}
 /* every few wins: ask her to explain her thinking to a grown-up before moving on */
 function tellPapa(){S.tellCount=(S.tellCount||0)+1;if(!ctx||(S.skill!=='think'&&(S.tellCount%3!==0||ctx.hints>0)))return;
   const card=el('div','note said',`<small>In your own words</small>How did you know? Say it out loud: "I knew because…"`);const r=el('div','row');card.appendChild(r);stage.appendChild(card);
@@ -441,15 +441,26 @@ function pickTrail(){const now=Date.now(),day=todayN();const log=(S.log||[]).fil
   take(due,stale,fresh);take(stale,fresh,due);take(due,fresh,stale);take(stale,due,fresh);while(steps.length<4)take([shuffle(pool.map(k=>k.id)).find(id=>!steps.includes(id))]);
   steps.splice(2,0,'think');return{steps:steps.slice(0,5),due,stale,fresh}}
 function startTrail(door){if(gardenClosed())return showClosed();makeTrail(door);show('play');play(S.trail.steps[0])}
-function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
+function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(S.welcomeStep){S.trail=null;return welcomeStep(4)} /* the welcome's one stone plants no flower: Pip explains the five instead */
+  if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
 function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
-  const brickLine=layBrick();if(brickLine){checkBadges();save()}const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');bf.innerHTML=`<div class="water">🚿</div><svg viewBox="0 0 60 70"><g class="sprout">${flowerSvg(30,66,40,FLOWER[tr.door],2.2,kind)}</g></svg>`;
+  const brickLine=layBrick();if(brickLine){checkBadges();save()}const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');celebrate(bf,tr.door,n,kind);
   const reached=GARDEN_STAGES.find(st=>st.at===n);const pageOpened=(n===1||(n-1)%10===0)&&storyPages()<=STORY.length?storyPages():0;const finished=brickLine&&!S.build;$('#doneTitle').textContent=reached?reached.text:pageOpened?`Page ${pageOpened} of Pip's story is open!`:finished?`${KID()} finished the set!`:brickLine?`A new brick for ${KID()}!`:`A new flower for ${KID()}!`;
   const walked=`${KID()} walked the whole ${doorName(tr.door)} trail${lit?` and solved ${inWords(lit)} problem${lit===1?'':'s'} ${P().self}`:' and looked carefully at every problem'}.`;
   $('#doneText').textContent=brickLine?`${brickLine} ${walked} A flower grew in the garden too: ${inWords(n)} now.`:`${walked} The garden now has ${inWords(n)} flower${n===1?'':'s'}.`;
-  $('#bigflower').classList.toggle('aside',!!brickLine);
+  $('#bigflower').classList.toggle('aside',!!brickLine);$('#donePip').classList.toggle('dance',bf.classList.contains('cel-dance'));
   addPage(`${KID()} finished the ${doorName(tr.door)} trail and planted flower number ${n}.`,true);
   show('done');drawGarden();confetti();ding();if(brickLine){const bb=$('#bigflower');if(S.build||/finished/.test(brickLine)){const m=MODELS.find(x=>S.build?x.id===S.build.model:x.id===(S.built||[]).slice(-1)[0]);if(m){const bd=el('div','buildnow');bd.innerHTML=brickSvg(m,S.build?S.build.placed:m.total,14,S.build?{drop:true,max:280}:{theta:.3,max:280});bb.before(bd);if(!S.build)finale(bd,m,14)}}}document.querySelectorAll('#done .buildnow').forEach((x,i,a)=>{if(i<a.length-1)x.remove()});if(reached){addPage(`${KID()}'s garden: ${reached.text}`,true);save()}const old=$('#readTale');if(old)old.remove();if(pageOpened){addPage(`Page ${pageOpened} of Pip's story opened for ${KID()}.`,true);save();const rb=el('button','btn','Read the new page');rb.id='readTale';rb.onclick=()=>{talePage=pageOpened-1;renderTale();show('tale')};$('#againBtn').parentNode.insertBefore(rb,$('#againBtn'))}$('#againBtn').onclick=()=>startTrail(tr.door);$('#homeBtn').onclick=()=>{renderHome();show('home')}}
+
+/* five celebrations for a new flower, by its number, so no two in a row are alike: petals burst from the flower head; a butterfly (or a bee) flies in and perches on it; Pip dances beside it, with a hop sequence and her happy face; a rainbow fades in behind it, arc by arc; the watering can showers it and it grows in four steps. Every variant keeps the flower sprouting (the sprout class) and lives inside #bigflower, so when a brick leads the done screen (bigflower.aside) the same celebration plays small beside the brick picture */
+const CELEBRATE=['petals','visitor','dance','rainbow','water'];
+function celebrate(bf,door,n,kind){const v=CELEBRATE[(n-1)%CELEBRATE.length];const col=FLOWER[door]||'var(--accent)';const fl=`<g class="sprout${v==='water'?' steps':''}">${flowerSvg(30,66,40,col,2.2,kind)}</g>`;let h='';
+  if(v==='petals')h=`<svg viewBox="0 0 60 70">${fl}<g class="burst">${Array.from({length:10},(_,i)=>{const a=i*36*Math.PI/180;return `<circle cx="30" cy="26" r="${i%2?3.6:2.6}" fill="${i%3?col:'var(--sun)'}" style="--dx:${(Math.cos(a)*30).toFixed(1)}px;--dy:${(Math.sin(a)*30-8).toFixed(1)}px;animation-delay:${(1+(i%4)*.07).toFixed(2)}s"/>`}).join('')}</g></svg>`;
+  else if(v==='visitor')h=`<svg viewBox="0 0 60 70">${fl}</svg><div class="visit">${n%10===2?'🐝':'🦋'}</div>`;
+  else if(v==='dance')h=`<svg viewBox="0 0 60 70">${fl}</svg>`; // Pip herself (#donePip) does the dancing, beside the flower
+  else if(v==='rainbow')h=`<svg viewBox="-60 -6 120 76" class="rbow">${['#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7','#9775fa'].map((c,i)=>{const r=56-i*4.2;return `<path class="arc" d="M${(30-r).toFixed(1)} 66A${r} ${r} 0 0 1 ${(30+r).toFixed(1)} 66" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" style="animation-delay:${(.5+i*.14).toFixed(2)}s"/>`}).join('')}${fl}</svg>`; // a wider canvas, so the arcs stand behind and around the flower
+  else h=`<div class="water">🚿</div><svg viewBox="0 0 60 70">${fl}</svg>`;
+  bf.className='bigflower cel-'+v;bf.innerHTML=h;if(v==='dance')setTimeout(()=>bugs('happy'),900);return v}
 
 /* ---------- badges ---------- */
 const BADGES=[

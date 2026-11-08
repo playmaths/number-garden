@@ -463,6 +463,38 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .doors.gscene.resting .door{opacity:.45}
 @media (max-width:380px){.today .today b{font-size:.95rem}.today .today{min-height:150px;padding:10px 4px 10px}.tpic svg{width:60px;height:60px}.gscene .door b{font-size:1.05rem;padding:4px 10px}.gscene .door{min-height:140px}}
 @media (min-width:700px){.gscene{grid-template-columns:repeat(3,1fr);padding:26px 14px 30px}.gscene .door:nth-child(even){margin-top:0}.gscene .door:nth-child(3n+2){margin-top:34px}.today{gap:12px}.today .today{min-height:190px}.tpic svg{width:88px;height:88px}.today .today b{font-size:1.25rem}.gscene .door b{font-size:1.3rem}}
+
+/* ---------- first-time welcome: Pip above her bubble, one big thing per step (a button, a name field, the five stones and a flower) ---------- */
+.welcomecard{background:var(--card);border-radius:26px;padding:26px 18px 22px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center;margin-top:24px;box-shadow:0 8px 24px rgba(20,60,40,.08)}
+.welcomecard .bug{width:104px;height:104px}
+.welcomecard .bubble{font-family:var(--display);font-size:1.45rem;font-weight:600;line-height:1.35;min-height:0;width:100%;box-sizing:border-box;padding:14px 18px}
+.welcomecard .bubble::before{left:50%;top:-14px;margin-left:-8px;border:8px solid transparent;border-bottom-color:var(--bg);border-top:0;border-right-color:transparent}
+.wbody{display:flex;flex-direction:column;align-items:center;gap:10px;width:100%}
+.wbody:empty{display:none}
+.wname{font:inherit;font-family:var(--display);font-size:1.9rem;font-weight:600;text-align:center;width:100%;max-width:320px;box-sizing:border-box;padding:14px 16px;min-height:64px;border-radius:18px;border:3px solid var(--line);background:var(--bg);color:var(--fg);-webkit-user-select:text;user-select:text}
+.wname:focus{outline:none;border-color:var(--accent)}
+.wname::placeholder{color:var(--muted);opacity:.7}
+.welcomecard .btn{min-height:56px;font-size:1.3rem;padding:14px 28px}
+.wtrail{display:flex;align-items:center;gap:10px;margin-top:4px}
+.wstone{width:26px;height:26px;border-radius:50%;background:var(--sun);display:block;animation:badge .45s cubic-bezier(.34,1.56,.64,1) both}
+.wflower{width:60px;height:70px;margin-left:4px}
+
+/* ---------- celebrations for a new flower (celebrate() in engine.js); all inside #bigflower, scaled down by .aside when a brick leads ---------- */
+.burst circle{opacity:0;transform-box:fill-box;transform-origin:center;animation:petalfly 1.15s ease-out both}
+@keyframes petalfly{0%{opacity:0;transform:translate(0,0) scale(.3)}18%{opacity:1}100%{opacity:0;transform:translate(var(--dx),var(--dy)) scale(1)}}
+.visit{position:absolute;left:50%;top:14px;font-size:2rem;line-height:1;margin-left:-16px;animation:visitfly 2.8s ease-in-out .3s both;pointer-events:none}
+@keyframes visitfly{0%{opacity:0;transform:translate(-170px,40px) rotate(-14deg)}12%{opacity:1}35%{transform:translate(-90px,-22px) rotate(10deg)}65%{transform:translate(-30px,12px) rotate(-8deg)}100%{transform:translate(6px,-2px) rotate(0)}}
+.donepip.dance{animation:pipdance 2.6s ease-in-out .5s both}
+@keyframes pipdance{0%,100%{transform:none}11%{transform:translate(-10px,-20px) rotate(-12deg)}22%{transform:translate(-14px,0)}33%{transform:translate(0,-20px) rotate(12deg)}44%{transform:translate(14px,0)}55%{transform:translate(8px,-20px) rotate(-12deg)}66%{transform:translate(-14px,0)}77%{transform:translate(-4px,-22px) rotate(12deg)}88%{transform:translate(0,0) scale(1.1)}}
+.rbow .arc{opacity:0;transform-box:fill-box;transform-origin:center;animation:arcin 1.3s ease-out both}
+@keyframes arcin{0%{opacity:0;transform:translateY(10px) scale(.9)}100%{opacity:1;transform:none}}
+.sprout.steps{animation:sprout 2s steps(4,jump-end) .9s both}
+.cel-water .water{animation:water 1.3s ease-in-out 2}
+.bigflower.aside .visit{font-size:1.2rem;margin-left:-10px;top:6px}
+.bigflower.aside+.donepip.dance{animation-name:pipdance-s}
+@keyframes pipdance-s{0%,100%{transform:none}11%{transform:translate(-6px,-12px) rotate(-12deg)}22%{transform:translate(-8px,0)}33%{transform:translate(0,-12px) rotate(12deg)}44%{transform:translate(8px,0)}55%{transform:translate(4px,-12px) rotate(-12deg)}66%{transform:translate(-8px,0)}77%{transform:translate(-2px,-14px) rotate(12deg)}88%{transform:translate(0,0) scale(1.1)}}
+.cel-rainbow svg{width:240px;height:152px}.bigflower.aside.cel-rainbow svg{width:128px;height:81px}
+.cel-water .water{left:4px;top:8px}.bigflower.aside.cel-water .water{left:0;top:0}
 </style>
 
 <div id="home" class="view">
@@ -491,6 +523,15 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
   </div>
 </div>
 
+<div id="welcome" class="view" hidden>
+  <div class="welcomecard">
+    <svg class="bug wave" id="welcomeBug" viewBox="0 0 60 60"></svg>
+    <div class="bubble" id="welcomeBubble"></div>
+    <div class="wbody" id="welcomeBody"></div>
+    <div class="row" id="welcomeRow"></div>
+  </div>
+</div>
+
 <div id="closed" class="view" hidden>
   <div class="donecard"><div class="emo">🐞💤</div><h2 id="closedTitle">Pip is sleepy</h2><p id="closedText"></p>
   <div class="row"><button class="btn" id="closedHome">Back to the garden</button></div></div>
@@ -499,7 +540,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 <div id="done" class="view" hidden>
   <div class="donecard">
     <div class="bigflower" id="bigflower"></div>
-    <svg class="bug idle donebug" id="doneBug" viewBox="0 0 60 60"></svg>
+    <div class="donepip" id="donePip"><svg class="bug idle donebug" id="doneBug" viewBox="0 0 60 60"></svg></div>
     <h2 id="doneTitle"></h2>
     <p id="doneText"></p>
     <div class="row"><button class="btn" id="againBtn">Another trail</button><button class="btn quiet" id="homeBtn">Back to the garden</button></div>
@@ -720,7 +761,7 @@ function numpad(onSubmit,digits){digits=digits||2;const nm=el('div','pad');let t
   nm.shake=()=>{show.classList.remove('shake');void show.offsetWidth;show.classList.add('shake')};
   nm.append(clr,ok);return nm}
 function choices(opts,onPick){const r=el('div','row');opts.forEach(o=>{const b=el('button','choice');if(typeof o==='string'||typeof o==='number')b.textContent=o;else b.appendChild(o.node);b.onclick=()=>onPick(o,b);r.appendChild(b)});return r}
-function nextBtn(){const r=el('div','row');const last=S.trail&&S.trail.i>=S.trail.steps.length-1;const b=el('button','btn',last?(S.build?'Lay the brick':'Plant the flower'):'Next stone');b.onclick=()=>stepTrail();r.appendChild(b);return r}
+function nextBtn(){const r=el('div','row');const last=S.trail&&S.trail.i>=S.trail.steps.length-1;const b=el('button','btn',S.welcomeStep?'Next':last?(S.build?'Lay the brick':'Plant the flower'):'Next stone');b.onclick=()=>stepTrail();r.appendChild(b);return r}
 /* every few wins: ask her to explain her thinking to a grown-up before moving on */
 function tellPapa(){S.tellCount=(S.tellCount||0)+1;if(!ctx||(S.skill!=='think'&&(S.tellCount%3!==0||ctx.hints>0)))return;
   const card=el('div','note said',`<small>In your own words</small>How did you know? Say it out loud: "I knew because…"`);const r=el('div','row');card.appendChild(r);stage.appendChild(card);
@@ -1040,15 +1081,26 @@ function pickTrail(){const now=Date.now(),day=todayN();const log=(S.log||[]).fil
   take(due,stale,fresh);take(stale,fresh,due);take(due,fresh,stale);take(stale,due,fresh);while(steps.length<4)take([shuffle(pool.map(k=>k.id)).find(id=>!steps.includes(id))]);
   steps.splice(2,0,'think');return{steps:steps.slice(0,5),due,stale,fresh}}
 function startTrail(door){if(gardenClosed())return showClosed();makeTrail(door);show('play');play(S.trail.steps[0])}
-function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
+function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(S.welcomeStep){S.trail=null;return welcomeStep(4)} /* the welcome's one stone plants no flower: Pip explains the five instead */
+  if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
 function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
-  const brickLine=layBrick();if(brickLine){checkBadges();save()}const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');bf.innerHTML=`<div class="water">🚿</div><svg viewBox="0 0 60 70"><g class="sprout">${flowerSvg(30,66,40,FLOWER[tr.door],2.2,kind)}</g></svg>`;
+  const brickLine=layBrick();if(brickLine){checkBadges();save()}const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');celebrate(bf,tr.door,n,kind);
   const reached=GARDEN_STAGES.find(st=>st.at===n);const pageOpened=(n===1||(n-1)%10===0)&&storyPages()<=STORY.length?storyPages():0;const finished=brickLine&&!S.build;$('#doneTitle').textContent=reached?reached.text:pageOpened?`Page ${pageOpened} of Pip's story is open!`:finished?`${KID()} finished the set!`:brickLine?`A new brick for ${KID()}!`:`A new flower for ${KID()}!`;
   const walked=`${KID()} walked the whole ${doorName(tr.door)} trail${lit?` and solved ${inWords(lit)} problem${lit===1?'':'s'} ${P().self}`:' and looked carefully at every problem'}.`;
   $('#doneText').textContent=brickLine?`${brickLine} ${walked} A flower grew in the garden too: ${inWords(n)} now.`:`${walked} The garden now has ${inWords(n)} flower${n===1?'':'s'}.`;
-  $('#bigflower').classList.toggle('aside',!!brickLine);
+  $('#bigflower').classList.toggle('aside',!!brickLine);$('#donePip').classList.toggle('dance',bf.classList.contains('cel-dance'));
   addPage(`${KID()} finished the ${doorName(tr.door)} trail and planted flower number ${n}.`,true);
   show('done');drawGarden();confetti();ding();if(brickLine){const bb=$('#bigflower');if(S.build||/finished/.test(brickLine)){const m=MODELS.find(x=>S.build?x.id===S.build.model:x.id===(S.built||[]).slice(-1)[0]);if(m){const bd=el('div','buildnow');bd.innerHTML=brickSvg(m,S.build?S.build.placed:m.total,14,S.build?{drop:true,max:280}:{theta:.3,max:280});bb.before(bd);if(!S.build)finale(bd,m,14)}}}document.querySelectorAll('#done .buildnow').forEach((x,i,a)=>{if(i<a.length-1)x.remove()});if(reached){addPage(`${KID()}'s garden: ${reached.text}`,true);save()}const old=$('#readTale');if(old)old.remove();if(pageOpened){addPage(`Page ${pageOpened} of Pip's story opened for ${KID()}.`,true);save();const rb=el('button','btn','Read the new page');rb.id='readTale';rb.onclick=()=>{talePage=pageOpened-1;renderTale();show('tale')};$('#againBtn').parentNode.insertBefore(rb,$('#againBtn'))}$('#againBtn').onclick=()=>startTrail(tr.door);$('#homeBtn').onclick=()=>{renderHome();show('home')}}
+
+/* five celebrations for a new flower, by its number, so no two in a row are alike: petals burst from the flower head; a butterfly (or a bee) flies in and perches on it; Pip dances beside it, with a hop sequence and her happy face; a rainbow fades in behind it, arc by arc; the watering can showers it and it grows in four steps. Every variant keeps the flower sprouting (the sprout class) and lives inside #bigflower, so when a brick leads the done screen (bigflower.aside) the same celebration plays small beside the brick picture */
+const CELEBRATE=['petals','visitor','dance','rainbow','water'];
+function celebrate(bf,door,n,kind){const v=CELEBRATE[(n-1)%CELEBRATE.length];const col=FLOWER[door]||'var(--accent)';const fl=`<g class="sprout${v==='water'?' steps':''}">${flowerSvg(30,66,40,col,2.2,kind)}</g>`;let h='';
+  if(v==='petals')h=`<svg viewBox="0 0 60 70">${fl}<g class="burst">${Array.from({length:10},(_,i)=>{const a=i*36*Math.PI/180;return `<circle cx="30" cy="26" r="${i%2?3.6:2.6}" fill="${i%3?col:'var(--sun)'}" style="--dx:${(Math.cos(a)*30).toFixed(1)}px;--dy:${(Math.sin(a)*30-8).toFixed(1)}px;animation-delay:${(1+(i%4)*.07).toFixed(2)}s"/>`}).join('')}</g></svg>`;
+  else if(v==='visitor')h=`<svg viewBox="0 0 60 70">${fl}</svg><div class="visit">${n%10===2?'🐝':'🦋'}</div>`;
+  else if(v==='dance')h=`<svg viewBox="0 0 60 70">${fl}</svg>`; // Pip herself (#donePip) does the dancing, beside the flower
+  else if(v==='rainbow')h=`<svg viewBox="-60 -6 120 76" class="rbow">${['#ff6b6b','#ffa94d','#ffd43b','#69db7c','#4dabf7','#9775fa'].map((c,i)=>{const r=56-i*4.2;return `<path class="arc" d="M${(30-r).toFixed(1)} 66A${r} ${r} 0 0 1 ${(30+r).toFixed(1)} 66" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" style="animation-delay:${(.5+i*.14).toFixed(2)}s"/>`}).join('')}${fl}</svg>`; // a wider canvas, so the arcs stand behind and around the flower
+  else h=`<div class="water">🚿</div><svg viewBox="0 0 60 70">${fl}</svg>`;
+  bf.className='bigflower cel-'+v;bf.innerHTML=h;if(v==='dance')setTimeout(()=>bugs('happy'),900);return v}
 
 /* ---------- badges ---------- */
 const BADGES=[
@@ -4151,12 +4203,29 @@ function greeting(){const h=new Date().getHours();const hi=h<12?'Good morning':h
     return{line:`${hi}, <em>${k}</em>!`,more:`Last thing you did: ${big.t.replace(k,'you').replace(/\bshe\b/g,'you')} ${motto}`}}
   const n=S.days.length;return{line:`${hi}, <em>${k}</em>! Welcome back.`,more:`Pip here. ${big?big.t.replace(k,'You').replace(/\bshe\b/g,'you')+' ':''}You have played on ${inWords(n)} different day${n===1?'':'s'}. ${motto}`}}
 function renderWho(){const w=$('#who');if(!w)return;w.hidden=PROFILES.list.length<2;w.innerHTML='';PROFILES.list.forEach(p=>{const b=el('button','chip'+(p.id===PROFILES.active?' on':''),profileName(p));b.onclick=()=>switchProfile(p.id);w.appendChild(b)})}
+/* ---------- the first-time welcome: Pip says hello, asks a name, gives one tiny problem and explains the flower ---------- */
+/* shown once, on the very first opening of this browser with nothing saved at all (no garden under ng2, one child on the device, no name, nothing won), and never again: S.welcomed marks it seen, any saved garden counts as seen, and a reload in the middle comes back to the same step (S.welcomeStep). A reload or a cleared store in a tab that has already opened the garden does not bring it back either, so the headless checks, which clear the store between runs, land on the home screen as before. Skippable at every step. Its flags are kept in the browser without touching the write clock, so a family code typed afterwards still pulls the family's garden, as today */
+let firstOpen=false;try{firstOpen=store.get('ng2',null)==null&&!sessionStorage.getItem('ng2_opened');sessionStorage.setItem('ng2_opened','1')}catch(e){}
+const welcomeDue=()=>!!S.welcomeStep||(firstOpen&&!S.welcomed&&!S.name&&!S.stars&&!S.flowers.length&&!S.book.length&&PROFILES.list.length<2);
+const keep=()=>store.set('ng2',S);
+function startWelcome(){welcomeStep(S.welcomeStep||1)}
+function endWelcome(){if(S.welcomeStep===3)S.trail=null; /* the welcome's one stone is never finished as a trail */S.welcomed=true;delete S.welcomeStep;keep();renderHome();show('home')}
+function welcomeStep(n){S.welcomeStep=n;keep();const bub=$('#welcomeBubble'),body=$('#welcomeBody'),row=$('#welcomeRow');body.innerHTML='';row.innerHTML='';
+  const skip=el('button','btn quiet','Skip');skip.id='welcomeSkip';skip.onclick=endWelcome;const go=(t,f)=>{const b=el('button','btn',t);b.onclick=f;return b};
+  if(n===3){ /* one How many dots at level 1, through the normal engine, as a one-stone trail; Next on the stone comes back here (stepTrail) */
+    S.taught=S.taught||{};S.taught['dots:1']=1;S.m.dots={lv:1,streak:0,low:0};S.trail={door:'warm',steps:['dots'],i:0,lit:[false]};keep();show('play');play('dots');say('Your turn! Touch each dot, then tap how many.');controls.appendChild(skip);return}
+  show('welcome');bugs(n===4?'happy':'wave'); /* the view first, so the bubble is on screen when the words arrive and Pip reads them aloud */
+  if(n===1){bub.innerHTML='Hello! I am <em>Pip</em>, the ladybug. This is your number garden.';row.append(go('Hi, Pip!',()=>welcomeStep(2)),skip)}
+  else if(n===2){bub.textContent='What is your name?';const inp=el('input','wname');inp.id='welcomeName';inp.type='text';inp.maxLength=20;inp.placeholder='my name';inp.autocomplete='off';inp.setAttribute('autocapitalize','words');inp.setAttribute('enterkeyhint','done');inp.setAttribute('aria-label','your name');body.appendChild(inp);
+    const ok=go('Done',()=>{const v=inp.value.trim();if(v){S.name=v;const nm=$('#name');if(nm)nm.value=v}welcomeStep(3)});inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();ok.click()}};skip.onclick=()=>welcomeStep(3); /* no name keeps the garden nickname and goes on */
+    row.append(ok,skip);setTimeout(()=>{try{inp.focus()}catch(e){}},350)}
+  else{bub.innerHTML=`That is how it works, <em>${KID()}</em>! Every five problems grows a flower.`;body.innerHTML=`<div class="wtrail">${[0,1,2,3,4].map(i=>`<i class="wstone" style="animation-delay:${(.2+i*.25).toFixed(2)}s"></i>`).join('')}<svg class="wflower" viewBox="0 0 60 70"><g class="sprout" style="animation-delay:1.5s">${flowerSvg(30,66,40,FLOWER.warm,2.2,0)}</g></svg></div>`;row.append(go('To my garden',endWelcome))}}
 function renderHome(){$('#homeTitle').textContent='Number Garden';renderWho();setGardenView(S.gview||'garden');$('#bookBtn').textContent=S.name?`${S.name}'s Book`:'My Book';const g=greeting();$('#greet').innerHTML=g.line;const gb=$('#greetRead');if(gb)gb.remove();const rb=readBtn(()=>$('#greet').textContent+' '+g.more+(S.note?' A note from Papa: '+S.note:''));rb.id='greetRead';document.querySelector('.homebug').after(rb);const nc=$('#noteCard');nc.hidden=!S.note;if(S.note)nc.innerHTML=`<small>A note from Papa</small>${S.note.replace(/</g,'&lt;')}`;drawGarden();renderToday();renderDoors()}
 
 /* ---------- wiring ---------- */
 $('#gearBtn').onclick=()=>{renderLevels();show('sheet')};
 $('#closeSheet').onclick=()=>{renderHome();show('home')};
-$('#backBtn').onclick=()=>{show('home');renderHome()};
+$('#backBtn').onclick=()=>{if(S.welcomeStep)return endWelcome();show('home');renderHome()};
 $('#bookBtn').onclick=()=>{renderBook();show('book')};$('#tabGarden').onclick=()=>setGardenView('garden');$('#tabBricks').onclick=()=>setGardenView('bricks');
 $('#bookBack').onclick=()=>{show('home')};$('#museumBtn').onclick=()=>{renderMuseum();show('museum')};$('#museumBack').onclick=()=>{renderBook();show('book')};
 $('#ideasBack').onclick=()=>{renderHome();show('home')};
@@ -4182,6 +4251,6 @@ $('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flower
 renderHome();connectCloud();famPull();sendReports();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;show('home')}
+if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;if(welcomeDue())startWelcome();else show('home')}
 })();
 </script>
