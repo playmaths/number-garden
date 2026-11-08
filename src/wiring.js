@@ -1,7 +1,7 @@
 /* ---------- wiring ---------- */
 $('#gearBtn').onclick=()=>{renderLevels();show('sheet')};
 $('#closeSheet').onclick=()=>{renderHome();show('home')};
-$('#backBtn').onclick=()=>{show('home');renderHome()};
+$('#backBtn').onclick=()=>{if(S.welcomeStep)return endWelcome();show('home');renderHome()};
 $('#bookBtn').onclick=()=>{renderBook();show('book')};$('#tabGarden').onclick=()=>setGardenView('garden');$('#tabBricks').onclick=()=>setGardenView('bricks');
 $('#bookBack').onclick=()=>{show('home')};$('#museumBtn').onclick=()=>{renderMuseum();show('museum')};$('#museumBack').onclick=()=>{renderBook();show('book')};
 $('#ideasBack').onclick=()=>{renderHome();show('home')};
@@ -27,5 +27,5 @@ $('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flower
 renderHome();connectCloud();famPull();sendReports();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
-if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;show('home')}
+if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;if(welcomeDue())startWelcome();else show('home')}
 })();

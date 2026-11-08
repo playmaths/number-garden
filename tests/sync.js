@@ -2,7 +2,7 @@
 const {chromium}=require('playwright');
 (async()=>{const br=await chromium.launch();const errs=[];const store={};const log=[];
 const mock=async route=>{const u=route.request().url();const c=decodeURIComponent(u.match(/families\/([^?]+)/)[1]);const m=route.request().method();log.push(m+' '+c);if(m==='GET'){if(store[c])route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(store[c])});else route.fulfill({status:404,body:'{}'})}else{store[c]=JSON.parse(route.request().postData());route.fulfill({status:200,contentType:'application/json',body:'{}'})}};
-const mk=async()=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(e.message));await pg.route('**/firestore.googleapis.com/**',mock);await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html'));return[ctx,pg]};
+const mk=async()=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push(e.message));await pg.route('**/firestore.googleapis.com/**',mock);await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html'));const sk=pg.locator('#welcomeSkip');if(await sk.isVisible())await sk.click(); /* a brand-new device meets the welcome first; the grown-up skips it to reach the code */return[ctx,pg]};
 const stars=pg=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
 // A: name + new family + one real win
 const [ca,pa]=await mk();await pa.locator('#gearBtn').click();await pa.locator('#name').fill('Zoe');await pa.locator('#newFamily').click();const code=await pa.locator('#family').inputValue();await pa.locator('#closeSheet').click();

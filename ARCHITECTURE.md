@@ -12,7 +12,11 @@ When to change it further: if `src/` ever needs modules or a second output, that
 
 ## 2. Runtime layout
 
-The page is a set of **views**, one visible at a time, switched by `show(id)`: `home` (garden and doors), `play` (one problem), `done` (flower planted), `book`, `playground` and `toy`, `ideas` and `learn` (the picture books), `sheet` (grown-ups).
+The page is a set of **views**, one visible at a time, switched by `show(id)`: `home` (garden and doors), `play` (one problem), `done` (flower planted), `book`, `playground` and `toy`, `ideas` and `learn` (the picture books), `sheet` (grown-ups), and `welcome`, seen once.
+
+**The first-time welcome** (`welcomeDue`, `welcomeStep` in `src/play.js`) runs only on the very first opening of a browser with nothing saved at all: no garden under `ng2`, one child on the device, no name, nothing won. Pip waves and says who she is (read aloud through the same observer as every bubble), asks for a name in one big field (Done, or Skip to keep the nickname), then mounts one *How many dots* at level 1 through the normal engine as a one-stone trail (`S.trail={door:'warm',steps:['dots'],i:0,lit:[false]}`); `stepTrail()` sees `S.welcomeStep` and comes back to the last step instead of planting a flower, where Pip explains that every five problems grows one. Every step has a Skip (the back arrow on the problem counts). `S.welcomeStep` is kept so a reload resumes the same step; `S.welcomed` marks it seen; any saved garden counts as seen, and a tab that has opened the garden once does not get it back after a cleared store (`sessionStorage`), which is also why the headless checks, which clear the store between runs, land on the home screen. The welcome's own flags are written with `store.set`, not `save()`, so the write clock is untouched and a family code typed afterwards still pulls the family's garden.
+
+**Celebrations.** `finishTrail()` hands the new flower to `celebrate()`, which picks one of five by the flower's number, so no two in a row are alike: petals burst from the flower head, a butterfly (or bee) flies in and perches, Pip dances beside it (`#donePip.dance` plus her happy face), a rainbow fades in arc by arc, or the watering can showers it and it grows in four steps. Every variant keeps the sprouting flower inside `#bigflower`, so when a brick leads the done screen (`.aside`) the same celebration plays small beside the brick picture.
 
 All state is one object `S`, persisted under the local-storage key `ng2` by `save()`:
 

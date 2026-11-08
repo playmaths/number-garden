@@ -25,6 +25,15 @@
   </div>
 </div>
 
+<div id="welcome" class="view" hidden>
+  <div class="welcomecard">
+    <svg class="bug wave" id="welcomeBug" viewBox="0 0 60 60"></svg>
+    <div class="bubble" id="welcomeBubble"></div>
+    <div class="wbody" id="welcomeBody"></div>
+    <div class="row" id="welcomeRow"></div>
+  </div>
+</div>
+
 <div id="closed" class="view" hidden>
   <div class="donecard"><div class="emo">🐞💤</div><h2 id="closedTitle">Pip is sleepy</h2><p id="closedText"></p>
   <div class="row"><button class="btn" id="closedHome">Back to the garden</button></div></div>
@@ -33,7 +42,7 @@
 <div id="done" class="view" hidden>
   <div class="donecard">
     <div class="bigflower" id="bigflower"></div>
-    <svg class="bug idle donebug" id="doneBug" viewBox="0 0 60 60"></svg>
+    <div class="donepip" id="donePip"><svg class="bug idle donebug" id="doneBug" viewBox="0 0 60 60"></svg></div>
     <h2 id="doneTitle"></h2>
     <p id="doneText"></p>
     <div class="row"><button class="btn" id="againBtn">Another trail</button><button class="btn quiet" id="homeBtn">Back to the garden</button></div>

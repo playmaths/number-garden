@@ -30,6 +30,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-logic-combo.js` | True or not? at every level with wrong picks, Find every way built out by hand with duplicates and bad builds refused, Show me, and the Think door's mixed trail |
 | `solve-sudoku.js` | every sudoku level: a clash shakes and clears, Fill one fills a single with a reason, the grid is finished from the solution, the door's trail |
 | `solve-garden.js` | the garden over time: flower kinds, bushes, tree, visitors, Pip hovering on a streak, the watered sprout and the milestone on the done screen |
+| `solve-welcome.js` | the first-time welcome on a truly empty browser: Pip waves and says hello, the name field (Done or Skip), one dot problem through the engine with no flower from it, the flower explanation, home greeting by name, no welcome after a reload, Skip at every step, a reload resumes the step, a seeded garden never sees it |
 | `solve-think.js` | the thinking loop: thirty think problems over three tiers, the think stone in a trail, the think-first card, the why gate (a wrong reason breaks the streak, no level-up without a right reason), the own-words card, the greeting and the summary |
 | `solve-both.js` | plays Both sides at every level by taking bags then ones off both pans, with a wrong weight and Show me; also checks a lesson pauses on Next |
 | `solve-three.js` | plays Same story, three unknowns at every level, all three rounds, with a miss and Show me |
