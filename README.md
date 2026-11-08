@@ -28,7 +28,7 @@ Play it at **https://playmaths.github.io/number-garden/**, or open `index.html` 
 
 ## How a session works
 
-The home screen is the garden with its doors. Pip the ladybug bobs there and in the corner of the play card, jumps on a right answer and tilts her head on a miss. Tapping a door starts a **trail** of five stepping stones, all from that door (a door with fewer than five games cycles through them, never the same problem twice). Each solved stone lights up; the fifth plants a flower. Levels adapt silently and are never shown to the child.
+The home screen is the garden with its doors. Pip the ladybug waves there and talks from beside her speech bubble on the play card: she blinks and flutters while waiting, jumps with sparkles on a right answer, tilts her head on a clue and droops her antennae on a miss. With the speaker on (the default) she reads the question and everything she says out loud, so a child who cannot read yet can play alone. Tapping a door starts a **trail** of five stepping stones, all from that door (a door with fewer than five games cycles through them, never the same problem twice). Each solved stone lights up; the fifth plants a flower. Levels adapt silently and are never shown to the child.
 
 On every problem the child has **Clue**, **Show me**, and, where the game has one, **Watch** (Pip's lesson for that level, shown automatically the first time) and **Learn** (the Big Idea behind the game, offered by Pip on the second miss).
 
