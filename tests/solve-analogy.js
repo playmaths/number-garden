@@ -1,0 +1,33 @@
+// Number pairs at every level: one pair with dots and choices (level 1), two pairs with the think-first card and a typed number (level 2), the two-rules trap where the rule is named before the number with the why or another-way gate (level 3); each clean and with a miss, and Show me
+const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const RULE={};for(let k=1;k<=5;k++)RULE[`add ${k}`]=x=>x+k;for(let k=1;k<=3;k++)RULE[`take ${k} away`]=x=>x-k;RULE.double=x=>x*2;
+(async()=>{const {br,pg,errs}=await open();
+  const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
+  const state=async()=>{const {rule,answer}=await pg.evaluate(()=>({rule:__ng().ctx.rule,answer:__ng().ctx.help.answer}));const pairs=[...(await pg.locator('#prompt').innerText()).matchAll(/(\d+) goes to (\d+|\?)/g)].map(m=>[+m[1],m[2]==='?'?null:+m[2]]);return{rule,answer,pairs}};
+  const fits=(rule,pairs)=>RULE[rule]&&pairs.every(([a,b])=>b==null?true:RULE[rule](a)===b);
+  for(let k=0;k<6;k++){await go(pg,'analogy',1,'reason');const before=await stars(pg);const name=`analogy lv1 #${k}`;const {rule,answer,pairs}=await state();
+    if(pairs.length!==2)errs.push(`${name}: prompt has ${pairs.length} pairs`);if(!fits(rule,pairs))errs.push(`${name}: rule "${rule}" does not fit ${JSON.stringify(pairs)}`);if(RULE[rule]&&RULE[rule](pairs[1][0])!==answer)errs.push(`${name}: answer ${answer} is not ${rule} on ${pairs[1][0]}`);
+    const dots=await pg.locator('#stage circle.ad').count();const want=pairs[0][0]+pairs[0][1]+pairs[1][0];if(dots!==want)errs.push(`${name}: ${dots} dots drawn, expected ${want}`);
+    const right=pg.locator('#controls .choice[data-right="1"]');if(await right.count()!==1)errs.push(`${name}: ${await right.count()} right choices`);
+    if(k%2){await pg.locator('#controls .choice:not([data-right])').first().click();if(!(await msg(pg)).length)errs.push(`${name}: no hint on a wrong number`)}
+    await right.click();await pg.waitForTimeout(120);if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`);const after=await pg.locator('#stage circle.ad').count();if(after!==pairs[0][0]+pairs[0][1]+pairs[1][0]+Math.max(pairs[1][0],answer))errs.push(`${name}: the answer box did not draw its dots (${after})`)}
+  /* Show me at level 1 draws the dots coming or going */
+  await go(pg,'analogy',1,'reason');{const {answer,pairs}=await state();await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(450*Math.abs(answer-pairs[1][0])+400);if(!(await msg(pg)).includes(`It's ${answer}`))errs.push(`analogy lv1 show: "${await msg(pg)}"`);const n=await pg.locator('#stage circle.ad').count();if(n!==pairs[0][0]+pairs[0][1]+pairs[1][0]+Math.max(pairs[1][0],answer))errs.push(`analogy lv1 show: ${n} dots after Show me`)}
+  for(let k=0;k<6;k++){await go(pg,'analogy',2,'reason');const before=await stars(pg);const name=`analogy lv2 #${k}`;const {rule,answer,pairs}=await state();
+    if(pairs.length!==3)errs.push(`${name}: prompt has ${pairs.length} pairs`);if(!fits(rule,pairs))errs.push(`${name}: rule "${rule}" does not fit ${JSON.stringify(pairs)}`);if(RULE[rule]&&RULE[rule](pairs[2][0])!==answer)errs.push(`${name}: answer ${answer} is not ${rule} on ${pairs[2][0]}`);
+    const fitting=Object.keys(RULE).filter(r=>fits(r,pairs.slice(0,2)));if(fitting.length!==1)errs.push(`${name}: ${fitting.length} rules fit the two given pairs: ${fitting}`);
+    if(!await pg.locator('#stage .guess').count())errs.push(`${name}: no think-first card`);await guess(pg);
+    if(k%2){await type(answer+1);if(!(await msg(pg)).length)errs.push(`${name}: no hint on a wrong number`)}
+    await type(answer);if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`);if(!(await pg.locator('#stage .bigword').innerText()).includes(rule))errs.push(`${name}: the rule was not named after the win`)}
+  for(let k=0;k<8;k++){await go(pg,'analogy',3,'reason');const before=await stars(pg);const name=`analogy lv3 #${k}`;const {rule,answer,pairs}=await state();
+    if(pairs.length!==3)errs.push(`${name}: prompt has ${pairs.length} pairs`);const [a,fa]=pairs[0];if(fa!==2*a)errs.push(`${name}: the first pair ${a}→${fa} is not the two-rules trap`);
+    const firstFits=Object.keys(RULE).filter(r=>fits(r,[pairs[0]]));if(firstFits.length<2)errs.push(`${name}: the first pair fits only ${firstFits}`);
+    const bothFit=Object.keys(RULE).filter(r=>fits(r,pairs.slice(0,2)));if(bothFit.length!==1||bothFit[0]!==rule)errs.push(`${name}: rule "${rule}" but the pairs fix ${bothFit}`);if(RULE[rule]&&RULE[rule](pairs[2][0])!==answer)errs.push(`${name}: answer ${answer} is not ${rule} on ${pairs[2][0]}`);
+    const right=pg.locator('#controls .choice[data-right="1"]');if(await right.count()!==1||(await right.innerText())!==rule)errs.push(`${name}: the right rule card is not "${rule}"`);const cards=await pg.locator('#controls .choice').allInnerTexts();if(!cards.every(t=>RULE[t]))errs.push(`${name}: a rule card is not a rule: ${cards}`);
+    if(k%2){const wrong=firstFits.find(r=>r!==rule);await pg.locator('#controls .choice',{hasText:new RegExp('^'+wrong+'$')}).click();const m=await msg(pg);if(!/Check the other pair/.test(m))errs.push(`${name}: the other rule that fits pair one got "${m}"`)}
+    if(await pg.locator('#controls .num').count())errs.push(`${name}: the numpad came before the rule was named`);await right.click();await pg.waitForTimeout(100);if(!await pg.locator('#controls .num').count())errs.push(`${name}: no numpad after the rule`);
+    if(k%2){await type(answer+1);if(!(await msg(pg)).length)errs.push(`${name}: no hint on a wrong number`)}
+    await type(answer);if(!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg);if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`)}
+  /* a wrong reason costs the streak: the why gate's trap is "because it is bigger" */
+  await go(pg,'analogy',3,'reason');{const {answer}=await state();await pg.locator('#controls .choice[data-right="1"]').click();await pg.waitForTimeout(100);await type(answer);const why=pg.locator('#stage .gate');if(await why.count()){const wrong=why.locator('.choice:not([data-right])').first();await wrong.click();if(!/not a rule|not a reason/.test(await msg(pg)))errs.push(`analogy lv3 why: wrong reason got "${await msg(pg)}"`);await gate(pg)}}
+  console.log('number pairs played');done('solve-analogy',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});
