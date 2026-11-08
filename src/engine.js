@@ -142,7 +142,7 @@ function askGate(g,go){ctx.gated=true;const card=el('div','note gate',`<small>${
 function guessGate(g){const kids=[...controls.children];kids.forEach(k=>k.hidden=true);const card=el('div','note guess',`<small>Think first</small>${g.q}`);const r=el('div','row');
   shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>x.disabled=true);if(o.ok){b.classList.add('hit');say(o.why||'Good thinking. Now the number.',true);bugs('happy');sfx('pop')}else{b.classList.add('miss');say(o.why||g.why||'Hmm. Read the story again, then the number.',false);bugs('puzzled')}setTimeout(()=>{card.remove();kids.forEach(k=>k.hidden=false)},1000)};r.appendChild(b)});card.appendChild(r);stage.appendChild(card);bugs('think')}
 function win(text,noMastery){
-  if(ctx.done)return;const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
+  if(ctx.done)return;tapFeedback(true);const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
   ctx.done=true;say(text,true);bugs('happy');
   const m=S.m[S.skill]||(S.m[S.skill]={lv:1,streak:0,low:0});let levelUp=false;
   if(!noMastery){if(ctx.hints===0){m.streak++;m.low=0;if(m.streak>=3&&m.lv<MAX(S.skill)&&(!SK[S.skill].hasReasons||m.why)){m.lv++;m.streak=0;m.why=0;levelUp=true}}
@@ -171,11 +171,19 @@ const KID=()=>S.name||'Sprout'; // a garden nickname until a name is typed in th
 /* pronouns, chosen in the grown-ups screen: P().s = she/he/they, .o = her/him/them, .p = her/his/their, .pp = hers/his/theirs, .self; vb(singular, plural) picks the verb form, so 'they' reads "they have" */
 const PRO={she:{s:'she',o:'her',p:'her',pp:'hers',self:'herself'},he:{s:'he',o:'him',p:'his',pp:'his',self:'himself'},they:{s:'they',o:'them',p:'their',pp:'theirs',self:'themself'}};
 const P=()=>PRO[S.pro]||PRO.she;const vb=(sg,pl)=>P().s==='they'?pl:sg;const cap=w=>w[0].toUpperCase()+w.slice(1);
-function miss(hint){ctx.hints++;say(hint,false);bugs('puzzled');
+function miss(hint){ctx.hints++;say(hint,false);bugs('puzzled');tapFeedback(false);
   if(ctx.hints===1&&!ctx.lesson&&S.skill&&SK[S.skill]){const st=$('#stage .story');S.misses=((S.misses||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,p:$('#prompt').textContent.slice(0,120),st:st?st.textContent.slice(0,160):'',beaten:false})).slice(-60);save()} // the first slip on a problem goes in the museum
   if(ctx.hints===2&&SK[S.skill]&&SK[S.skill].idea){const l=controls.querySelector('.learn');if(l){l.classList.add('glow');setTimeout(()=>say(hint+' Want Pip to show you the idea? Tap Learn.',false),1200)}}if(S.streakNow){S.streakNow=0;renderStreak()}const t=controls.querySelector('.typed');if(t){t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake')}}
 /* every game declares help({clues:[...], answer, why, show}) so the Clue / Show me buttons work the same everywhere */
-function help(o){ctx.help=o;ctx.clueIdx=0;if(o.reasons&&SK[S.skill])SK[S.skill].hasReasons=true}
+function help(o){ctx.help=o;ctx.clueIdx=0;lastTap=null;if(o.reasons&&SK[S.skill])SK[S.skill].hasReasons=true}
+/* answer feedback, with no game knowing: the last button touched on the card is remembered; a right answer bounces it and makes the picture react (dots pulse, a number-line landing dips), a miss gives it a soft wobble. Nothing red, no cross */
+let lastTap=null;
+[stage,controls].forEach(n=>n.addEventListener('pointerdown',e=>{const b=e.target&&e.target.closest&&e.target.closest('button');lastTap=b&&!b.disabled?b:null},{passive:true}));
+function tapFeedback(ok){const b=lastTap,cls=ok?'bounce':'wobble';if(b&&b.isConnected){b.classList.remove('bounce','wobble');void b.offsetWidth;b.classList.add(cls);setTimeout(()=>b.classList.remove(cls),ok?300:450)}
+  if(ok){stage.classList.remove('cheer');void stage.offsetWidth;stage.classList.add('cheer');setTimeout(()=>stage.classList.remove('cheer'),700)}}
+/* readability: the prompt and Pip's bubbles shrink a pixel at a time until they fit in three lines (a bubble, four), never below a floor, so a long prompt stays big but is never a wall of text. One observer watches the few places they are written */
+function fitText(n,lines,floor){try{if(!n||!n.isConnected)return;n.style.fontSize='';const cs=getComputedStyle(n);let fs=parseFloat(cs.fontSize);const lh=parseFloat(cs.lineHeight)/fs||1.25,pad=(parseFloat(cs.paddingTop)||0)+(parseFloat(cs.paddingBottom)||0);for(let k=0;k<14&&fs>floor;k++){if(n.scrollHeight-pad<=lines*lh*fs+2)break;fs-=1;n.style.fontSize=fs+'px'}}catch(e){}}
+try{const FIT='#prompt,#msg,.bubble';let fitQ=new Set(),fitT=0;new MutationObserver(ms=>{for(const m of ms){const t=m.target.nodeType===1?m.target:m.target.parentElement;const n=t&&t.closest&&t.closest(FIT);if(n)fitQ.add(n)}if(fitQ.size){clearTimeout(fitT);fitT=setTimeout(()=>{fitQ.forEach(n=>fitText(n,n.id==='prompt'?3:4,n.id==='prompt'?17:15));fitQ=new Set()},0)}}).observe(document.body,{childList:true,characterData:true,subtree:true})}catch(e){}
 function helpRow(){const r=el('div','row');r.id='helpRow';const c=el('button','btn quiet','Clue'),s=el('button','btn quiet','Show me');
   c.onclick=()=>{if(ctx.done||!ctx.help)return;const cl=ctx.help.clues;say(cl[Math.min(ctx.clueIdx,cl.length-1)]);bugs('think');ctx.clueIdx++;ctx.hints++};
   s.onclick=()=>{if(ctx.done||!ctx.help)return;reveal()};r.append(c,s);
@@ -419,13 +427,21 @@ function layBrick(){const b=S.build;if(!b)return'';const m=MODELS.find(x=>x.id==
 
 /* ---------- trails ---------- */
 function makeTrail(door){ /* pure doors: all five stones come from the door she picked, cycling through its games with no two alike in a row */
-  if(door==='pick'){S.trail={door:'pick',steps:pickTrail().steps,i:0,lit:[false,false,false,false,false]};save();return}
+  trailAt=null;if(door==='pick'){S.trail={door:'pick',steps:pickTrail().steps,i:0,lit:[false,false,false,false,false]};save();return}
   const d=shuffle(Object.values(SK).filter(k=>k.room===door).map(k=>k.id));
   const steps=[];for(let i=0;i<5;i++)steps.push(d[i%d.length]);
   if(door!=='think'&&SK.think)steps[2]='think'; // the middle stone of every trail is a think problem: one good idea, written by hand, no numpad reflex
   S.trail={door,steps,i:0,lit:[false,false,false,false,false]};save()}
 function renderStreak(){const c=$('#streakChip');if(!c)return;c.hidden=S.streakNow<2;c.textContent=`${S.streakNow} in a row`}
-function renderTrail(){const t=$('#trail');t.innerHTML='';if(!S.trail)return;S.trail.steps.forEach((id,i)=>{const st=el('div','stone'+(S.trail.lit[i]?' lit':'')+(i===S.trail.i?' now':'')+(id==='think'?' think':''));t.appendChild(st)})}
+/* the trail is a small winding path across the header: five round stones on a curve, Pip standing on the current one and hopping to the next when a stone is done. Finished stones glow in the door's flower colour; the last stone carries a flower bud (a brick while a set is being built). The stone / lit / now / think hooks stay for the checks; the stones are SVG groups now */
+const TRAIL_PTS=[[18,30],[66,16],[114,30],[162,16],[210,30]];let trailAt=null;
+function renderTrail(){const t=$('#trail');if(!S.trail){t.innerHTML='';trailAt=null;return}const tr=S.trail,col=FLOWER[tr.door]||'var(--sun)',P=TRAIL_PTS,i0=tr.i;
+  const path=P.map((p,i)=>i?`C${P[i-1][0]+22} ${P[i-1][1]} ${p[0]-22} ${p[1]} ${p[0]} ${p[1]}`:`M${p[0]} ${p[1]}`).join('');
+  const bud=`<g class="tbud" transform="translate(0,-12)"><path d="M0 2v8" stroke="var(--leaf)" stroke-width="2" stroke-linecap="round"/><ellipse cx="3.5" cy="7" rx="3" ry="1.4" fill="var(--leaf)" transform="rotate(-30 3.5 7)"/><path d="M-4 1q4-9 8 0q-2 5-4 5q-2 0-4-5z" fill="${col}"/></g>`,brick=`<g class="tbud" transform="translate(0,-12)"><rect x="-7" y="-2" width="14" height="8" rx="1.5" fill="var(--accent)"/><rect x="-5" y="-5" width="4" height="3" rx="1" fill="var(--accent)"/><rect x="1" y="-5" width="4" height="3" rx="1" fill="var(--accent)"/></g>`;
+  const stones=tr.steps.map((id,i)=>{const lit=!!tr.lit[i],now=i===i0;return `<g transform="translate(${P[i][0]},${P[i][1]})"><g class="stone${lit?' lit':''}${now?' now':''}${id==='think'?' think':''}${lit&&now?' fresh':''}">${now?`<circle class="ring" r="14" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`:''}${lit?`<circle r="13" fill="${col}" opacity=".35"/>`:''}<circle class="base" r="10" fill="${lit?col:'var(--line)'}"/>${id==='think'?`<text y="4" font-size="11" text-anchor="middle">💡</text>`:''}${i===4?(S.build?brick:bud):''}</g></g>`}).join(''); // the position sits on an outer group: a CSS transform on the stone itself (the lit scale) would replace an attribute transform
+  const from=trailAt!=null&&trailAt!==i0&&P[trailAt]?P[trailAt]:P[i0];
+  t.innerHTML=`<svg class="trailsvg" viewBox="0 0 228 46" aria-label="your trail: stone ${i0+1} of 5"><path class="tpath" d="${path}" fill="none" stroke="var(--path)" stroke-width="12" stroke-linecap="round"/><path d="${path}" fill="none" stroke="rgba(0,0,0,.08)" stroke-width="2" stroke-dasharray="3 5"/>${stones}<g class="trailpip" style="transform:translate(${from[0]}px,${from[1]}px)"><g class="hopg"><g transform="translate(-15,-26) scale(.5)">${BUG}</g></g></g></svg>`;
+  const pip=t.querySelector('.trailpip');if(from!==P[i0]){void t.offsetWidth;pip.style.transform=`translate(${P[i0][0]}px,${P[i0][1]}px)`;pip.querySelector('.hopg').classList.add('hop')}else if(tr.lit[i0])pip.querySelector('.hopg').classList.add('cheer');trailAt=i0}
 /* play time: counted only while a playing view is on screen and the tab is visible, in 5-second ticks. The limit is minutes per day, 0 for none; a grown-up can add ten minutes for today */
 const PLAY_VIEWS=['play','learn','playground','toy','tale'];const todayN=()=>Math.floor(Date.now()/864e5);
 function playToday(){if(!S.today||S.today.day!==todayN())S.today={day:todayN(),ms:0,extra:0};return S.today}
