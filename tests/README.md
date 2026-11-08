@@ -42,6 +42,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-analogy.js` | Number pairs at every level: the rule in `ctx.rule` fits the given pairs and gives the answer, dots drawn and redrawn at level 1, the think-first card at level 2, the two-rules trap at level 3 (the first pair fits two rules, the second pins the one in `ctx.rule`), a wrong rule hinted at the other pair, the why or another-way gate, Show me |
 | `solve-howknow.js` | the How did you know? card on a game with no why gate: shown on the 2nd and 6th win only, right and wrong picks keep the star and flag the log, Next stone works, and a game with a why gate never gets it |
 | `solve-matrix.js` | Spot the rule at every level: the grid and choices read through the hook (one across rule, one down rule, every distractor one attribute off the answer, the gap anywhere in the bottom row), a wrong pick first with the hint naming what is wrong, the gate, the star and the book line, the think-first card at level 3, Show me lighting the row then the column, the lesson at each level |
+| `solve-serial.js` | Every row, every colour at every level: the grid a Latin square on shape and on colour, the right choice completing it, a miss hinted from the row, the think-first card, the why or another-way gate, Show me lighting row then column, and the lesson at each level |
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
 
 `lib.js` has the shared helpers: `open()`, `go(pg, gameId, level, door)`, `stars`, `msg`, `book`.
