@@ -383,6 +383,44 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 
 @media (min-width:700px){body{max-width:960px;padding-block:20px;gap:14px}.doors{grid-template-columns:repeat(3,1fr)}.doors .door:last-child{grid-column:auto}.door{min-height:120px}.garden.big{max-height:260px}.greet{font-size:1.3rem}.num{height:62px;font-size:1.7rem}.prompt{font-size:1.8rem}.book{display:grid;grid-template-columns:1.25fr 1fr;grid-template-areas:'scene narr' 'scene nav';gap:16px}.scenebox{grid-area:scene;min-height:380px}.sceneInner{min-height:380px}.narr{grid-area:narr}.book>.row{grid-area:nav;align-self:end}.bubble{font-size:1.3rem}.learncard .stage{min-height:200px}.idealist{display:grid;grid-template-columns:1fr 1fr;gap:10px}.idealist .strand{grid-column:1/-1}.toys{display:grid;grid-template-columns:1fr 1fr 1fr}.pages{display:grid;grid-template-columns:1fr 1fr}.story{font-size:1.4rem}.it2{width:44px;height:44px}.it2 svg{width:40px;height:40px}}
 @media (min-width:1100px){body{max-width:1100px}.card{padding:28px 24px}}
+
+/* ---------- home screen for a child who cannot read yet: the Today card and the garden scene (places on a path, not a list of doors) ---------- */
+:root{--grass:#d6ecd9;--hill:#c3e2c6;--pond:#bfe0f5;--path:#ead9b7}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--grass:#1b3328;--hill:#22402f;--pond:#1f3d55;--path:#55483a}}
+:root[data-theme="dark"]{--grass:#1b3328;--hill:#22402f;--pond:#1f3d55;--path:#55483a}
+.greet{font-size:1.35rem;font-family:var(--display);font-weight:600;line-height:1.35}
+.homebug{align-items:center}
+#greetRead{align-self:flex-start;margin-top:-6px}
+.today{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.today.resting .today{opacity:.45}
+.tcard{position:relative;display:flex}
+.today .today{flex:1;min-height:160px;background:var(--card);border-radius:22px;padding:14px 6px 12px;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:4px;text-align:center;box-shadow:0 6px 18px rgba(20,60,40,.08);border:3px solid transparent;color:var(--fg)}
+.today .today.door.pick{background:#ffe3e3;color:#1a1a1a;min-height:160px;align-items:center}
+.today .today.fresh{border-color:var(--sun)}
+.today .today:active{transform:scale(.97)}
+.tpic{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:76px}
+.tpic svg{width:72px;height:72px;display:block}
+.tpic svg.pip{width:64px;height:64px}
+.today .today.tbuild .tpic svg{width:auto;height:auto;max-height:90px}
+.today .today b{font-family:var(--display);font-size:1.05rem;font-weight:600;line-height:1.15}
+.today .today small{color:var(--muted);font-size:.78rem;font-weight:600;line-height:1.1}
+.today .today.door.pick small{color:#7a4a4a}
+.spk{position:absolute;top:4px;right:4px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.55);font-size:1.05rem;display:grid;place-items:center}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .spk{background:rgba(0,0,0,.3)}}
+:root[data-theme="dark"] .spk{background:rgba(0,0,0,.3)}
+.gscene{position:relative;padding:20px 8px 26px;gap:8px 10px;border-radius:26px;overflow:hidden;isolation:isolate}
+.gscene .scenebg{position:absolute;inset:0;width:100%;height:100%;z-index:-1;display:block}
+.gscene .door{position:relative;background:transparent;box-shadow:none;border:0;padding:4px 2px 6px;min-height:150px;align-items:center;text-align:center;gap:2px;color:var(--fg)}
+.gscene .door:nth-child(even){margin-top:30px}
+.gscene .door.sand,.gscene .door.ideas,.gscene .door.maker,.gscene .door.tale{background:transparent;color:var(--fg)}
+.gscene .door svg.place{width:100%;max-width:150px;height:auto;aspect-ratio:100/70;display:block}
+.gscene .door svg.place svg{width:28px;height:28px}
+.gscene .door b{font-size:1.15rem;line-height:1.15;background:var(--card);border-radius:999px;padding:5px 12px;margin-top:-6px;box-shadow:0 3px 10px rgba(20,60,40,.1)}
+.gscene .door small{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.gscene .door:active{transform:scale(.96)}
+.doors.gscene.resting .door{opacity:.45}
+@media (max-width:380px){.today .today b{font-size:.95rem}.today .today{min-height:150px;padding:10px 4px 10px}.tpic svg{width:60px;height:60px}.gscene .door b{font-size:1.05rem;padding:4px 10px}.gscene .door{min-height:140px}}
+@media (min-width:700px){.gscene{grid-template-columns:repeat(3,1fr);padding:26px 14px 30px}.gscene .door:nth-child(even){margin-top:0}.gscene .door:nth-child(3n+2){margin-top:34px}.today{gap:12px}.today .today{min-height:190px}.tpic svg{width:88px;height:88px}.today .today b{font-size:1.25rem}.gscene .door b{font-size:1.3rem}}
 </style>
 
 <div id="home" class="view">
@@ -391,11 +429,12 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
   <div class="resting" id="resting" hidden>🐞💤 Pip is sleepy. The garden opens again tomorrow. The flowers, the book and the story are all safe.</div>
   <div class="homebug"><svg class="bug idle" id="homeBug" viewBox="0 0 60 60"></svg><div class="greet" id="greet"></div></div>
   <div class="note" id="noteCard" hidden></div>
+  <div class="today" id="today" aria-label="today"></div>
   <div class="gtabs"><button class="tab on" id="tabGarden">Garden</button><button class="tab" id="tabBricks">Bricks</button></div>
   <div id="gardenWrap"><div class="garden big"><svg id="gardenSvg" viewBox="0 0 400 150" aria-label="your garden"></svg><div class="sign" id="sign"></div></div></div>
   <div class="bricks" id="bricks" hidden></div>
-  <h2 class="pickline">Pick a door</h2>
-  <div class="doors" id="doors"></div>
+  <h2 class="pickline">Where to?</h2>
+  <div class="doors gscene" id="doors"></div>
   <button class="grownup" id="gearBtn">for grown-ups</button>
 </div>
 
@@ -3970,11 +4009,57 @@ function teachNow(id,lv,done){const my=++lessonToken;stage.innerHTML='';controls
   b.classList.remove('quiet');
   Promise.resolve().then(()=>SK[id].teach(lv,lesson)).catch(()=>{})}
 function renderSkills(){}
-function renderDoors(){const d=$('#doors');d.innerHTML='';const closed=gardenClosed();d.classList.toggle('resting',closed);const rest=$('#resting');if(rest)rest.hidden=!closed;ROOMS.forEach(rm=>{if(!Object.values(SK).some(k=>k.room===rm.id))return;/* a room with no games yet stays hidden */const b=el('button','door'+(rm.id==='make'?' maker':''),`<svg viewBox="0 0 24 24">${rm.icon}</svg><b>${rm.id==='make'?KID()+' makes it':DOORS[rm.id][0]}</b><small>${DOORS[rm.id][1]}</small>`);b.onclick=()=>startTrail(rm.id);d.appendChild(b)});
-  const pgd=el('button','door sand',`<svg viewBox="0 0 24 24"><rect x="3" y="14" width="18" height="6" rx="2" fill="var(--soil)"/><circle cx="8" cy="9" r="3" fill="var(--sky)"/><rect x="13" y="6" width="6" height="6" fill="var(--accent)"/></svg><b>Playground</b><small>Just play</small>`);pgd.onclick=()=>{renderToys();show('playground')};d.appendChild(pgd);
-  const i=el('button','door ideas',`<svg viewBox="0 0 24 24"><path d="M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z" fill="#fff"/><rect x="9" y="18" width="6" height="3" rx="1" fill="#1a1a1a"/></svg><b>Big Ideas</b><small>Read and understand</small>`);i.onclick=()=>{renderIdeas();show('ideas')};d.appendChild(i);
-  const pk=pickTrail();const why=pk.due.length?`${pk.due.length} to try again, a think problem, and something new`:pk.stale.length?'something not seen for a while, a think problem, something new':'a mix of five, with a think problem in the middle';const pd=el('button','door pick',`<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/><path d="M8 12l3 3 5-6" stroke="var(--leaf)" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg><b>Pip's pick</b><small>${why}</small>`);pd.onclick=()=>startTrail('pick');d.appendChild(pd);
-  const open=storyPages();const st=el('button','door tale',`<svg viewBox="0 0 24 24"><path d="M4 4h12a3 3 0 013 3v13H7a3 3 0 00-3 3z" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/><path d="M8 9h7M8 13h5" stroke="var(--accent)" stroke-width="1.5"/></svg><b>Pip's story</b><small>${open===0?'Grow a flower to open page 1':open>=STORY.length?'All '+STORY.length+' pages open':open+' of '+STORY.length+' pages open · next at '+(open*10+1)+' flowers'}</small>`);st.onclick=openTale;d.appendChild(st)}
+/* ---------- the home screen: a Today card and a garden to walk around ---------- */
+/* hold a card to hear it: a long press reads the card's words aloud and swallows the tap; a quick tap does the thing */
+function holdToRead(b,text,onTap){let t=null,held=false;b.onpointerdown=()=>{held=false;clearTimeout(t);t=setTimeout(()=>{held=true;speak(text);try{if(navigator.vibrate)navigator.vibrate(20)}catch(e){}},550)};const stop=()=>clearTimeout(t);b.onpointerup=b.onpointercancel=b.onpointerleave=stop;b.oncontextmenu=e=>e.preventDefault();b.onclick=()=>{if(held){held=false;return}onTap()}}
+const speechOn=()=>!!window.speechSynthesis&&S.speech!==false;
+/* how much each room has been played, from the win counts of its games */
+function roomPlay(){const by={};Object.values(SK).forEach(k=>{if(k.room==='think')return;by[k.room]=(by[k.room]||0)+(S.counts[k.id]||0)});return by}
+const favRoom=()=>{const by=roomPlay();return ROOMS.map(r=>r.id).filter(id=>by[id]!=null&&id!=='make').sort((a,b)=>by[b]-by[a])[0]||'warm'};
+const newRoom=()=>{const by=roomPlay();return ROOMS.map(r=>r.id).filter(id=>by[id]!=null).sort((a,b)=>by[a]-by[b])[0]||'warm'};
+/* one Today card: a big picture, two or three words, and the whole story in the aria-label, read aloud on a long press or by the small speaker */
+function todayCard(cls,pic,label,sub,aria,onTap){const w=el('div','tcard');const b=el('button','today'+(cls?' '+cls:''),`<div class="tpic">${pic}</div><b>${label}</b>${sub?`<small>${sub}</small>`:''}`);b.setAttribute('aria-label',aria);holdToRead(b,aria,onTap);w.appendChild(b);
+  if(speechOn()){const sp=el('button','spk','🔊');sp.setAttribute('aria-label','Read it to me');sp.onclick=e=>{e.stopPropagation();speak(aria)};w.appendChild(sp)}return w}
+function renderToday(){const t=$('#today');if(!t)return;t.innerHTML='';t.classList.toggle('resting',gardenClosed());const k=KID();
+  const pk=pickTrail();const why=pk.due.length?`${pk.due.length} to try again`:pk.stale.length?'one from a while ago':'a mix of five';
+  t.appendChild(todayCard('door pick',`<svg viewBox="0 0 60 60" class="pip">${BUG}</svg>`,"Pip's pick",why,`Pip's pick: ${pk.due.length?`${inWords(pk.due.length)} to try again, a think problem, and something new`:pk.stale.length?'something not seen for a while, a think problem, and something new':'a mix of five, with a think problem in the middle'}. Tap to start.`,()=>startTrail('pick')));
+  const b=S.build,m=b&&MODELS.find(x=>x.id===b.model),fav=favRoom();
+  if(m)t.appendChild(todayCard('tbuild',brickSvg(m,b.placed,7,{theta:.5,ghost:true,max:96}),'Lay a brick',m.name,`Lay the next brick on ${k}'s ${m.name}: brick ${b.placed+1} of ${m.total}. Tap for a ${doorName(fav)} trail.`,()=>startTrail(fav)));
+  else t.appendChild(todayCard('grow',`<svg viewBox="0 0 60 70">${flowerSvg(30,66,40,FLOWER[fav]||'var(--accent)',2.2,S.flowers.length%4)}</svg>`,'Grow a flower',doorName(fav),`Grow a flower: a ${doorName(fav)} trail of five stones. Tap to start.`,()=>startTrail(fav)));
+  const nr=newRoom(),rm=ROOMS.find(r=>r.id===nr);if(rm)t.appendChild(todayCard('fresh',`<svg viewBox="0 0 24 24">${rm.icon}</svg>`,doorName(nr),'something new',`Something new: ${doorName(nr)}. ${DOORS[nr][1].replace(/[.?]$/,'')}. Tap to start.`,()=>startTrail(nr)))}
+/* the places in the garden, one little picture each (100 by 70), drawn under the room's icon */
+const PLACE={
+ warm:`<ellipse cx="50" cy="60" rx="46" ry="8" fill="var(--leaf)" opacity=".7"/><path d="M22 58v-14M50 58v-18M78 58v-12" stroke="var(--leaf)" stroke-width="3"/><circle cx="22" cy="42" r="6" fill="var(--sun)"/><circle cx="50" cy="38" r="7" fill="var(--accent)"/><circle cx="78" cy="44" r="6" fill="var(--plum)"/><circle cx="22" cy="42" r="2.2" fill="#1a1a1a" opacity=".5"/><circle cx="50" cy="38" r="2.5" fill="var(--sun)"/><circle cx="78" cy="44" r="2.2" fill="var(--sun)"/>`,
+ add:`<path d="M18 62V38l32-16 32 16v24z" fill="var(--soil)"/><path d="M14 40l36-19 36 19" stroke="#6b4f1d" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M28 62V44M36 62V44M44 62V44M56 62V44M64 62V44M72 62V44" stroke="var(--sun)" stroke-width="4"/>`,
+ pat:`<rect x="46" y="44" width="8" height="18" fill="#6b4f1d"/><circle cx="50" cy="34" r="22" fill="var(--leaf)"/><circle cx="36" cy="40" r="14" fill="var(--leaf)"/><circle cx="64" cy="40" r="14" fill="var(--leaf)"/><circle cx="38" cy="32" r="3.5" fill="var(--accent)"/><rect x="48" y="20" width="7" height="7" fill="var(--sun)"/><circle cx="64" cy="32" r="3.5" fill="var(--accent)"/><rect x="42" y="44" width="7" height="7" fill="var(--sun)"/><circle cx="58" cy="48" r="3.5" fill="var(--accent)"/>`,
+ puz:`<ellipse cx="50" cy="66" rx="52" ry="12" fill="var(--leaf)" opacity=".7"/><rect x="26" y="34" width="48" height="26" fill="var(--line)"/><path d="M26 34v-8h6v8h6v-8h6v8h6v-8h6v8h6v-8h6v8h6v-8h6v8" fill="var(--line)"/><rect x="16" y="22" width="12" height="38" fill="var(--muted)"/><rect x="72" y="22" width="12" height="38" fill="var(--muted)"/><path d="M22 22v-10l10 4-10 4M78 22v-10l10 4-10 4" fill="var(--accent)"/><rect x="44" y="46" width="12" height="14" rx="6" fill="#6b4f1d"/>`,
+ story:`<path d="M50 20L12 62h76z" fill="var(--sun)"/><path d="M50 20L30 62h12l8-24 8 24h12z" fill="var(--accent)"/><path d="M50 20v-8" stroke="var(--fg)" stroke-width="3"/><path d="M50 12l10 3-10 3z" fill="var(--plum)"/>`,
+ space:`<rect x="20" y="36" width="26" height="26" rx="3" fill="var(--sky)"/><path d="M54 62l14-28 14 28z" fill="var(--accent)"/><circle cx="33" cy="24" r="12" fill="var(--leaf)"/><rect x="58" y="22" width="14" height="10" rx="2" fill="var(--plum)"/>`,
+ time:`<rect x="34" y="22" width="32" height="40" fill="var(--line)"/><path d="M30 24L50 8l20 16z" fill="var(--plum)"/><circle cx="50" cy="38" r="10" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/><path d="M50 32v6l4 3" stroke="var(--accent)" stroke-width="2.5" fill="none" stroke-linecap="round"/><rect x="45" y="50" width="10" height="12" rx="4" fill="#6b4f1d"/>`,
+ meas:`<ellipse cx="50" cy="52" rx="40" ry="12" fill="var(--pond)"/><path d="M20 46q-2-16 2-22M24 48q-4-14-1-24M78 46q2-14-2-20" stroke="var(--leaf)" stroke-width="3" fill="none" stroke-linecap="round"/><rect x="30" y="38" width="40" height="7" rx="2" fill="var(--sun)"/><path d="M38 38v4M46 38v3M54 38v4M62 38v3" stroke="#1a1a1a" stroke-width="1.5"/>`,
+ sud:`<rect x="14" y="30" width="34" height="14" rx="3" fill="var(--soil)"/><rect x="52" y="30" width="34" height="14" rx="3" fill="var(--soil)"/><rect x="14" y="48" width="34" height="14" rx="3" fill="var(--soil)"/><rect x="52" y="48" width="34" height="14" rx="3" fill="var(--soil)"/><circle cx="24" cy="37" r="3" fill="var(--plum)"/><circle cx="38" cy="37" r="3" fill="var(--accent)"/><circle cx="62" cy="55" r="3" fill="var(--plum)"/><circle cx="76" cy="55" r="3" fill="var(--accent)"/><path d="M62 37v-5M76 37v-6M24 55v-5M38 55v-6" stroke="var(--leaf)" stroke-width="2.5" stroke-linecap="round"/>`,
+ think:`<rect x="46" y="28" width="8" height="34" fill="var(--muted)"/><path d="M38 62h24" stroke="var(--muted)" stroke-width="4" stroke-linecap="round"/><circle cx="50" cy="22" r="13" fill="var(--sun)" opacity=".35"/><path d="M50 12a8 8 0 00-4.5 14.6V30h9v-3.4A8 8 0 0050 12z" fill="var(--sun)" stroke="#1a1a1a" stroke-width="1.5"/>`,
+ reason:`<rect x="47" y="22" width="6" height="40" fill="#6b4f1d"/><path d="M30 26h32l8 6-8 6H30z" fill="var(--sky)"/><path d="M70 42H38l-8 6 8 6h32z" fill="var(--accent)"/><circle cx="36" cy="32" r="2.5" fill="#fff"/><rect x="60" y="45.5" width="5" height="5" fill="#fff"/><text x="52" y="56" font-size="9" font-weight="700" fill="#1a1a1a">?</text>`,
+ make:`<path d="M16 62V40l34-18 34 18v22z" fill="var(--plum)"/><rect x="64" y="20" width="8" height="14" fill="var(--muted)"/><rect x="40" y="46" width="20" height="16" rx="2" fill="#6b4f1d"/><circle cx="30" cy="46" r="8" fill="var(--sun)" stroke="var(--fg)" stroke-width="2" stroke-dasharray="3 3"/><circle cx="30" cy="46" r="3" fill="var(--fg)"/>`,
+ sand:`<ellipse cx="50" cy="56" rx="44" ry="10" fill="var(--soil)" opacity=".5"/><path d="M14 56q36-30 72 0z" fill="var(--sun)"/><rect x="60" y="36" width="14" height="14" rx="2" fill="var(--sky)"/><path d="M60 38q7-8 14 0" stroke="var(--sky)" stroke-width="2.5" fill="none"/><path d="M34 50l-10-6" stroke="var(--accent)" stroke-width="4" stroke-linecap="round"/>`,
+ ideas:`<rect x="18" y="46" width="64" height="6" rx="3" fill="#6b4f1d"/><path d="M24 52v10M76 52v10" stroke="#6b4f1d" stroke-width="4"/><path d="M34 46V30q8-4 16 0v16q-8-4-16 0zM50 30q8-4 16 0v16q-8-4-16 0z" fill="var(--card)" stroke="var(--fg)" stroke-width="2"/><path d="M38 36h8M38 40h6M54 36h8M54 40h6" stroke="var(--accent)" stroke-width="1.5"/>`,
+ tale:`<rect x="38" y="40" width="24" height="22" rx="4" fill="var(--card)"/><path d="M14 40q36-40 72 0z" fill="#e63946"/><circle cx="36" cy="26" r="4" fill="#fff"/><circle cx="56" cy="20" r="5" fill="#fff"/><circle cx="70" cy="32" r="3.5" fill="#fff"/><path d="M46 62v-12a4 4 0 018 0v12z" fill="#6b4f1d"/>`
+};
+/* a place in the garden: the picture, the room's icon in a round badge, and the name; the subtitle is for the read-aloud and the tests, not the eye */
+function spot(id,cls,icon,name,sub,onTap){const b=el('button','door '+cls,`<svg class="place" viewBox="0 0 100 70">${PLACE[id]||''}<circle cx="50" cy="20" r="19" fill="var(--card)" stroke="var(--line)" stroke-width="2"/><svg x="36" y="6" width="28" height="28" viewBox="0 0 24 24">${icon}</svg></svg><b>${name}</b><small>${sub}</small>`);b.setAttribute('aria-label',`${name}. ${sub}`);holdToRead(b,`${name}. ${sub}`,onTap);return b}
+function renderDoors(){const d=$('#doors');d.innerHTML='';const closed=gardenClosed();d.classList.toggle('resting',closed);const rest=$('#resting');if(rest)rest.hidden=!closed;
+  ROOMS.forEach(rm=>{if(!Object.values(SK).some(k=>k.room===rm.id))return;/* a room with no games yet stays hidden */d.appendChild(spot(rm.id,'r-'+rm.id+(rm.id==='make'?' maker':''),rm.icon,rm.id==='make'?KID()+' makes it':DOORS[rm.id][0],DOORS[rm.id][1],()=>startTrail(rm.id)))});
+  d.appendChild(spot('sand','sand','<rect x="3" y="14" width="18" height="6" rx="2" fill="var(--soil)"/><circle cx="8" cy="9" r="3" fill="var(--sky)"/><rect x="13" y="6" width="6" height="6" fill="var(--accent)"/>','Playground','Just play',()=>{renderToys();show('playground')}));
+  d.appendChild(spot('ideas','ideas','<path d="M12 2a7 7 0 00-4 12.7V17h8v-2.3A7 7 0 0012 2z" fill="var(--sun)" stroke="#1a1a1a" stroke-width="1.5"/><rect x="9" y="18" width="6" height="3" rx="1" fill="#1a1a1a"/>','Big Ideas','Read and understand',()=>{renderIdeas();show('ideas')}));
+  const open=storyPages();d.appendChild(spot('tale','tale',`<g transform="scale(.4)">${BUG}</g>`,"Pip's story",open===0?'Grow a flower to open page 1':open>=STORY.length?'All '+STORY.length+' pages open':open+' of '+STORY.length+' pages open · next at '+(open*10+1)+' flowers',openTale));
+  const bg=document.createElementNS('http://www.w3.org/2000/svg','svg');bg.setAttribute('class','scenebg');bg.setAttribute('aria-hidden','true');d.appendChild(bg);
+  if(!d.__ro&&window.ResizeObserver){d.__ro=new ResizeObserver(()=>drawScene());d.__ro.observe(d)}requestAnimationFrame(drawScene)}
+/* the ground under the places: grass, a hill, a pond, and a sandy path that winds from place to place, drawn once the places have their positions */
+function drawScene(){const d=$('#doors');const bg=d&&d.querySelector('.scenebg');if(!bg)return;const W=d.clientWidth,H=d.clientHeight;if(!W||!H)return;const r0=d.getBoundingClientRect();
+  const pts=[...d.querySelectorAll('.door')].map(b=>{const r=b.getBoundingClientRect();return[r.left-r0.left+r.width/2,r.top-r0.top+r.height*.62]});
+  let p='';pts.forEach(([x,y],i)=>{if(!i){p=`M${x.toFixed(0)} ${y.toFixed(0)}`;return}const[px,py]=pts[i-1];const my=((py+y)/2).toFixed(0);p+=` C${px.toFixed(0)} ${my} ${x.toFixed(0)} ${my} ${x.toFixed(0)} ${y.toFixed(0)}`});
+  const last=pts[pts.length-1]||[W/2,H];
+  bg.setAttribute('viewBox',`0 0 ${W} ${H}`);bg.innerHTML=`<rect width="${W}" height="${H}" rx="26" fill="var(--grass)"/><ellipse cx="${W*.3}" cy="0" rx="${W*.55}" ry="${Math.min(120,H*.2)}" fill="var(--hill)"/><ellipse cx="${W*.9}" cy="${H*.52}" rx="${W*.22}" ry="${Math.min(60,H*.06)}" fill="var(--pond)"/><ellipse cx="${W*.08}" cy="${H*.8}" rx="${W*.18}" ry="${Math.min(40,H*.04)}" fill="var(--hill)"/><path d="${p}" stroke="var(--path)" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${p}" stroke="var(--card)" stroke-width="3" opacity=".5" stroke-dasharray="8 16" fill="none" stroke-linecap="round"/><circle cx="${last[0]}" cy="${last[1]+8}" r="6" fill="var(--path)"/>`}
 function renderPapa(){const panel=$('#papa');const played=Object.values(SK).filter(k=>S.counts[k.id]);const strong=played.slice().sort((a,b)=>(S.m[b.id]?S.m[b.id].lv:1)*10+(S.counts[b.id]||0)-((S.m[a.id]?S.m[a.id].lv:1)*10+(S.counts[a.id]||0))).slice(0,3);
   const stuck=Object.values(SK).map(k=>({k,low:S.m[k.id]?S.m[k.id].low:0,streak:S.m[k.id]?S.m[k.id].streak:0})).filter(x=>x.low>0).sort((a,b)=>b.low-a.low)[0];
   const ideas=IDEAS.filter(i=>S.counts['idea_'+i.id]).map(i=>i.title);
@@ -3987,14 +4072,15 @@ function renderPapa(){const panel=$('#papa');const played=Object.values(SK).filt
 function renderLevels(){renderPapa();renderLimit();renderKids();const t=$('#levels');t.innerHTML='';Object.values(SK).forEach(k=>{const tr=el('tr');tr.innerHTML=`<td>${DOORS[k.room][0]} · ${k.title}</td>`;const td=el('td');const box=el('div','lvl');const dn=el('button','','−'),sp=el('span','',` ${lvl(k.id)} / ${k.levels} `),up=el('button','','+');
   dn.onclick=()=>{const m=S.m[k.id];if(m.lv>1){m.lv--;m.streak=0;m.low=0;save();renderLevels()}};up.onclick=()=>{const m=S.m[k.id];if(m.lv<k.levels){m.lv++;m.streak=0;m.low=0;save();renderLevels()}};box.append(dn,sp,up);td.appendChild(box);tr.appendChild(td);t.appendChild(tr)})}
 const MOTTOS=['Every problem you try makes your brain a little stronger.','Being stuck is where the thinking happens.','Mistakes are how we find out what to look at next.','Slow and sure beats fast and wrong.','You can always break a hard problem into small pieces.','Ask yourself: how do I know?','Nobody is born knowing this. You are learning it.'];
+/* Pip greets in one line a child can hear; the rest (what she did last, days played, the motto, a note) goes in the read-aloud */
 function greeting(){const h=new Date().getHours();const hi=h<12?'Good morning':h<17?'Good afternoon':'Good evening';const k=KID();
-  const big=S.book.find(e=>e.big)||S.book[0];const today=Math.floor(Date.now()/864e5);const last=S.days.length?S.days[S.days.length-1]:null;
-  let line;if(!S.book.length)line=`Welcome to your garden, <em>${k}</em>. I'm Pip, the ladybug. Pick a door and let's grow your first flower.`;
-  else if(last===today)line=S.said&&S.said[0]&&today-Math.floor(S.said[0].d/864e5)<=1?`${hi}, <em>${k}</em>! You said: "${S.said[0].t.replace(/</g,'&lt;')}" That is thinking.`:`${hi}, <em>${k}</em>! Last thing you did: ${big.t.replace(k,'you').replace(/\bshe\b/g,'you')}`;
-  else{const n=S.days.length;line=`${hi}, <em>${k}</em>! Pip here. Welcome back. ${big?big.t.replace(k,'You').replace(/\bshe\b/g,'you')+' ':''}You have played on ${inWords(n)} different day${n===1?'':'s'}.`}
-  return line+' <br><span style="color:var(--muted)">'+MOTTOS[today%MOTTOS.length]+'</span>'}
+  const big=S.book.find(e=>e.big)||S.book[0];const today=Math.floor(Date.now()/864e5);const last=S.days.length?S.days[S.days.length-1]:null;const motto=MOTTOS[today%MOTTOS.length];
+  if(!S.book.length)return{line:`Welcome to your garden, <em>${k}</em>!`,more:`I'm Pip, the ladybug. Pick a place and let's grow your first flower. ${motto}`};
+  if(last===today){if(S.said&&S.said[0]&&today-Math.floor(S.said[0].d/864e5)<=1)return{line:`Hi <em>${k}</em>! You said: "${S.said[0].t.replace(/</g,'&lt;')}"`,more:`That is thinking. ${motto}`};
+    return{line:`${hi}, <em>${k}</em>!`,more:`Last thing you did: ${big.t.replace(k,'you').replace(/\bshe\b/g,'you')} ${motto}`}}
+  const n=S.days.length;return{line:`${hi}, <em>${k}</em>! Welcome back.`,more:`Pip here. ${big?big.t.replace(k,'You').replace(/\bshe\b/g,'you')+' ':''}You have played on ${inWords(n)} different day${n===1?'':'s'}. ${motto}`}}
 function renderWho(){const w=$('#who');if(!w)return;w.hidden=PROFILES.list.length<2;w.innerHTML='';PROFILES.list.forEach(p=>{const b=el('button','chip'+(p.id===PROFILES.active?' on':''),profileName(p));b.onclick=()=>switchProfile(p.id);w.appendChild(b)})}
-function renderHome(){$('#homeTitle').textContent='Number Garden';renderWho();setGardenView(S.gview||'garden');$('#bookBtn').textContent=S.name?`${S.name}'s Book`:'My Book';$('#greet').innerHTML=greeting();const gb=$('#greetRead');if(gb)gb.remove();const rb=readBtn(()=>$('#greet').textContent+(S.note?' A note from Papa: '+S.note:''));rb.id='greetRead';document.querySelector('.homebug').after(rb);const nc=$('#noteCard');nc.hidden=!S.note;if(S.note)nc.innerHTML=`<small>A note from Papa</small>${S.note.replace(/</g,'&lt;')}`;drawGarden();renderDoors()}
+function renderHome(){$('#homeTitle').textContent='Number Garden';renderWho();setGardenView(S.gview||'garden');$('#bookBtn').textContent=S.name?`${S.name}'s Book`:'My Book';const g=greeting();$('#greet').innerHTML=g.line;const gb=$('#greetRead');if(gb)gb.remove();const rb=readBtn(()=>$('#greet').textContent+' '+g.more+(S.note?' A note from Papa: '+S.note:''));rb.id='greetRead';document.querySelector('.homebug').after(rb);const nc=$('#noteCard');nc.hidden=!S.note;if(S.note)nc.innerHTML=`<small>A note from Papa</small>${S.note.replace(/</g,'&lt;')}`;drawGarden();renderToday();renderDoors()}
 
 /* ---------- wiring ---------- */
 $('#gearBtn').onclick=()=>{renderLevels();show('sheet')};
