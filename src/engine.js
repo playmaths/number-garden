@@ -72,6 +72,7 @@ const ROOMS=[
  {id:'meas',title:'Measure',icon:'<path d="M3 15h18v5H3z" fill="var(--sun)"/><path d="M6 15v3M9 15v2M12 15v3M15 15v2M18 15v3" stroke="#1a1a1a" stroke-width="1.5"/><path d="M4 11a8 8 0 0116 0" fill="var(--accent)"/>'},
  {id:'sud',title:'Sudoku',icon:'<rect x="3" y="3" width="18" height="18" rx="2" fill="var(--card)" stroke="currentColor" stroke-width="2"/><path d="M12 3v18M3 12h18" stroke="currentColor" stroke-width="2"/><circle cx="7.5" cy="7.5" r="2" fill="var(--plum)"/><circle cx="16.5" cy="16.5" r="2" fill="var(--accent)"/>'},
  {id:'think',title:'Think',icon:'<path d="M12 3a6 6 0 00-3.5 10.9V17h7v-3.1A6 6 0 0012 3z" fill="var(--sun)" stroke="#1a1a1a" stroke-width="1.5"/><rect x="9.5" y="18" width="5" height="3" rx="1" fill="#1a1a1a"/>'},
+ {id:'reason',title:'Reasoning',icon:'<rect x="3" y="3" width="8" height="8" rx="1.5" fill="var(--sky)"/><circle cx="17" cy="7" r="4" fill="var(--accent)"/><circle cx="7" cy="17" r="4" fill="var(--sky)"/><rect x="13" y="13" width="8" height="8" rx="1.5" fill="var(--card)" stroke="currentColor" stroke-width="1.5" stroke-dasharray="2 2"/><text x="17" y="20" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor">?</text>'},
  {id:'make',title:'Makes it',icon:'<rect x="3" y="8" width="18" height="10" rx="3" fill="var(--plum)"/><circle cx="8" cy="13" r="2" fill="#fff"/><circle cx="16" cy="13" r="2" fill="#fff"/><path d="M12 3v5" stroke="var(--plum)" stroke-width="2"/><circle cx="12" cy="3" r="2" fill="var(--sun)"/>'}
 ];
 const SK={};
@@ -84,7 +85,7 @@ function speak(text){try{if(!window.speechSynthesis||S.speech===false)return fal
 function readBtn(getText){if(!window.speechSynthesis||S.speech===false)return el('span');const b=el('button','readbtn','🔊 Read it to me');b.onclick=()=>speak(getText());return b}
 /* ---------- shared UI ---------- */
 const prompt=$('#prompt'),stage=$('#stage'),msg=$('#msg'),controls=$('#controls'),turnEl=$('#turn');
-const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],make:['Makes it','You hide, I guess']};
+const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],reason:['Reasoning','Spot the rule'],make:['Makes it','You hide, I guess']};
 const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
 function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
 let ctx=null; // current problem context
@@ -173,7 +174,7 @@ function reveal(){const h=ctx.help;ctx.done=true;S.streakNow=0;renderStreak();co
 function renderStars(){}
 
 /* ---------- garden ---------- */
-const FLOWER={pick:'#ff6b6b',sud:'#7b61ff',think:'#ff9f1c',warm:'var(--sky)',add:'var(--accent)',pat:'var(--leaf)',puz:'var(--plum)',story:'var(--sun)',space:'var(--sky)',time:'var(--plum)',meas:'var(--sun)'};
+const FLOWER={pick:'#ff6b6b',sud:'#7b61ff',think:'#ff9f1c',warm:'var(--sky)',add:'var(--accent)',pat:'var(--leaf)',puz:'var(--plum)',story:'var(--sun)',space:'var(--sky)',time:'var(--plum)',meas:'var(--sun)',reason:'#5bc0eb'};
 const WORDS=['no','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen','twenty'];
 const inWords=n=>n<=20?WORDS[n]:String(n);
 /* ---------- the garden grows: flower kinds, bushes, a tree, visitors ---------- */
