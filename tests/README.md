@@ -44,5 +44,8 @@ node tests/books.js "Even and odd"   # one book
 | `solve-matrix.js` | Spot the rule at every level: the grid and choices read through the hook (one across rule, one down rule, every distractor one attribute off the answer, the gap anywhere in the bottom row), a wrong pick first with the hint naming what is wrong, the gate, the star and the book line, the think-first card at level 3, Show me lighting the row then the column, the lesson at each level |
 | `solve-serial.js` | Every row, every colour at every level: the grid a Latin square on shape and on colour, the right choice completing it, a miss hinted from the row, the think-first card, the why or another-way gate, Show me lighting row then column, and the lesson at each level |
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
+| `solve-fold.js` | Fold and punch at every level: the right open sheet, tap mode with a wrong tap and an early Done, every fold doubles the holes, the unfold, lessons |
+| `solve-belongs.js` | Goes together at every level: odd one out, one more of the group, analogies where the relationship decides, hint wording, the rule card, lessons |
+| `solve-series2.js` | Two things change at every level: the answer continues every rule, distractors differ, the miss hint names the wrong attribute, Show me, lessons |
 
 `lib.js` has the shared helpers: `open()`, `go(pg, gameId, level, door)`, `stars`, `msg`, `book`.
