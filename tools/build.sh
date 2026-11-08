@@ -19,7 +19,7 @@ cd "$root/src"
       ideas.js playground.js \
       games/08-logic.js games/09-space.js games/10-make.js games/11-space-more.js \
       think.js \
-      games/12-measure.js games/13-puzzles-more.js games/14-time.js \
+      games/12-measure.js games/13-puzzles-more.js games/14-time.js games/20-solids.js \
       play.js wiring.js
   echo '</script>'
 } > "$out"
