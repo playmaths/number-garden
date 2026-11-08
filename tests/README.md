@@ -37,6 +37,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-build.js` | builds every Build the stack level by tapping the floor, with a wrong build and Show me, and checks that a different stack with the same views is accepted |
 | `solve-steps.js` | plays Where is Pip? at every level: the landing square tapped (wrong square first), a path built from the arrow buttons and walked with Go (a short path first, then the right one), the fewest steps round a rock with the think-first card and the why or another-way gate, and Show me |
 | `solve-detective.js` | plays Story detective at every level and checks the Does-that-make-sense card on three games |
+| `solve-compose.js` | Make a shape at every level: pieces dragged with the mouse onto the outline (turned first where needed), a wrong drop slides back with a hint, the extra piece and the think-first card at level 2, the cut named and then cut by hand at level 3, Clue and Show me |
 | `solve-thinking.js` | plays Draw the bar, Rewind it and Name the trick at every level: clean, miss-then-win and Show me |
 | `solve-howknow.js` | the How did you know? card on a game with no why gate: shown on the 2nd and 6th win only, right and wrong picks keep the star and flag the log, Next stone works, and a game with a why gate never gets it |
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
