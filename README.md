@@ -75,6 +75,26 @@ service cloud.firestore {
       allow write: if code.size() == 9
                    && request.resource.data.keys().hasOnly(['data', 'savedAt']);
     }
+    // Tell Pip reports: anyone may file one (create only, never edit or delete), with a size cap on every field.
+    // html is a copy of the play card's markup and shot a small JPEG of the screen, so the gardeners can see what the child saw.
+    match /reports/{id} {
+      allow read: if true;
+      allow create: if request.resource.data.keys().hasOnly(['kind', 'label', 'game', 'level', 'prompt', 'stage', 'controls', 'when', 'ver', 'family', 'device', 'lang', 'html', 'shot'])
+                    && request.resource.data.kind is string && request.resource.data.kind.size() < 20
+                    && request.resource.data.label is string && request.resource.data.label.size() < 80
+                    && request.resource.data.game is string && request.resource.data.game.size() < 80
+                    && request.resource.data.prompt is string && request.resource.data.prompt.size() < 400
+                    && request.resource.data.stage is string && request.resource.data.stage.size() < 400
+                    && request.resource.data.controls is string && request.resource.data.controls.size() < 300
+                    && request.resource.data.when is string && request.resource.data.when.size() < 40
+                    && request.resource.data.ver is string && request.resource.data.ver.size() < 20
+                    && request.resource.data.family is string && request.resource.data.family.size() < 10
+                    && request.resource.data.device is string && request.resource.data.device.size() < 80
+                    && request.resource.data.lang is string && request.resource.data.lang.size() < 20
+                    && request.resource.data.html is string && request.resource.data.html.size() < 40000
+                    && request.resource.data.shot is string && request.resource.data.shot.size() < 500000;
+      allow update, delete: if false;
+    }
   }
 }
 ```

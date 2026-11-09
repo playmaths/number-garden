@@ -42,7 +42,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-07f';
+const APP_VERSION='2026-11-09a';
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 let pendingShot=null,pendingHtml='';
