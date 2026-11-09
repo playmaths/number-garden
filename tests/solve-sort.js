@@ -1,7 +1,8 @@
 // plays the games of one door for real, answering correctly and wrongly, asserting stars and book lines
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');
 (async()=>{
-const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});
+const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});await fast(pg);
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(m.type()==='error'&&!/firebase|net::|googleapis/i.test(m.text()))errs.push(m.text())});
 await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'');await pg.evaluate(()=>localStorage.clear());await pg.reload();
 const msg=()=>pg.locator('#msg').textContent();const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
@@ -13,8 +14,8 @@ for(const id of['bridge','make','dots']){const ps=[];for(let k=0;k<12;k++){await
 // sort2 flow
 async function goS(lv){await pg.evaluate(lv=>{const s=JSON.parse(localStorage.getItem('ng2'))||{stars:0,m:{},book:[],flowers:[],counts:{}};s.trail={door:'puz',steps:['sort2','dots','dots','dots','dots'],i:0,lit:[0,0,0,0,0]};s.skill='sort2';s.m.sort2={lv,streak:0,low:0};s.taught={['sort2:'+lv]:1};localStorage.setItem('ng2',JSON.stringify(s))},lv);await pg.reload();if(await pg.locator('#home').isVisible())await pg.locator('.door',{hasText:'Puzzles'}).click();await pg.waitForTimeout(60)}
 async function readItem(){return pg.evaluate(()=>{const h=document.querySelector('#stage .story > div');const b=h.querySelector('b');if(b)return{v:+b.textContent};const svg=h.querySelector('svg');const e=svg.firstElementChild;const f=e.getAttribute('fill');return{shape:e.tagName==='circle'?'circle':'square',col:f.includes('accent')?'red':'blue',big:parseFloat(svg.style.width)>50}})}
-for(const lv of[1,2,3])for(const missFirst of[false,true]){await goS(lv);const ex=await pg.locator('#stage .story').innerText();await pg.waitForTimeout(1500);const zonesBefore=await pg.locator('#stage .sud button').nth(0).click().catch(()=>0);console.log('  before tap, miss?:',(await msg()).slice(0,20)||'(nothing)');await pg.getByRole('button',{name:'My turn'}).click();const before=await stars();const zones=pg.locator('#stage .sud button');
+for(const lv of[1,2,3])for(const missFirst of[false,true]){await goS(lv);const ex=await pg.locator('#stage .story').innerText();await pause(pg,1500);const zonesBefore=await pg.locator('#stage .sud button').nth(0).click().catch(()=>0);console.log('  before tap, miss?:',(await msg()).slice(0,20)||'(nothing)');await pg.getByRole('button',{name:'My turn'}).click();const before=await stars();const zones=pg.locator('#stage .sud button');
   for(let k=0;k<3;k++){const it=await readItem();let r,c;if(lv===1){r=it.big?0:1;c=it.col==='red'?0:1}else if(lv===2){r=it.shape==='circle'?0:1;c=it.col==='red'?0:1}else{r=it.v%2?0:1;c=it.v<10?0:1}
     if(missFirst&&k===0){await zones.nth((r*2+c+1)%4).click();console.log('  miss:',(await msg()).slice(0,70))}await zones.nth(r*2+c).click()}
   await pg.waitForTimeout(150);const after=await stars();console.log(`sort2 lv${lv} example="${ex.slice(0,60)}" msg="${(await msg()).slice(0,50)}" ${before}->${after}`);if(after!==before+1)throw new Error('sort2')}
-await goS(1);await pg.waitForTimeout(2900);await pg.screenshot({path:require('path').join(require('os').tmpdir(),'ng-'+Date.now()+'.png')});console.log('errors:',errs);await br.close();if(errs.length)process.exit(1)})().catch(e=>{console.error(e);process.exit(1)});
+await goS(1);await pause(pg,2900);await pg.screenshot({path:require('path').join(require('os').tmpdir(),'ng-'+Date.now()+'.png')});console.log('errors:',errs);await br.close();if(errs.length)process.exit(1)})().catch(e=>{console.error(e);process.exit(1)});

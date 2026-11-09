@@ -1,5 +1,5 @@
 // the garden over time: flower kinds mix, bushes and a tree appear, visitors arrive at milestones, the done screen waters and grows the flower, and Pip hovers on a streak
-const {open,done}=require('./lib');
+const {open,done,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const setFlowers=async(n,streak)=>{await pg.evaluate(([n,streak])=>{const s=JSON.parse(localStorage.getItem('ng2'))||{stars:0,m:{},book:[],flowers:[],counts:{},days:[]};s.flowers=Array.from({length:n},(_,i)=>({room:['warm','add','puz','story'][i%4],day:20700+i}));s.streakNow=streak||0;s.bestStreak=streak||0;localStorage.setItem('ng2',JSON.stringify(s))},[n,streak]);await pg.reload();await pg.waitForTimeout(100)};
   const count=sel=>pg.locator('#gardenSvg '+sel).count();

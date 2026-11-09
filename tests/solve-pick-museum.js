@@ -1,5 +1,5 @@
 // Pip's pick builds a trail from what is due; the mistake museum keeps the first slip, retries it and marks it beaten; sound and speech switches
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   /* a log with one due game (missing, hinted and not clean since), one stale game (bar, 7 days ago), and otherwise fresh */

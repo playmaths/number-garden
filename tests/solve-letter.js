@@ -1,5 +1,5 @@
 // the weekly letter: built from a week of wins, idea reads and own words; empty-week wording; the copy button
-const {open,go,stars,done,guess,gate}=require('./lib');
+const {open,go,stars,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   /* an empty week */
   await pg.evaluate(()=>{localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:0,m:{},book:[],counts:{},days:[],badges:{},flowers:[]}))});await pg.reload();await pg.locator('#gearBtn').click();await pg.getByRole('button',{name:"This week's letter"}).click();

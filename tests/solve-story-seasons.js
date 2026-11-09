@@ -1,7 +1,8 @@
 // Pip's story opens a page per ten flowers (door text, locked pages, the done screen's new-page button) and the garden follows the seasons (fixed clock per season)
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');const path=require('path');const URL='file://'+path.resolve(__dirname,'..','index.html');
 (async()=>{const br=await chromium.launch();const errs=[];
-  const fresh=async(time,flowers)=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push('PAGEERROR '+e.message));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,body:'{}'}));if(time)await pg.clock.install({time});await pg.goto(URL);
+  const fresh=async(time,flowers)=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();await fast(pg);pg.on('pageerror',e=>errs.push('PAGEERROR '+e.message));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,body:'{}'}));if(time)await pg.clock.install({time});await pg.goto(URL);
     await pg.evaluate(n=>{localStorage.clear();const s={stars:0,m:{},book:[],counts:{},days:[],badges:{},flowers:Array.from({length:n},(_,i)=>({room:['warm','add','puz','story'][i%4],day:20700+i}))};localStorage.setItem('ng2',JSON.stringify(s))},flowers);await pg.reload();await pg.waitForTimeout(150);return pg};
   /* seasons */
   for(const [when,sn,bit] of [['2026-01-15T12:00:00','winter','❄'],['2026-04-15T12:00:00','spring','🌸'],['2026-07-15T12:00:00','summer',null],['2026-10-15T12:00:00','autumn','🍂']]){const pg=await fresh(when,25);

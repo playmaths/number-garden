@@ -1,5 +1,5 @@
 // plays Draw the bar, Rewind it and Name the trick at every level: a clean win, a miss-then-win, and Show me; asserts stars, book lines and no console errors
-const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,book,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   const answer=()=>pg.evaluate(()=>__ng().ctx.help.answer);
@@ -14,7 +14,7 @@ const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
   /* rewind */
   for(let lv=1;lv<=3;lv++){for(const mode of ['clean','miss','show']){await go(pg,'rewind',lv,'puz');const before=await stars(pg);const name=`rewind lv${lv} ${mode}`;
       const chain=await pg.locator('#stage .chain .node').count();if(chain!==(lv===1?2:3))errs.push(`${name}: chain has ${chain} nodes`);
-      if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(1800);const q=await pg.locator('#stage .node.q').count();if(q)errs.push(`${name}: ${q} nodes still ? after Show me`);continue}
+      if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pause(pg,1800);const q=await pg.locator('#stage .node.q').count();if(q)errs.push(`${name}: ${q} nodes still ? after Show me`);continue}
       await guess(pg);const a=await answer();if(mode==='miss'){await type(a+2);if(!/undo|Start at/.test(await msg(pg)))errs.push(`${name}: hint was "${await msg(pg)}"`)}await type(a);await gate(pg);await check(name,before,/rewound a story/)}}
   /* trick: pick the name, then (levels 2-3) type the answer */
   for(let lv=1;lv<=3;lv++){for(const mode of ['clean','miss','show']){await go(pg,'trick',lv,'add');const before=await stars(pg);const name=`trick lv${lv} ${mode}`;

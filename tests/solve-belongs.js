@@ -1,5 +1,5 @@
 // Goes together at every level: which one does not belong and which one goes with these (level 1), picture analogies with the think-first rule card (level 2), the mix with the why or another-way gate (level 3); each played clean and after a wrong picture, then Show me and the lesson at each level
-const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,book,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const word=()=>pg.evaluate(()=>__ng().ctx.help.answer.replace(/^(a|an) /,''));
   const keysOf=()=>pg.locator('#play .choice[data-k]').evaluateAll(bs=>bs.map(b=>b.dataset.k));

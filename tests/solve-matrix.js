@@ -1,6 +1,6 @@
 // Spot the rule at every level: the grid and the four choices read through the hook (every distractor differs from the answer in exactly one attribute, the answer sits at help.pick),
 // a wrong pick first on odd goes (the hint names what is wrong with it), then the right one, the why or another-way gate, the star and the book line; the think-first card at level 3; Show me; the lesson at each level
-const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,book,done,guess,gate,pause}=require('./lib');
 const KEYS=['shape','col','size','count','fill','turn'];
 (async()=>{const {br,pg,errs}=await open();
   const read=()=>pg.evaluate(()=>{const c=__ng().ctx;return{cells:c.cells,choices:c.choices,missing:c.missing,pick:c.help.pick,answer:c.help.answer,hasGuess:!!c.help.guess}});
@@ -22,14 +22,14 @@ const KEYS=['shape','col','size','count','fill','turn'];
       if(k%4===3){await btn((p.pick+2)%4).click();await pg.waitForTimeout(120);if(!/^It must be the /.test(await msg(pg)))errs.push(`${name}: second hint "${await msg(pg)}"`)}}
     await btn(p.pick).click();await pg.waitForTimeout(150);if(!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg);
     if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`);if(!/spotted the rule: across .*, down /.test(await book(pg)))errs.push(`${name}: book line "${await book(pg)}"`);
-    await pg.waitForTimeout(2400);if(!await pg.locator('#stage .mxq svg').count())errs.push(`${name}: the answer was not dropped into the gap`)}
+    await pause(pg,2400);if(!await pg.locator('#stage .mxq svg').count())errs.push(`${name}: the answer was not dropped into the gap`)}
   if(seenMiss.size<4)errs.push(`the gap sat in only these places: ${[...seenMiss]}`);if(seenAttr.size<4)errs.push(`distractors only ever spoiled ${[...seenAttr]}`);
   /* Show me lights the row, then the column, then fills the gap, and says the answer with both rules */
-  await go(pg,'matrix',2,'reason');await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(200);if(!/^It's the .*\. Across the row .*, and down the column /.test(await msg(pg)))errs.push(`matrix lv2: Show me said "${await msg(pg)}"`);
-  if(!/^→ Across: /.test(await pg.locator('#stage .hint').innerText()))errs.push('matrix lv2: Show me did not start with the row');await pg.waitForTimeout(2500);if(!await pg.locator('#stage .mxq svg').count())errs.push('matrix lv2: Show me did not fill the gap');
+  await go(pg,'matrix',2,'reason');await pg.getByRole('button',{name:'Show me'}).click();if(!/^→ Across: /.test(await pg.locator('#stage .hint').innerText()))errs.push('matrix lv2: Show me did not start with the row'); /* the row is lit as the button is tapped; under fast mode it moves on within a tenth of a second */
+  if(!/^It's the .*\. Across the row .*, and down the column /.test(await msg(pg)))errs.push(`matrix lv2: Show me said "${await msg(pg)}"`);await pg.locator('#stage .mxq svg').waitFor({timeout:5000}).catch(()=>{});if(!await pg.locator('#stage .mxq svg').count())errs.push('matrix lv2: Show me did not fill the gap');
   /* the lesson at each level runs to its My turn button */
   for(const lv of[1,2,3]){await pg.evaluate(([lv])=>{const s=JSON.parse(localStorage.getItem('ng2'));s.taught={};s.trail={door:'reason',steps:['matrix','matrix','matrix','matrix','matrix'],i:0,lit:[0,0,0,0,0]};s.skill='matrix';s.m.matrix={lv,streak:0,low:0};localStorage.setItem('ng2',JSON.stringify(s))},[lv]);await pg.reload();await pg.waitForTimeout(300);
     if(!/Watch first/.test(await pg.locator('#prompt').innerText()))errs.push(`matrix lv${lv}: no lesson before the first problem`);if(!(await pg.locator('#stage .narr .bubble').innerText()).length)errs.push(`matrix lv${lv}: Pip said nothing in the lesson`);if(!await pg.locator('#stage .mx').count())errs.push(`matrix lv${lv}: no grid in the lesson`);
-    await pg.getByRole('button',{name:'Next ▶'}).click();await pg.waitForTimeout(400);if(!/across/i.test(await pg.locator('#stage .narr .bubble').innerText()))errs.push(`matrix lv${lv}: the lesson's second line is not about across`);
+    await pg.getByRole('button',{name:'Next ▶'}).click();await pause(pg,400);if(!/across/i.test(await pg.locator('#stage .narr .bubble').innerText()))errs.push(`matrix lv${lv}: the lesson's second line is not about across`);
     await pg.getByRole('button',{name:'My turn'}).click();await pg.waitForTimeout(150);if(!await pg.locator('#controls .choice, #stage .guess').count())errs.push(`matrix lv${lv}: My turn did not start the problem`)}
   done('solve-matrix',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});

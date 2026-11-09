@@ -1,5 +1,5 @@
 // True or not? and Find every way at every level: right and wrong picks, duplicates and bad builds refused, Show me, and the Think door's trail mixing the three games
-const {open,go,stars,msg,done,gate}=require('./lib');
+const {open,go,stars,msg,done,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   for(let lv=1;lv<=3;lv++)for(let k=0;k<6;k++){await go(pg,'truth',lv,'think');const before=await stars(pg);const name=`truth lv${lv} #${k}`;
     if(!await pg.locator('#stage .story').count())errs.push(`${name}: no statement`);const right=pg.locator('#controls .choice[data-right="1"]');if(await right.count()!==1)errs.push(`${name}: ${await right.count()} right options`);
@@ -8,7 +8,7 @@ const {open,go,stars,msg,done,gate}=require('./lib');
   for(let lv=1;lv<=3;lv++)for(const mode of ['clean','show']){await go(pg,'combo',lv,'think');const before=await stars(pg);const name=`combo lv${lv} ${mode}`;const total=await pg.evaluate(()=>__ng().ctx.help.answer);
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(await pg.locator('#stage .ccell.got').count()!==total)errs.push(`${name}: Show me filled ${await pg.locator('#stage .ccell.got').count()} of ${total}`);continue}
     const groups=await pg.evaluate(()=>[...document.querySelectorAll('#stage .build .bwrap')].map(w=>[...w.querySelectorAll('.choice')].map(b=>b.textContent)));
-    const pickOne=async(sel)=>{for(let gi=0;gi<sel.length;gi++)await pg.locator('#stage .build .bwrap').nth(gi).locator('.choice',{hasText:sel[gi]}).click();await pg.waitForTimeout(500)}; // a way is placed by itself once its last piece is tapped
+    const pickOne=async(sel)=>{for(let gi=0;gi<sel.length;gi++)await pg.locator('#stage .build .bwrap').nth(gi).locator('.choice',{hasText:sel[gi]}).click();await pause(pg,500)}; // a way is placed by itself once its last piece is tapped
     /* every combination, including the bad and duplicate ones, which must be refused */
     const all=[];const rec=(i,cur)=>{if(i===groups.length){all.push(cur);return}groups[i].forEach(it=>rec(i+1,cur.concat(it)))};rec(0,[]);
     let refused=0;for(const sel of all){if(!await pg.getByRole('button',{name:"That's one"}).count())break;await pickOne(sel);const m=await msg(pg);if(/already found|same/.test(m))refused++}

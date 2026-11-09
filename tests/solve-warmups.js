@@ -1,9 +1,10 @@
 // plays the games of one door for real, answering correctly and wrongly, asserting stars and book lines
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');
-(async()=>{const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});
+(async()=>{const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});await fast(pg);
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));
 await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'');await pg.evaluate(()=>localStorage.clear());await pg.reload();
-const msg=()=>pg.locator('#msg').innerText();const gateIt=async()=>{const g=pg.locator('#stage .gate .choice[data-right="1"]:not([disabled])');if(await g.count()){await g.first().click();await pg.waitForTimeout(950)}};const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
+const msg=()=>pg.locator('#msg').innerText();const gateIt=async()=>{const g=pg.locator('#stage .gate .choice[data-right="1"]:not([disabled])');if(await g.count()){await g.first().click();await pause(pg,950)}};const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
 async function go(id,lv){await pg.evaluate(([id,lv])=>{const s=JSON.parse(localStorage.getItem('ng2'))||{stars:0,m:{},book:[],flowers:[],counts:{}};s.trail={door:'warm',steps:[id,'dots','dots','dots','dots'],i:0,lit:[0,0,0,0,0]};s.skill=id;s.m[id]={lv,streak:0,low:0};s.taught={[id+':'+lv]:1};localStorage.setItem('ng2',JSON.stringify(s))},[id,lv]);await pg.reload();if(await pg.locator('#home').isVisible())await pg.locator('.door',{hasText:'Warm'}).click();await pg.waitForTimeout(60)}
 const num=async v=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click()};
 const padv=v=>pg.locator('#controls .num, #controls .choice',{hasText:new RegExp('^'+v+'$')}).first().click();

@@ -2,7 +2,7 @@
 /* a ten friend is the number that fills the frame. Level 1 counts the empty squares; level 2 knows the pair with the frame shown, or hidden (picture it in your head) with a think-first guess; level 3 carries the same pair up to 20: two frames, or a full ten plus a frame */
 const FRIENDS=[[1,9],[2,8],[3,7],[4,6],[5,5]];
 /* the squares still empty fill one by one in the second colour, so the friend is seen as the squares, not told as a number */
-const fillFriend=(f,from)=>f.cells.slice(from).forEach((d,i)=>setTimeout(()=>d.className='new',120*i));
+const fillFriend=(f,from)=>f.cells.slice(from).forEach((d,i)=>setTimeout(()=>d.className='new',ms(120*i)));
 const tenRod=()=>{const r=el('div','rod solid');for(let j=0;j<10;j++)r.appendChild(el('span','u'));return r};
 skill({id:'friends',room:'warm',title:'Ten friends',idea:'ten',levels:3,grow:lv=>['','Now the frame is a number card, and sometimes you picture it in your head.','Now the friends make 20: two frames, or a full ten and a frame.'][lv-1],
   async teach(lv,L){const big=el('div','bigword','');
@@ -28,7 +28,7 @@ skill({id:'friends',room:'warm',title:'Ten friends',idea:'ten',levels:3,grow:lv=
         reasons:{q:`Why is ${n}'s friend ${ans}?`,opts:[{t:`Because ${n} and ${ans} fill the frame`,ok:1},n===5?{t:'Because 5 and 4 make 9',no:'9 is not 10. A friend fills the frame exactly.'}:{t:`Because ${ans} comes ${ans<n?'before':'after'} ${n} when I count`,no:'Neighbours are not friends. Friends fill the frame together: do they make 10?'},{t:`Because ${n} and ${n} make ${2*n}`,no:`That is a double, not a friend. A friend makes 10 with ${n}.`}],why:`${n} and ${ans} make 10 together.`},
         ways:{q:'Show me another way to find the friend.',opts:[{t:'Picture the frame and count the empty squares',ok:1},{t:`Take ${n} from 10`,ok:1},{t:n>=5?`5 and 5 make 10: ${n} is 5 and ${n-5}, so the friend is 5 take ${n-5}`:`Count up from ${n} to 10 on my fingers`,ok:1},{t:`Add ${n} and 10`,no:`That makes ${n+10}, much more than 10.`}],why:'The frame in your head, taking from 10 and counting up all find the friend.'}});
       /* distractors stay inside the pairs: the number itself, its neighbours, and the friend's neighbour, so a friend is known, not guessed */
-      const wrongs=new Set();const pool=[n,ans+1,ans-1,n+1,n-1,11-n].filter(v=>v>=0&&v<=10&&v!==ans);while(wrongs.size<3)wrongs.add(pick(pool));
+      const wrongs=new Set();const pool=[...new Set([n,ans+1,ans-1,n+1,n-1,11-n,ans+2,ans-2].filter(v=>v>=0&&v<=10&&v!==ans))];while(wrongs.size<Math.min(3,pool.length))wrongs.add(pick(pool)); // 5's pool used to hold two numbers only, and the loop never ended
       const ch=choices(shuffle([ans,...wrongs]),(o,b)=>{if(o===ans){b.classList.add('hit');lock(ch);reveal();win(`${cheer()} ${n} and ${ans} are ten friends.`)}else{b.classList.add('miss');b.disabled=true;miss(ctx.hints===0?(hidden?`Picture the frame with ${n} dots. How many squares are still empty?`:'Count the empty squares in the frame.'):`${n} and ${o} make ${n+o}, not 10. ${n} needs ${ans}.`)}});controls.appendChild(ch)}
     else{const kind=pick(['twenty','twenty','ten','three']);const a=rnd(1,9),n=10+a;let ans,f,fs=el('div','frames');
       if(kind==='twenty'){ans=10-a;prompt.textContent=`${n} dots. How many more make 20?`;f=tenFrame(a);fs.append(tenFrame(10),f);stage.appendChild(fs);

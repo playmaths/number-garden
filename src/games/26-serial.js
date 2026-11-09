@@ -31,7 +31,7 @@ skill({id:'serial',room:'reason',title:'Every row, every colour',levels:3,grow:l
     const d=serGrid(g,[mr,mc],fig,66);const wrap=el('div','ta');wrap.append(d,el('div','hint',two?'Every row and every column has each shape once and each colour once.':'Every row and every column has the same three, in a different order.'));stage.appendChild(wrap);
     const rowNames=serList(rowRest.map(f=>serA(nm(f)))),colNames=serList(colRest.map(f=>serA(nm(f))));
     const why=two?`This row needs a ${sh[A.a]} and this column needs ${col(A)[1]}, so ${serA(nm(A))}.`:`The row already has ${rowNames}, so it needs ${serA(nm(A))}. The column has ${colNames}: it agrees.`;
-    const showIt=()=>{d.light(k=>k.r===mr);setTimeout(()=>d.light(k=>k.c===mc,'var(--sky)'),900);setTimeout(()=>{d.light(null);d.fill()},1800)};
+    const showIt=()=>{d.light(k=>k.r===mr);setTimeout(()=>d.light(k=>k.c===mc,'var(--sky)'),ms(900));setTimeout(()=>{d.light(null);d.fill()},ms(1800))};
     help({book:lv===1?'found the missing shape from its row':two?'found the missing figure by its shape and its colour':'found the missing figure from its row and column',pick:idx,idx,answer:'the '+nm(A),why,
       clues:[two?'Look along the row with the ?: which shape is not there yet? And which colour is not there yet?':'Every row has the same three, in a different order. Look along the row with the ?: which one is not there yet?',`That row has ${rowNames}, so it needs ${serA(nm(A))}. Look down the column too: it has ${colNames}, so it agrees.`],
       guess:lv===2?{q:'Think first: which shape is missing from that row?',opts:[0,1,2].map(a=>({t:sh[a],ok:a===A.a,why:a===A.a?'Yes. Now find it in its right colour.':`Look again: the row already has ${serA(sh[a])}.`}))}:null,

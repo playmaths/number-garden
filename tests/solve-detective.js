@@ -1,5 +1,5 @@
 // plays Story detective at every level (clean, miss-then-win, Show me) and checks the "Does that make sense?" card on Draw the bar and Rewind it
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   const H=()=>pg.evaluate(()=>{const c=__ng().ctx;return{answer:c.help.answer,book:c.help.book}});
@@ -10,11 +10,11 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).length)errs.push(`${name}: silent`);continue}
     if(lv===1){const {answer}=await H();if(mode==='miss'){const w=pg.locator('#controls .choice',{hasNotText:answer}).first();await w.click();if(!(await msg(pg)).length)errs.push(`${name}: no hint`)}await pg.locator('#controls .choice',{hasText:new RegExp('^'+answer+'$')}).click();await check(name,before,/no numbers/);continue}
     /* know: two right cards */
-    if(mode==='miss')await tapWrong(name);await tapRight();await tapRight();await pg.waitForTimeout(1400);
+    if(mode==='miss')await tapWrong(name);await tapRight();await tapRight();await pause(pg,1400);
     if(!/Want/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Want`);
-    if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1400);
+    if(mode==='miss')await tapWrong(name);await tapRight();await pause(pg,1400);
     if(!/Picture/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Picture`);
-    if(mode==='miss')await tapWrong(name);await tapRight();await pg.waitForTimeout(1100);
+    if(mode==='miss')await tapWrong(name);await tapRight();await pause(pg,1100);
     if(!/Solve/.test(await pg.locator('#stage .instr').innerText()))errs.push(`${name}: did not reach Solve`);if(!await pg.locator('#stage .guess').count())errs.push(`${name}: no think-first card before the number`);await guess(pg);
     const {answer}=await H();if(mode==='miss'){await type(answer+9);if(!(await msg(pg)).length)errs.push(`${name}: no hint on the number`);let card=pg.locator('#stage .sense');if(!await card.count()){await type(1);card=pg.locator('#stage .sense')}if(!await card.count())errs.push(`${name}: no sense card for an impossible answer`);else{await card.locator('.choice',{hasText:/^no$/}).click();if(!/Try again/.test(await msg(pg))){await card.locator('.choice',{hasText:/^yes$/}).click()}if(!/Try again/.test(await msg(pg)))errs.push(`${name}: sense card did not answer`)}}
     await type(answer);await gate(pg);if(await pg.locator('#stage .sense').count())errs.push(`${name}: sense card left after the win`);await check(name,before,/detective/)}

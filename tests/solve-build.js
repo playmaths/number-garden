@@ -1,5 +1,5 @@
 // plays Build the stack at every level: builds the target by tapping the floor, checks it; also a wrong build then a fix; and Show me
-const {open,go,stars,msg,done}=require('./lib');
+const {open,go,stars,msg,done,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const target=()=>pg.evaluate(()=>__ng().ctx.target);
   const tap=async(i,times)=>{for(let k=0;k<times;k++)await pg.locator('#stage .bcell').nth(i).click()};

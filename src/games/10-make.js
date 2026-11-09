@@ -15,7 +15,7 @@ skill({id:'hide',room:'make',title:'You hide the number',idea:'compare',levels:1
     const n=q.mid?Math.floor((lo+hi)/2):0;const text=q.t(n);asked++;
     controls.innerHTML='';stage.querySelectorAll('.story.now').forEach(b=>{b.classList.remove('now');b.classList.add('asked')});const box=el('div','story now',`<small>Question ${asked}</small>${text}`);stage.appendChild(box);
     const ch=choices(['Yes','No'],(o,b)=>{lock(ch);const ans=o==='Yes';const truth=q.f(secret,n);box.appendChild(el('b','ans',` ${o}`));
-      if(ans===truth){right++;b.classList.add('hit');q.apply(ans,n);say('Got it.',true);setTimeout(ask,500)}
+      if(ans===truth){right++;b.classList.add('hit');q.apply(ans,n);say('Got it.',true);setTimeout(ask,ms(500))}
       else{b.classList.add('miss');wrongs.push(text);const t=el('div','hint',`Hmm, let's check that together. ${q.teach(secret,n)} So the answer is ${truth?'Yes':'No'}.`);stage.appendChild(t);
         if(q===qs[1]){stage.appendChild(pairUp(secret))}
         q.apply(truth,n);const r=el('div','row');const k=el('button','btn','Okay, keep going');k.onclick=()=>{say('');ask()};r.appendChild(k);controls.appendChild(r)}});
@@ -38,7 +38,7 @@ skill({id:'rulemaker',room:'make',title:'You make the rule',idea:'rules',levels:
     const io=el('div','io',`<span>${x}</span><span>→</span><span class="q" style="color:var(--accent)">?</span>`);m.appendChild(io);if(!m.parentElement)stage.appendChild(m);
     say(`I put in ${x}. What comes out with your rule?`);
     controls.appendChild(numpad((v,nm)=>{const truth=rule.f(x);lock(nm);io.querySelector('.q').textContent=v;
-      if(v===truth){right++;say('Okay!',true);setTimeout(feed,500)}
+      if(v===truth){right++;say('Okay!',true);setTimeout(feed,ms(500))}
       else{io.querySelector('.q').textContent=truth;io.querySelector('.q').style.color='var(--leaf)';const t=el('div','hint',`With your rule ${rule.t}, ${x} becomes ${truth}, not ${v}. ${rule.t==='double'?`Double means ${x} + ${x}.`:rule.t[0]==='+'?`Count up ${rule.t.slice(1)} from ${x}.`:`Count back ${rule.t.slice(1)} from ${x}.`}`);stage.appendChild(t);
         const r=el('div','row');const k=el('button','btn','Okay, keep going');k.onclick=()=>{t.remove();say('');feed()};r.appendChild(k);controls.appendChild(r)}},3))}
   function guess(){controls.innerHTML='';const g=rule;stage.appendChild(el('div','story',`I think your rule is <b>${g.t}</b>! Am I right?`));
@@ -74,7 +74,7 @@ skill({id:'writestory',room:'make',title:'You write the story',idea:'counton',le
         if(yes===!wrong){b.classList.add('hit');if(!wrong){win(`${cheer()} ${st.a} ${add?'+':'−'} ${st.b} is ${ans}.`);await show()}
           else{say(`Good catch! I said ${said}. What is it really?`,true);controls.insertBefore(numpad((v,nm)=>{if(v===ans){lock(nm);win(`${cheer()} It's ${ans}, not ${said}. You caught me!`);show()}else miss(ctx.hints===0?`Act it out: start with ${st.a}, then ${st.act.t} ${st.b}.`:`Count the picture after each step.`)},2),controls.querySelector('#helpRow'))}}
         else{b.classList.add('miss');miss(wrong?`Check me again. Start with ${st.a} and act it out.`:`Count it out: I was actually right this time.`);r.querySelectorAll('button').forEach(x=>x.disabled=false);b.disabled=true;await show()}});
-      r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},900)}
+      r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},ms(900))}
   build()}});
 
 skill({id:'askq',room:'make',title:'You ask the question',idea:'reading',levels:1,mount(){
@@ -111,7 +111,7 @@ skill({id:'askq',room:'make',title:'You ask the question',idea:'reading',levels:
         if(yes===!wrong){b.classList.add('hit');if(!wrong)win(`${cheer()} ${q.why} A good question, and a right answer.`);
           else{say(`Good catch! I said ${said}. What is it really?`,true);controls.insertBefore(numpad((v,nm)=>{if(v===ans){lock(nm);win(`${cheer()} It's ${ans}, not ${said}. You caught me!`)}else miss(ctx.hints===0?'Look at the bar. Where is the ?':q.why)},2),controls.querySelector('#helpRow'))}}
         else{b.classList.add('miss');miss(wrong?`Check me again. Look at the bar: ${q.why}`:`Count it out: I was actually right this time.`);r.querySelectorAll('button').forEach(x=>x.disabled=false);b.disabled=true}});
-      r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},900)}
+      r.classList.add('bigpick');controls.insertBefore(r,controls.querySelector('#helpRow'))},ms(900))}
   build()}});
 
 /* ================= YOU SET THE SUDOKU: she places the clues, Pip solves out loud ================= */
@@ -125,7 +125,7 @@ skill({id:'setsudoku',room:'make',title:'You set the sudoku',idea:'evenodd',leve
     const hint=el('div','hint','Tap a square, then a number. At least four clues.');stage.append(grid,hint);
     const n=el('div','narr');n.innerHTML=`<svg class="bug think" viewBox="0 0 60 60">${BUG}</svg><div class="bubble">I am waiting for your clues…</div>`;const bub=n.querySelector('.bubble');stage.appendChild(n);
     const setCell=(cell,v,cls)=>{cell.v=v;cell.textContent=v<0?'':String(v+1);cell.dataset.v=v<0?'':String(v+1);cell.className=cell.className.replace(/ c\d/,'')+(v>=0?' c'+(v+1):'');if(cls)cell.classList.add(cls)};
-    const p=el('div','pad four');for(let v=0;v<N;v++){const b=el('button','num c'+(v+1),v+1);b.onclick=()=>{if(!sel||ctx.done||solving)return;const cl=clashOf(sel.i,v);if(cl.length){const where=same(sel.i,cl[0].i);sel.classList.add('clash');setTimeout(()=>sel.classList.remove('clash'),600);say(`${v+1} is already in that ${where}. A ${where} can only have one ${v+1}.`,false);return}setCell(sel,v,'given');sel.classList.add('given');playNote(v+2);say('')};p.appendChild(b)}
+    const p=el('div','pad four');for(let v=0;v<N;v++){const b=el('button','num c'+(v+1),v+1);b.onclick=()=>{if(!sel||ctx.done||solving)return;const cl=clashOf(sel.i,v);if(cl.length){const where=same(sel.i,cl[0].i);sel.classList.add('clash');setTimeout(()=>sel.classList.remove('clash'),ms(600));say(`${v+1} is already in that ${where}. A ${where} can only have one ${v+1}.`,false);return}setCell(sel,v,'given');sel.classList.add('given');playNote(v+2);say('')};p.appendChild(b)}
     const er=el('button','num','⌫');er.onclick=()=>{if(!sel||ctx.done||solving)return;setCell(sel,-1);sel.classList.remove('given')};p.appendChild(er);
     const go=el('button','num go','Pip, solve it');go.style.gridColumn='1/-1';p.appendChild(go);controls.appendChild(p);
     const givens=()=>cells.filter(x=>x.classList.contains('given')).length;
@@ -141,9 +141,9 @@ skill({id:'setsudoku',room:'make',title:'You set the sudoku',idea:'evenodd',leve
         if(moves===wrongAt){const others=[...Array(N).keys()].filter(k=>k!==s.v);const bad=pick(others);slipCell=s.cell;slipShown=bad;bub.innerHTML=`Hmm… ${s.why.replace(`must be ${s.v+1}`,`must be ${bad+1}`).replace(`${s.v+1} fits nowhere else`,`${bad+1} fits here`)}. <em>${bad+1}</em>.`;s.cell.classList.add('sel');setCell(s.cell,bad,'pipfill');s.cell.v=s.v}else{bub.innerHTML=`${s.why[0].toUpperCase()+s.why.slice(1)}. <em>${s.v+1}</em>.`;s.cell.classList.add('sel');setCell(s.cell,s.v,'pipfill')}
         playNote(s.v+2);await wait(1300);s.cell.classList.remove('sel')}
       const empty=cells.filter(x=>x.v<0);
-      if(empty.length){bub.innerHTML=`I am <em>stuck</em>. ${empty.length} square${empty.length>1?'s':''} could still be two things. Put one more clue in one of the flashing squares and tap me again.`;empty.forEach(x=>x.classList.add('line'));setTimeout(()=>empty.forEach(x=>x.classList.remove('line')),2500);bugs('think');solving=false;go.disabled=false;go.textContent='Pip, try again';return}
+      if(empty.length){bub.innerHTML=`I am <em>stuck</em>. ${empty.length} square${empty.length>1?'s':''} could still be two things. Put one more clue in one of the flashing squares and tap me again.`;empty.forEach(x=>x.classList.add('line'));setTimeout(()=>empty.forEach(x=>x.classList.remove('line')),ms(2500));bugs('think');solving=false;go.disabled=false;go.textContent='Pip, try again';return}
       bub.innerHTML=slipCell?`Done! Every square is full. Am I right?`:`Done! Every row, column and box has 1 to 4. Am I right?`;bugs('happy');
-      const r=choices(['Yes!','No, there is a mistake'],(o,b)=>{if(ctx.done)return;const yes=o==='Yes!';if(yes===!slipCell){b.classList.add('hit');lock(r);if(!slipCell)win(`${cheer()} You set it, Pip solved it, and you checked it.`);else{say('Good catch! Tap the square that is wrong.',true);cells.forEach(x=>{if(x.classList.contains('pipfill'))x.onclick=()=>{if(ctx.done)return;if(x===slipCell){setCell(x,x.v,'pipfill');x.classList.add('hit');bub.innerHTML=`You found it. It should be <em>${x.v+1}</em>, not ${slipShown+1}. Fixed.`;win(`${cheer()} You caught Pip's slip: ${x.v+1}, not ${slipShown+1}.`)}else{miss(`Not that one. Look for a row, column or box with the same number twice.`);x.classList.add('clash');setTimeout(()=>x.classList.remove('clash'),600)}}})}}
+      const r=choices(['Yes!','No, there is a mistake'],(o,b)=>{if(ctx.done)return;const yes=o==='Yes!';if(yes===!slipCell){b.classList.add('hit');lock(r);if(!slipCell)win(`${cheer()} You set it, Pip solved it, and you checked it.`);else{say('Good catch! Tap the square that is wrong.',true);cells.forEach(x=>{if(x.classList.contains('pipfill'))x.onclick=()=>{if(ctx.done)return;if(x===slipCell){setCell(x,x.v,'pipfill');x.classList.add('hit');bub.innerHTML=`You found it. It should be <em>${x.v+1}</em>, not ${slipShown+1}. Fixed.`;win(`${cheer()} You caught Pip's slip: ${x.v+1}, not ${slipShown+1}.`)}else{miss(`Not that one. Look for a row, column or box with the same number twice.`);x.classList.add('clash');setTimeout(()=>x.classList.remove('clash'),ms(600))}}})}}
         else{b.classList.add('miss');b.disabled=true;miss(slipCell?'Look again. One row, column or box has the same number twice.':'Check each row, column and box. Pip was right this time.')}});r.classList.add('bigpick');controls.insertBefore(r,controls.firstChild)}}});
 
 skill({id:'patmaker',room:'make',title:'You make the pattern',idea:'skip',levels:1,mount(){
@@ -170,6 +170,6 @@ skill({id:'patmaker',room:'make',title:'You make the pattern',idea:'skip',levels
           else{say('Good catch! Which one did I get wrong? Tap it.',true);qs.forEach((it,i)=>{it.style.cursor='pointer';it.onclick=()=>{if(ctx.done)return;if(said[i]===cont[i])return miss('That one fits. Which one breaks the pattern?');
             it.innerHTML='';it.appendChild(svgShape(cont[i].s,cont[i].c));it.style.borderColor='var(--leaf)';win(`${cheer()} That one should be the same as the one ${p} back. You caught me!`)}})}}
         else{b.classList.add('miss');miss(wrong?`Say the pattern out loud and keep going. Do all three dotted ones fit?`:`Check each dotted one: is it the same as the one ${p} back? I was right this time.`);ch.querySelectorAll('button').forEach(x=>x.disabled=false);b.disabled=true}});
-      ch.classList.add('bigpick');controls.insertBefore(ch,controls.querySelector('#helpRow'))},900)}
+      ch.classList.add('bigpick');controls.insertBefore(ch,controls.querySelector('#helpRow'))},ms(900))}
   help({clues:['Tap shapes in an order that repeats, like red, green, red, green.','When it repeats at least twice, tap Done and I will continue it.'],why:'You make the pattern; I say the rule and keep it going.'})}});
 

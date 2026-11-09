@@ -1,11 +1,11 @@
 // "How did you know?": in a game with no why gate (How many? at level 3), the card appears on the 2nd, 6th, 10th… win and nowhere else; a right tap and a wrong tap both keep the star, write the flag in the log and leave Next stone working
-const {open,go,stars,msg,done,gate}=require('./lib');
+const {open,go,stars,msg,done,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const setCount=n=>pg.evaluate(n=>{const s=JSON.parse(localStorage.getItem('ng2'));s.counts=s.counts||{};s.counts.dots=n;localStorage.setItem('ng2',JSON.stringify(s))},n);
   const last=()=>pg.evaluate(()=>{const l=JSON.parse(localStorage.getItem('ng2')).log||[];return l[l.length-1]||{}});
   const solve=async()=>{const n=await pg.evaluate(()=>__ng().ctx.help.answer);await pg.locator('#controls .num',{hasText:new RegExp('^'+n+'$')}).first().click();await pg.waitForTimeout(150);return n};
   const card=()=>pg.locator('#stage .gate.how');
-  const next=async name=>{const before=await pg.locator('#prompt').innerText()+(await pg.evaluate(()=>__ng().ctx.help.answer));await pg.getByRole('button',{name:'Next stone'}).click();await pg.waitForTimeout(400);
+  const next=async name=>{const before=await pg.locator('#prompt').innerText()+(await pg.evaluate(()=>__ng().ctx.help.answer));await pg.getByRole('button',{name:'Next stone'}).click();await pause(pg,400);
     if(!await pg.locator('#controls .num').count())errs.push(`${name}: no pad on the next problem`);if(await card().count())errs.push(`${name}: the card is still there on the next problem`);if(await pg.evaluate(()=>__ng().ctx.done))errs.push(`${name}: next problem already done`)};
   /* count 1 -> 2nd win: asked, right pick */
   await go(pg,'dots',3,'warm');await setCount(1);await pg.reload();await pg.waitForTimeout(80);let before=await stars(pg);let n=await solve();

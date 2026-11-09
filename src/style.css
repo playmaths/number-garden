@@ -568,3 +568,6 @@ button.rod{min-width:48px;min-height:48px;justify-content:center}
 .bubble{line-height:1.45}
 .pipsay .msg{line-height:1.4}
 @media (max-width:430px){.prompt{font-size:1.35rem}.bubble{font-size:1.1rem}.pipsay .msg{font-size:1.05rem}}
+
+/* fast mode (tests only, html.fast set by engine.js when ng2_fast=1 is in storage): every one-off animation and transition is over in a blink, so the checks never wait for the eye. The ambient animations that run forever (Pip's wings and blink, the falling leaves and snow, the visitors, the trail ring and bud, the finale's flames, waves, smoke and sparks) keep their pace: at 20 ms they would repaint fifty times a second, starve the page and lose storage writes on a reload */
+html.fast *:not(.flame,.exhaust,.fin-ship,.waves,.fpuff,.fglow,.spark,.bug,.pip-eyes,.pip-wl,.pip-wr,.pip-dots,.it2.alone,.visitor,.bit,.ring,.tbud),html.fast *::before,html.fast *::after{animation-duration:.02s!important;animation-delay:0s!important;transition-duration:.02s!important;transition-delay:0s!important}

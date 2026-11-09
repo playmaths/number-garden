@@ -30,7 +30,7 @@ function s2Make(lv){const shp=shuffle(Object.keys(S2_SHAPE)),col=shuffle(S2_COL)
 const s2Row=seq=>{const row=el('div','seq');seq.forEach(f=>{const it=el('div','it');it.fig=f;it.appendChild(s2Fig(f));row.appendChild(it)});row.appendChild(el('div','it q','?'));return row};
 const s2Paint=(row,k)=>row.querySelectorAll('.it:not(.q)').forEach(it=>it.replaceChildren(s2Fig(k?S2_ATTR[k].iso(it.fig):it.fig)));
 /* Show me: each attribute alone, its figures blinking along the row in order, then everything back together and the answer in the box */
-function s2Show(row,note,p,done){const its=[...row.querySelectorAll('.it:not(.q)')];let t=0;const at=(ms,f)=>setTimeout(()=>{if(row.isConnected)f()},t+=ms);
+function s2Show(row,note,p,done){const its=[...row.querySelectorAll('.it:not(.q)')];let t=0;const at=(d,f)=>setTimeout(()=>{if(row.isConnected)f()},t+=ms(d));
   p.R.forEach(r=>{const A=S2_ATTR[r.k];at(200,()=>{s2Paint(row,r.k);note.textContent=`${cap(A.t)}s only: ${p.list(r)}, then ${A.name(p.ans)}`});its.forEach((it,i)=>at(i?380:300,()=>{it.firstChild.animate([{transform:'scale(1)'},{transform:'scale(1.35)'},{transform:'scale(1)'}],{duration:360});playNote(i)}))});
   at(600,()=>{s2Paint(row,null);note.textContent=`Together: ${s2Say(p.ans,p.keys)}`;if(done)done()})}
 skill({id:'series2',room:'pat',title:'Two things change',idea:'rules',levels:3,grow:lv=>['','Now one thing repeats while the other one grows.','Now three things change at once, or an arrow turns while its colour changes.'][lv-1],

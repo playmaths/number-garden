@@ -28,7 +28,7 @@ const sheetSvg=(g,col,w)=>svgWrap(paperSvg(FULL,col)+cellsOf(g).map(holeSvg).joi
 function foldPic(f,holes,col,w,folded){const d=el('div');const twins=cs=>cs.map(c=>holeSvg(f.m(c))).join('');
   d.innerHTML=svgWrap(regRect(f.move,`fill="none" stroke="#1a1a1a" stroke-width="1.2" stroke-dasharray="4 3" opacity=".5"`)+`<g class="base">${paperSvg(f.stay,col)}${holes.map(holeSvg).join('')}</g><g class="flap">${paperSvg(f.move,col)}${regRect(f.move,`fill="#000" opacity=".12"`)}${twins(holes)}</g><line class="fold" x1="${f.line[0]}" y1="${f.line[1]}" x2="${f.line[2]}" y2="${f.line[3]}" stroke="var(--accent)" stroke-width="3.5" stroke-linecap="round"/>`,w);
   const svg=d.firstChild,flap=svg.querySelector('.flap'),line=svg.querySelector('.fold');flap.style.transformOrigin=f.v?`${f.line[0]}px 0px`:`0px ${f.line[1]}px`;const T=b=>f.v?`scaleX(${b?-1:1})`:`scaleY(${b?-1:1})`;flap.style.transform=T(folded);
-  svg.swing=(to,ms)=>new Promise(res=>{const a=flap.animate([{transform:T(!to)},{transform:T(to)}],{duration:ms,easing:'ease-in-out',fill:'forwards'});a.onfinish=()=>{flap.style.transform=T(to);res()};setTimeout(res,ms+300)});
+  svg.swing=(to,t)=>new Promise(res=>{const a=flap.animate([{transform:T(!to)},{transform:T(to)}],{duration:ms(t),easing:'ease-in-out',fill:'forwards'});a.onfinish=()=>{flap.style.transform=T(to);res()};setTimeout(res,ms(t+300))});
   svg.punch=cs=>{svg.querySelector('.base').insertAdjacentHTML('beforeend',cs.map(holeSvg).join(''));flap.insertAdjacentHTML('beforeend',twins(cs))};
   svg.pulse=()=>{line.animate([{strokeWidth:'3.5px'},{strokeWidth:'9px'},{strokeWidth:'3.5px'}],{duration:900,iterations:2})};
   return svg}

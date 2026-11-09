@@ -1,10 +1,10 @@
 // the daily play limit: time counts only on playing views, the garden closes after the current problem, the home screen rests, a grown-up can change the limit or add ten minutes; and hide-the-number marks the current question
-const {open,go,msg,done}=require('./lib');
-(async()=>{const {br,pg,errs}=await open();
+const {open,go,msg,done,pause}=require('./lib');
+(async()=>{const {br,pg,errs}=await open();const tick=await pg.evaluate(()=>window.__ngFast?500:5000); /* the play clock ticks every five seconds, ten times as often in fast mode */
   /* default 20 minutes, and time counts only while a playing view is open */
   await pg.evaluate(()=>localStorage.clear());await pg.reload();await pg.locator('#gearBtn').click();if((await pg.locator('#limit').inputValue())!=='20')errs.push('default limit is not 20');if(!/0 minutes played today of 20/.test(await pg.locator('#limitNote').innerText()))errs.push('limit note: '+await pg.locator('#limitNote').innerText());
-  await pg.locator('#closeSheet').click();await pg.waitForTimeout(5500);let t=await pg.evaluate(()=>__ng().playToday());if(t.ms)errs.push('time counted on the home screen');
-  await go(pg,'dots',1,'warm');await pg.waitForTimeout(5500);t=await pg.evaluate(()=>__ng().playToday());if(!t.ms)errs.push('time not counted while playing');
+  await pg.locator('#closeSheet').click();await pg.waitForTimeout(tick+300);let t=await pg.evaluate(()=>__ng().playToday());if(t.ms)errs.push('time counted on the home screen');
+  await go(pg,'dots',1,'warm');await pg.waitForFunction(()=>__ng().playToday().ms>0,null,{timeout:tick*3}).catch(()=>{});t=await pg.evaluate(()=>__ng().playToday());if(!t.ms)errs.push('time not counted while playing');
   /* at the limit, the current problem finishes and the next stone shows the closed screen */
   await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.today={day:Math.floor(Date.now()/864e5),ms:20*60000,extra:0};localStorage.setItem('ng2',JSON.stringify(s))});await go(pg,'dots',1,'warm');
   if(!await pg.locator('#play').isVisible())errs.push('a problem already on screen should still be playable');await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(150);await pg.getByRole('button',{name:'Next stone'}).click();await pg.waitForTimeout(100);
@@ -19,5 +19,5 @@ const {open,go,msg,done}=require('./lib');
   await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.limit=20;s.today={day:Math.floor(Date.now()/864e5)-1,ms:20*60000,extra:0};s.trail=null;localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();if(await pg.locator('#resting').isVisible())errs.push('yesterday\'s minutes closed today');
   /* hide the number: the current question is marked, earlier ones fade with their answers */
   await go(pg,'hide',1,'make');await pg.locator('#controls .num',{hasText:/^7$/}).click();await pg.waitForTimeout(100);if(await pg.locator('#stage .story.now').count()!==1)errs.push('first question not marked as current');if(!/Question 1/.test(await pg.locator('#stage .story.now').innerText()))errs.push('no question number');
-  await pg.locator('#controls .choice',{hasText:/^No$/}).click();await pg.waitForTimeout(700);const now=await pg.locator('#stage .story.now').count(),asked=await pg.locator('#stage .story.asked').count();if(now!==1)errs.push(`${now} current questions after answering`);if(asked!==1)errs.push(`${asked} faded questions, expected 1`);if(!/No/.test(await pg.locator('#stage .story.asked').innerText()))errs.push('the answer is not shown on the faded question');
+  await pg.locator('#controls .choice',{hasText:/^No$/}).click();await pause(pg,700);const now=await pg.locator('#stage .story.now').count(),asked=await pg.locator('#stage .story.asked').count();if(now!==1)errs.push(`${now} current questions after answering`);if(asked!==1)errs.push(`${asked} faded questions, expected 1`);if(!/No/.test(await pg.locator('#stage .story.asked').innerText()))errs.push('the answer is not shown on the faded question');
   console.log('limit and hide checked');done('solve-limit',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});

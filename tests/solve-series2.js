@@ -1,5 +1,5 @@
 // Two things change at every level: the answer continues every rule in the row, every distractor is off in at least one attribute, a miss names the attribute, the think-first card at level 2, the gates, Show me and the lesson
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const read=()=>pg.evaluate(()=>{const c=__ng().ctx;return{seq:c.seq,choices:c.choices,attrs:c.attrs,pick:c.help.pick,answer:c.help.answer}});
   /* what the next figure must be, from the row alone: a cycle repeats every 2 or 3, a count or size grows by one, a turn goes a quarter round */
@@ -19,11 +19,11 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
     const book=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).book.find(b=>/patterns at once/.test(b.t)));if(!book)errs.push(tag+': no book line about two patterns at once')}
   /* Show me paints one attribute at a time, then the answer */
   for(const lv of[1,3]){await go(pg,'series2',lv,'pat');await guess(pg);const d=await read();await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(100);if(!(await msg(pg)).includes(d.answer))errs.push(`series2 lv${lv} Show me: "${(await msg(pg)).slice(0,80)}" does not name ${d.answer}`);
-    await pg.waitForTimeout(700);const grey=await pg.locator('#stage .seq .it:not(.q) [fill="#9aa7a0"]').count();if(!grey)errs.push(`series2 lv${lv} Show me: nothing covered in grey while one attribute is shown`);
-    await pg.waitForTimeout(d.attrs.length*2600+1500);if(await pg.locator('#stage .seq .it:not(.q) [fill="#9aa7a0"]').count())errs.push(`series2 lv${lv} Show me: the grey stayed`);if(!await pg.locator('#stage .seq .q svg').count())errs.push(`series2 lv${lv} Show me: no answer in the box`)}
+    const grey=await pg.locator('#stage .seq .it:not(.q) [fill="#9aa7a0"]').first().waitFor({state:'attached',timeout:4000}).then(()=>1,()=>0);if(!grey)errs.push(`series2 lv${lv} Show me: nothing covered in grey while one attribute is shown`);
+    await pg.locator('#stage .seq .q svg').waitFor({timeout:d.attrs.length*2600+1500}).catch(()=>{});await pg.waitForTimeout(50);if(await pg.locator('#stage .seq .it:not(.q) [fill="#9aa7a0"]').count())errs.push(`series2 lv${lv} Show me: the grey stayed`);if(!await pg.locator('#stage .seq .q svg').count())errs.push(`series2 lv${lv} Show me: no answer in the box`)}
   /* the lesson at each level runs through to My turn without errors */
   for(const lv of[1,2,3]){await go(pg,'series2',lv,'pat');await pg.getByRole('button',{name:'Watch'}).click();await pg.waitForTimeout(300);if(!await pg.locator('#stage .lesson .seq').count())errs.push(`series2 lv${lv} lesson: no row of figures`);
-    for(let i=0;i<12;i++){await pg.waitForTimeout(700);const nx=pg.getByRole('button',{name:'Next ▶'});if(await nx.isVisible())await nx.click()}
+    for(let i=0;i<12;i++){await pause(pg,700);const nx=pg.getByRole('button',{name:'Next ▶'});if(await nx.isVisible())await nx.click()}
     const bub=await pg.locator('#stage .bubble').innerText();if(!/Now you try/.test(bub))errs.push(`series2 lv${lv} lesson: did not reach the end ("${bub.slice(0,60)}")`);if(!await pg.locator('#stage .lesson .seq .q svg').count())errs.push(`series2 lv${lv} lesson: the answer was not put in the box`);
     await pg.getByRole('button',{name:'My turn'}).click();await pg.waitForTimeout(150);if(!await pg.locator('#controls .choice').count())errs.push(`series2 lv${lv} lesson: My turn did not start the problem`)}
   await go(pg,'series2',1,'pat');await pg.screenshot({path:require('path').join(require('os').tmpdir(),'ng-series2-'+Date.now()+'.png')});

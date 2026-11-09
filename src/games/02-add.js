@@ -26,10 +26,10 @@ skill({id:'bridge',room:'add',title:'Make a ten to add',idea:'ten',levels:2,moun
   if(lv===2){const rods=el('div','rods');for(let i=0;i<Math.floor(a/10);i++){const r=el('div','rod solid');for(let j=0;j<10;j++)r.appendChild(el('span','u'));rods.appendChild(r)}row.appendChild(rods)}
   row.append(fa,el('div','plus','+'),fb);fs.appendChild(row);stage.appendChild(fs);
   const need=10-(a%10);
-  const showMove=()=>{fb.cells.slice(0,need).forEach(d=>d.className='empty');fa.cells.slice(a%10).forEach((d,i)=>setTimeout(()=>d.className='new',120*i))};
+  const showMove=()=>{fb.cells.slice(0,need).forEach(d=>d.className='empty');fa.cells.slice(a%10).forEach((d,i)=>setTimeout(()=>d.className='new',ms(120*i)))};
   help({book:`added ${a} and ${b} by making a ten: ${ans}`,clues:[`How many dots would fill the first frame? Take those from the second one.`,`${a} needs ${need} to make a ten. Then add the rest.`],answer:ans,why:`${a} + ${need} = ${a+need}, then ${b-need} more is ${ans}.`,show:showMove});
   controls.appendChild(numpad((v,nm)=>{if(v===ans){lock(nm);
-      fb.cells.slice(0,need).forEach(d=>d.className='empty');fa.cells.slice(a%10).forEach((d,i)=>setTimeout(()=>d.className='new',120*i));
+      fb.cells.slice(0,need).forEach(d=>d.className='empty');fa.cells.slice(a%10).forEach((d,i)=>setTimeout(()=>d.className='new',ms(120*i)));
       win(`${cheer()} Move ${need} over to fill the ten: ${a} + ${need} = ${a+need}, then ${b-need} more is ${ans}.`)}
     else miss(ctx.hints===0?`How many dots fill up the first frame? Take those from the second one.`:`${a} needs ${need} to make a ten. Then add what's left.`)}))}});
 

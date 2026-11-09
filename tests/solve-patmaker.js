@@ -1,7 +1,8 @@
 // plays the games of one door for real, answering correctly and wrongly, asserting stars and book lines
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');
 (async()=>{
-const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});
+const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});await fast(pg);
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(m.type()==='error'&&!/firebase|net::|googleapis/i.test(m.text()))errs.push(m.text())});
 await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'');await pg.evaluate(()=>localStorage.clear());await pg.reload();
 const msg=()=>pg.locator('#msg').textContent();const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
@@ -22,7 +23,7 @@ async function run(seqIdx,sayWrong){await go();
   if(sayWrong){await judge(right?1:0);console.log('  wrong-judge:',(await msg()).slice(0,70))}
   await judge(right?0:1);
   if(!right){if(sayWrong){const ok=wrongIdx===0?1:0;await pg.locator('#stage .seq .it.q').nth(ok).click();console.log('  wrong-tap:',(await msg()).slice(0,60))}await pg.locator('#stage .seq .it.q').nth(wrongIdx).click()}
-  await pg.waitForTimeout(600);const after=await stars();const m=await msg();
+  await pause(pg,600);const after=await stars();const m=await msg();
   console.log(`n=${n} p=${p} bubble="${bub.slice(0,45)}" right=${right} msg="${m.slice(0,60)}" stars ${before}->${after} helpRows=${await pg.locator('#helpRow').count()}`);
   if(after!==before+1||!m)throw new Error('no win');console.log('  book:',await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).book[0].t))}
 await run([0,1,0,1,0,1],false);await run([0,1,1,0,1,1],true);await run([0,1,2,0,1,2],false);await run([2,2,2,2],true);await run([0,1,0,1],false);await run([0,1,0,1,0,1],true);
