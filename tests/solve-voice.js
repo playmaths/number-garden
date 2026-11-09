@@ -4,7 +4,7 @@ const URL='file://'+path.resolve(__dirname,'..','index.html');
 const FAKE=(list)=>`(()=>{const vs=${JSON.stringify(list)}.map(v=>Object.assign({localService:true,default:false,voiceURI:v.name},v));const spoken=[];window.__spoken=spoken;
   Object.defineProperty(window,'speechSynthesis',{configurable:true,value:{getVoices:()=>vs,speak:u=>spoken.push({t:u.text,v:u.voice&&u.voice.name}),cancel(){},addEventListener(){},removeEventListener(){}}});
   Object.defineProperty(window,'SpeechSynthesisUtterance',{configurable:true,value:function(t){this.text=t;this.voice=null;this.rate=1;this.pitch=1;this.lang=''}})})()`;
-const seed=`localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:2,m:{},book:[],flowers:[{room:'warm',day:20700}],counts:{dots:2},days:[],badges:{},welcomed:true}))`;
+const seed=`localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:2,m:{},book:[],flowers:[{room:'warm',day:20700}],counts:{dots:2},days:[],badges:{},welcomed:true,talk:true}))`;
 (async()=>{const br=await chromium.launch();const errs=[];
   const open=async(voices,ua)=>{const ctx=await br.newContext(Object.assign({viewport:{width:420,height:860}},ua?{userAgent:ua}:{}));const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push('page error: '+e.message));await pg.addInitScript(FAKE(voices));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));await pg.goto(URL);await pg.evaluate(seed);await pg.reload();await pg.waitForTimeout(150);return {ctx,pg}};
   /* a rich device: natural, google, apple and robotic voices */
