@@ -1,5 +1,5 @@
 // Roll, slide, stack at every level: the hill questions and the real-thing matches by tapping the solid (wrong one first on odd goes), the acted-out answer, then faces, corners and edges counted by touching them on the turning solid, with the think-first card, the why gate and the sense card for a ball with corners
-const {open,go,stars,msg,book,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,book,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const answerKey=()=>pg.evaluate(()=>__ng().ctx.help.answer.replace('the ',''));
   const pickSolid=async(k)=>{const b=pg.locator(`#controls .choice[data-k="${k}"]`);if(!await b.count())return false;await b.click();await pg.waitForTimeout(150);return true};

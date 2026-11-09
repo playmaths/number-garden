@@ -8,7 +8,13 @@ on:
 jobs:
   headless:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        # tests/run.sh N/6 runs a deterministic sixth of the suite list; the six jobs run side by side
+        group: [1, 2, 3, 4, 5, 6]
+    name: suites ${{ matrix.group }}/6
     env:
       # the solver scripts write screenshots to os.tmpdir(); keep them somewhere we can upload
       TMPDIR: ${{ github.workspace }}/.ng-tmp
@@ -20,27 +26,46 @@ jobs:
           node-version: 20
 
       - name: index.html matches src/
+        if: matrix.group == 1
         run: sh tools/check-build.sh
 
-      - name: Install Playwright and Chromium
+      - name: Resolve the Playwright version
+        id: pw
+        run: echo "version=$(npm view playwright@1 version)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the Playwright browser
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install Playwright
         run: |
           mkdir -p "$TMPDIR"
-          npm i --no-save playwright@1
-          npx playwright install --with-deps chromium
+          npm i --no-save "playwright@${{ steps.pw.outputs.version }}"
 
-      - name: Run the suites, one at a time
+      - name: Install Chromium
+        if: steps.pw-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps chromium
+
+      - name: Install Chromium's system libraries
+        if: steps.pw-cache.outputs.cache-hit == 'true'
+        run: npx playwright install-deps chromium
+
+      - name: Run this group's suites, one at a time
         shell: bash
         run: |
           set -o pipefail
-          bash tests/run.sh 2>&1 | tee "$TMPDIR/tests.log"
+          bash tests/run.sh ${{ matrix.group }}/6 2>&1 | tee "$TMPDIR/tests-${{ matrix.group }}.log"
 
       - name: Upload screenshots and log
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-output
+          name: test-output-${{ matrix.group }}
           path: |
             .ng-tmp/**/*.png
-            .ng-tmp/tests.log
+            .ng-tmp/tests-*.log
           if-no-files-found: ignore
           retention-days: 7

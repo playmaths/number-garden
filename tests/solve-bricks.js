@@ -1,5 +1,5 @@
 // brick builds: the tab, picking a set, one brick per finished trail, the done screen line, a finished set on the shelf, flowers untouched
-const {open,done}=require('./lib');
+const {open,done,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   await pg.evaluate(()=>{localStorage.clear();localStorage.setItem('ng2',JSON.stringify({stars:0,m:{},book:[],flowers:[{room:'warm',day:20700},{room:'warm',day:20700}],counts:{},days:[],badges:{}}))});await pg.reload();
   if(!await pg.locator('#gardenWrap').isVisible()||await pg.locator('#bricks').isVisible())errs.push('garden tab should show first');

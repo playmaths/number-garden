@@ -1,5 +1,5 @@
 // every game mounts at every level with no console errors, and Clue and Show me work on each
-const {open,go,msg,done}=require('./lib');
+const {open,go,msg,done,pause}=require('./lib');
 const fs=require('fs'),path=require('path');const SRC=fs.readFileSync(path.resolve(__dirname,'..','index.html'),'utf8');
 const LEVELS={};for(const m of SRC.matchAll(/skill\(\{id:'([a-z0-9]+)',room:'[a-z]+',title:'[^']*',(?:idea:'[a-z]+',)?levels:(\d+)/g))LEVELS[m[1]]=+m[2];
 const GAMES={warm:['dots','make','more','flash','friends'],add:['take','bridge','missing','trick','place'],pat:['cont','machine','arrays','series2'],puz:['balance','wodb','coins','riddle','logic','sort2','ifthen','rewind','both','maketrue'],sud:['sudoku'],story:['tale','ways','bar','detective','three'],space:['mirror','count','fit','symmetry','cubes','build','steps','shapes','compose','solids'],time:['minutes','elapsed','calendar'],meas:['parts','measure','estimate','jar'],make:['hide','rulemaker','writestory','patmaker','askq','setsudoku'],reason:['matrix','analogy','fold','belongs','serial'],think:['think','truth','combo','pipslip','talk']};

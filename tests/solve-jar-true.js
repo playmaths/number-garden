@@ -1,5 +1,5 @@
 // Estimation jar and Make it true at every level: the jar's dots match its count, a wrong size shows ten, the right size reveals tens; the sign games with wrong then right picks and the why gate
-const {open,go,stars,msg,done,gate}=require('./lib');
+const {open,go,stars,msg,done,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   for(let lv=1;lv<=3;lv++)for(let k=0;k<5;k++){await go(pg,'jar',lv,'meas');const before=await stars(pg);const name=`jar lv${lv} #${k}`;const best=await pg.evaluate(()=>__ng().ctx.help.answer);
     const dots=await pg.locator('#stage .jd').count();const real=await pg.evaluate(()=>+__ng().ctx.help.why.match(/There are (\d+)/)[1]);if(dots!==real)errs.push(`${name}: ${dots} dots drawn, said ${real}`);

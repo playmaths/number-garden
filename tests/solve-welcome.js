@@ -1,7 +1,8 @@
 // the first-time welcome: on a truly empty browser Pip says hello and waves, asks a name, gives one How many dots problem through the normal engine, explains the flower, and the home screen greets by name; a reload never shows it again; Skip works at every step; a reload in the middle resumes; a seeded garden never sees it
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');const path=require('path');const URL='file://'+path.resolve(__dirname,'..','index.html');
 (async()=>{const br=await chromium.launch();const errs=[];
-  const fresh=async()=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();pg.on('pageerror',e=>errs.push('PAGEERROR '+e.message));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));await pg.goto(URL);await pg.waitForTimeout(120);return pg};
+  const fresh=async()=>{const ctx=await br.newContext({viewport:{width:420,height:860}});const pg=await ctx.newPage();await fast(pg);pg.on('pageerror',e=>errs.push('PAGEERROR '+e.message));await pg.route('**/firestore.googleapis.com/**',r=>r.fulfill({status:200,contentType:'application/json',body:'{}'}));await pg.goto(URL);await pg.waitForTimeout(120);return pg};
   const vis=(pg,sel)=>pg.locator(sel).isVisible();const bub=pg=>pg.locator('#welcomeBubble').innerText();
   /* the whole flow, with a name */
   {const pg=await fresh();if(!await vis(pg,'#welcome'))errs.push('welcome not shown on an empty browser');if(await vis(pg,'#home'))errs.push('home shown over the welcome');

@@ -1,6 +1,7 @@
 // plays the games of one door for real, answering correctly and wrongly, asserting stars and book lines
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');
-(async()=>{const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});
+(async()=>{const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});await fast(pg);
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));
 await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'');await pg.evaluate(()=>localStorage.clear());await pg.reload();
 const msg=()=>pg.locator('#msg').innerText();const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);

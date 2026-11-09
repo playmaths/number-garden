@@ -5,10 +5,15 @@ Headless checks against the local `index.html` in Chromium. Nothing is published
 ```
 npm i -D playwright && npx playwright install chromium
 tests/run.sh            # everything, one suite at a time, with a summary at the end
+tests/run.sh 2/6        # one deterministic sixth of the suites (what each CI job runs)
 node tests/books.js "Even and odd"   # one book
 ```
 
-`run.sh` works from any directory, runs the suites sequentially (parallel Chromiums crash), prints which passed and failed, and exits non-zero on any failure. GitHub Actions runs it on every push to `master` and every pull request (`.github/workflows/tests.yml`, about 15 to 25 minutes, 45-minute timeout); screenshots and the log are uploaded as the `test-output` artifact.
+`run.sh` works from any directory, runs the suites sequentially (parallel Chromiums crash), prints each suite's seconds, which passed and failed, and exits non-zero on any failure. With an argument `N/M` it runs every M-th suite of its fixed list (syntax, smoke, trails, books, sync, tellpip, then `solve-*` sorted) starting at the N-th, so the long suites land in different slices and the slices never overlap.
+
+**Fast mode.** The app has one switch for the checks: when `window.__NG_FAST` is set before the page scripts run (or `localStorage` holds `ng2_fast=1`), `engine.js` sets `window.__ngFast`, puts the class `fast` on `<html>` (every CSS animation and transition is over in 20 ms) and scales every pause through `ms(n)` and `wait(n)` to a tenth, with a 20 ms floor so the order of steps holds: lesson waits (`L.wait`), Show-me animations, reveals, celebrations, the finale and turntable timers, the ten-frame glimpse, the save debounce and the daily-limit tick (which then adds five seconds every half second, so the limit still counts real play). `lib.js` seeds the flag with a browser init script (`open()` for the shared browser, `fast(pg)` for a script that launches its own), so it is there after every reload and untouched by the `localStorage.clear()` a check does. It is a window flag rather than a storage write on purpose: an init script that touches `localStorage` at document start makes Chromium load the storage area before the previous document's writes have landed, and about one reload in ten then finds an empty garden. Nothing in the app ever sets the flag or writes the key, and the grown-ups' Reset removes the key, so a child never plays in fast mode. New code should pause with `wait(ms)` or `setTimeout(f, ms(n))`, never a bare number. On the test side `pause(pg, n)` waits the fast-mode equivalent of a real `n` ms app delay (`T(n)`, a tenth plus a margin); where a condition can be awaited instead (the think-first card gone, `ctx.done` after a gate, the flash cover lifted and dropped, a Big Idea page's `data-drawing` cleared, the hundred chart's summary line) the helpers wait for that.
+
+**Locally**, run the suites you touched plus `smoke.js` (and `trails.js` if you changed rooms or trails); the whole suite runs in CI. **GitHub Actions** (`.github/workflows/tests.yml`) runs on every push to `master` and every pull request as six parallel jobs, `bash tests/run.sh N/6`, each installing Playwright with the Chromium download cached by Playwright version (`actions/cache`), `tools/check-build.sh` in job 1 only, and each uploading its screenshots and log as `test-output-N`. A full sequential run takes about ten minutes on a laptop; a slice a minute or two.
 
 | script | checks |
 |---|---|
@@ -50,4 +55,4 @@ node tests/books.js "Even and odd"   # one book
 | `solve-series2.js` | Two things change at every level: the answer continues every rule, distractors differ, the miss hint names the wrong attribute, Show me, lessons |
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
 
-`lib.js` has the shared helpers: `open()`, `go(pg, gameId, level, door)`, `stars`, `msg`, `book`.
+`lib.js` has the shared helpers: `open()` (a seeded fast-mode browser), `go(pg, gameId, level, door)`, `stars`, `msg`, `book`, `guess`, `gate`, `fast(pg)`, `pause(pg, ms)`, `T(ms)`.

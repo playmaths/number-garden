@@ -23,7 +23,7 @@ $('#note').value=S.note||'';$('#note').oninput=e=>{S.note=e.target.value;save()}
 $('#gearBtn').addEventListener('click',()=>{$('#cloud').textContent=cloudLine();$('#family').value=S.family||'';famLine();renderReports()});
 $('#family').oninput=e=>{const v=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');e.target.value=v;S.family=v;store.set('ng2',S);/* no save(): typing a code is not new progress, so the family's copy stays newer */if(famOK()){famState='';famLine();famPull()}else famLine()};
 $('#newFamily').onclick=()=>{S.family=newFamilyCode();$('#family').value=S.family;famState='';save();famLine();famPush()};
-$('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flowers=[];S.badges={};S.counts={};S.trail=null;S.streakNow=0;S.bestStreak=0;S.days=[];S.last={};S.tellCount=0;save();renderLevels()};
+$('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flowers=[];S.badges={};S.counts={};S.trail=null;S.streakNow=0;S.bestStreak=0;S.days=[];S.last={};S.tellCount=0;try{localStorage.removeItem('ng2_fast')}catch(e){}save();renderLevels()}; // Reset also drops the tests' fast-mode flag, should it ever be found on a real device
 renderHome();connectCloud();famPull();sendReports();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').catch(()=>{})}

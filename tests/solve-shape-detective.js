@@ -1,5 +1,5 @@
 // Shape detective at every level: Pip's riddle among four turned shapes, the corner counter with the why gate, the odd one out, the square that is a rectangle too, and the think-first count; each clean and with a miss first
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const H=()=>pg.evaluate(()=>{const h=__ng().ctx.help;return{answer:h.answer,pick:h.pick,v:h.guess?'guess':h.pick!=null?(h.reasons?'odd':'pick'):'count',yesno:!!h.reasons&&h.pick!=null&&/^Why is (a square a rectangle|it not a square)/.test(h.reasons.q)}});
   const tapCorners=async n=>{const cs=pg.locator('#stage .corner');const k=await cs.count();if(k!==n)errs.push(`shapes: ${k} corner targets for a ${n}-sided shape`);for(let i=0;i<k;i++)await cs.nth(i).click();const cap=await pg.locator('#stage .counted').innerText();if(!cap.startsWith(`${n} corners`))errs.push(`shapes: caption after tapping every corner: "${cap}"`)};

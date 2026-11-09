@@ -1,5 +1,5 @@
 // Number pairs at every level: one pair with dots and choices (level 1), two pairs with the think-first card and a typed number (level 2), the two-rules trap where the rule is named before the number with the why or another-way gate (level 3); each clean and with a miss, and Show me
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 const RULE={};for(let k=1;k<=5;k++)RULE[`add ${k}`]=x=>x+k;for(let k=1;k<=3;k++)RULE[`take ${k} away`]=x=>x-k;RULE.double=x=>x*2;
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};

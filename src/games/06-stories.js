@@ -38,7 +38,6 @@ const ICONS={
 let currentThing='strawberries';
 
 /* scene engine: draws the objects in a story and acts out what the child answered */
-const wait=ms=>new Promise(r=>setTimeout(r,ms));
 function dot(cls){const d=el('div','it2'+(cls?' '+cls:''));d.innerHTML=`<svg viewBox="0 0 40 40">${ICONS[currentThing]||ICONS.marbles}</svg>`;return d}
 function row(label){const r=el('div','srow');if(label)r.appendChild(el('div','lab',label));return r}
 async function appear(items,cls,gap){for(const d of items){d.classList.add('in');await wait(0);d.classList.add(cls||'new');await wait(20);d.classList.remove('in');await wait(gap||140)}}

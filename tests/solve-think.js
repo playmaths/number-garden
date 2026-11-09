@@ -1,5 +1,5 @@
 // the thinking loop: Think it through at every tier (number and choice problems, right and wrong), the think stone in a trail, the think-first card, the why and another-way gates, the own-words card, and the greeting
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   const H=()=>pg.evaluate(()=>({answer:__ng().ctx.help.answer,id:__ng().ctx.thinkId}));
@@ -18,7 +18,7 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
   if(await pg.locator('#trail .stone.think').count()!==1)errs.push('trail: no think stone drawn');
   /* think first on Find the missing number, then the why gate, then the star */
   await go(pg,'missing',1,'add');let before=await stars(pg);if(!await pg.locator('#stage .guess').count())errs.push('missing: no think-first card');if(await pg.locator('#controls .num').first().isVisible())errs.push('missing: numpad visible before the guess');
-  await pg.locator('#stage .guess .choice:not([data-right])').first().click();await pg.waitForTimeout(1100);if(await pg.locator('#stage .guess').count())errs.push('missing: guess card stayed after a wrong guess');if(!await pg.locator('#controls .num').first().isVisible())errs.push('missing: numpad still hidden');
+  await pg.locator('#stage .guess .choice:not([data-right])').first().click();await pause(pg,1100);if(await pg.locator('#stage .guess').count())errs.push('missing: guess card stayed after a wrong guess');if(!await pg.locator('#controls .num').first().isVisible())errs.push('missing: numpad still hidden');
   let a=await pg.evaluate(()=>__ng().ctx.help.answer);await type(a);if(!await pg.locator('#stage .gate').count())errs.push('missing: no why or another-way gate after the right number');if((await stars(pg))!==before)errs.push('missing: star given before the gate');
   const wrongGate=pg.locator('#stage .gate .choice:not([data-right])').first();await wrongGate.click();if(!(await msg(pg)).length)errs.push('gate: a wrong reason gave no reply');await gate(pg);if((await stars(pg))!==before+1)errs.push(`missing: no star after the gate ("${await msg(pg)}")`);
   const hinted=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).m.missing.streak);if(hinted!==0)errs.push(`missing: a wrong reason should break the streak, streak=${hinted}`);
@@ -27,7 +27,7 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
   const m=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).m.make);if(m.lv!==2)errs.push(`make: three clean answers with right reasons should level up, got ${JSON.stringify(m)}`);
   await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.m.make={lv:1,streak:2,low:0,why:0};localStorage.setItem('ng2',JSON.stringify(s))});await go(pg,'make',1,'warm');await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.m.make={lv:1,streak:2,low:0,why:0};localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();await pg.waitForTimeout(100);
   a=await pg.evaluate(()=>__ng().ctx.help.answer);await pg.locator('#controls .num',{hasText:new RegExp('^'+a+'$')}).click();await pg.waitForTimeout(100);
-  const g=pg.locator('#stage .gate');if(await g.count()){const kind=await g.locator('small').innerText();if(/Why/.test(kind)){await g.locator('.choice:not([data-right])').first().click();await g.locator('.choice:not([data-right]):not([disabled])').first().click();await pg.waitForTimeout(2200)}else await gate(pg)}
+  const g=pg.locator('#stage .gate');if(await g.count()){const kind=await g.locator('small').innerText();if(/Why/.test(kind)){await g.locator('.choice:not([data-right])').first().click();await g.locator('.choice:not([data-right]):not([disabled])').first().click();await pause(pg,2200)}else await gate(pg)}
   const m2=await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).m.make);if(m2.lv!==1)errs.push(`make: should not level up without a right reason: ${JSON.stringify(m2)}`);
   /* the own-words card keeps a typed explanation, writes it in the book and the greeting leads with it */
   await go(pg,'think',1,'think');{const {answer}=await H();const num=await pg.locator('#controls .num').count();if(num)await type(answer);else await pg.locator('#controls .choice[data-right="1"]').first().click();await gate(pg)}

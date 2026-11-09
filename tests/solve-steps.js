@@ -1,5 +1,5 @@
 // plays Where is Pip? at every level: tap the landing square (a wrong one first), build a path from the arrow buttons and Go (a short path first), the fewest steps round a rock with the think-first card and a gate; and Show me on each
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const read=()=>pg.evaluate(()=>{const c=__ng().ctx;return{start:c.start,target:c.target,answer:c.help.answer}});
   const walkWait=n=>pg.waitForTimeout(n*450+500);
@@ -10,7 +10,7 @@ const {open,go,stars,msg,done,guess,gate}=require('./lib');
     if(mode==='show'){await pg.getByRole('button',{name:'Show me'}).click();await walkWait(n);const marks=await pg.locator('#stage .marks text').count();if(marks!==n)errs.push(`${name}: Show me drew ${marks} step numbers for ${n} steps`);if(!(await msg(pg)).length)errs.push(`${name}: Show me said nothing`);continue}
     if(lv===1){if(mode==='miss'){await pg.locator('#stage .cell').nth(target.i===0?1:0).click();if(!/finger|square|Pip/.test(await msg(pg)))errs.push(`${name}: hint was "${await msg(pg)}"`)}
       await pg.locator('#stage .cell').nth(target.i).click();await walkWait(n)}
-    else if(lv===2){if(mode==='miss'){if(dy)await arrows(dx,0);else await arrows(dx+(dx>0?-1:1),0);await pg.getByRole('button',{name:'Go'}).click();await walkWait(Math.abs(dx)+1);const m=await msg(pg);if(!/too|far|edge|right|left/.test(m))errs.push(`${name}: hint was "${m}"`);await pg.waitForTimeout(800);if(await pg.locator('#stage .way').count())errs.push(`${name}: the path strip was not cleared after a miss`)}
+    else if(lv===2){if(mode==='miss'){if(dy)await arrows(dx,0);else await arrows(dx+(dx>0?-1:1),0);await pg.getByRole('button',{name:'Go'}).click();await walkWait(Math.abs(dx)+1);const m=await msg(pg);if(!/too|far|edge|right|left/.test(m))errs.push(`${name}: hint was "${m}"`);await pause(pg,800);if(await pg.locator('#stage .way').count())errs.push(`${name}: the path strip was not cleared after a miss`)}
       await arrows(dx,dy);const ways=await pg.locator('#stage .way').count();if(ways!==n)errs.push(`${name}: ${ways} arrows on the strip for ${n} taps`);await pg.getByRole('button',{name:'Go'}).click();await walkWait(n)}
     else{if(mode==='miss'){await pg.locator('#controls .num',{hasText:new RegExp('^'+(n+1)+'$')}).click();if(!/sideways|Count/.test(await msg(pg)))errs.push(`${name}: hint was "${await msg(pg)}"`)}
       await pg.locator('#controls .num',{hasText:new RegExp('^'+n+'$')}).click();await walkWait(n);if(!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg)}

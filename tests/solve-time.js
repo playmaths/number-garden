@@ -1,9 +1,10 @@
 // plays the games of one door for real, answering correctly and wrongly, asserting stars and book lines
+const {pause,fast}=require('./lib');
 const {chromium}=require('playwright');
 const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
 const parseWords=w=>{let m;if(m=w.match(/^(\d+) o'clock/))return[+m[1],0];if(m=w.match(/^half past (\d+)/))return[+m[1],30];if(m=w.match(/^quarter past (\d+)/))return[+m[1],15];if(m=w.match(/^quarter to (\d+)/))return[(+m[1]+10)%12+1,45];if(m=w.match(/^(\d+) minutes past (\d+)/))return[+m[2],+m[1]];throw new Error('parse '+w)};
 (async()=>{
-const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});
+const br=await chromium.launch();const pg=await br.newPage({viewport:{width:420,height:860}});await fast(pg);
 const errs=[];pg.on('pageerror',e=>errs.push(e.message));pg.on('console',m=>{if(m.type()==='error'&&!/firebase|net::|googleapis/i.test(m.text()))errs.push(m.text())});
 await pg.goto('file://'+require('path').resolve(__dirname,'..','index.html')+'');await pg.evaluate(()=>localStorage.clear());await pg.reload();
 const msg=()=>pg.locator('#msg').textContent();const stars=()=>pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).stars);
@@ -22,5 +23,5 @@ async function run(id,lv,missFirst){await go(id,lv);const where=await pg.locator
   await pg.waitForTimeout(300);const after=await stars();const m=await msg();const extra=id==='minutes'?' opts=['+texts.join('|')+']':id==='calendar'?' lit='+await pg.locator('#stage .strip .way[style*="rgba"], #stage .strip .way[style*="leaf"]').count():'';console.log(`${where} lv${lv} ans=${ans}${extra} msg="${m.slice(0,70)}" ${before}->${after}`);if(after!==before+1)throw new Error('no win');console.log('  book:',await pg.evaluate(()=>JSON.parse(localStorage.getItem('ng2')).book[0].t))}
 for(const id of['minutes','elapsed','calendar'])for(const lv of[1,2,3]){await run(id,lv,false);await run(id,lv,true)}
 // clue + show me on each
-for(const id of['minutes','elapsed','calendar']){await go(id,3);await pg.getByRole('button',{name:'Clue'}).click();const c=await msg();await pg.getByRole('button',{name:'Show me'}).click();await pg.waitForTimeout(1500);console.log(id,'clue:',c.slice(0,60),'| show:',(await msg()).slice(0,60))}
+for(const id of['minutes','elapsed','calendar']){await go(id,3);await pg.getByRole('button',{name:'Clue'}).click();const c=await msg();await pg.getByRole('button',{name:'Show me'}).click();await pause(pg,1500);console.log(id,'clue:',c.slice(0,60),'| show:',(await msg()).slice(0,60))}
 await go('elapsed',2);await pg.screenshot({path:require('path').join(require('os').tmpdir(),'ng-'+Date.now()+'.png')});console.log('errors:',errs);await br.close();if(errs.length)process.exit(1)})().catch(e=>{console.error(e);process.exit(1)});

@@ -1,5 +1,5 @@
 // Sticks and dots at every level: built by hand with too many sticks then put right (level 1), read from the picture after the think-first card (level 2), 10 more / 10 less and 1 more / 1 less with the trap answer first (level 3); Show me and the why / another-way gate on each
-const {open,go,stars,msg,done,guess,gate}=require('./lib');
+const {open,go,stars,msg,done,guess,gate,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   const counts=async()=>({s:await pg.locator('#stage .rods .rod').count(),d:await pg.locator('#stage .ones .one').count()});

@@ -1,5 +1,5 @@
 // plays You ask the question several times: builds a scene, taps the already-known question (refused), asks a real one, checks Pip's answer right or wrong, and types the truth when she was wrong
-const {open,go,stars,msg,done}=require('./lib');
+const {open,go,stars,msg,done,pause}=require('./lib');
 (async()=>{const {br,pg,errs}=await open();
   const type=async(v)=>{for(const d of String(v))await pg.locator('#controls .num',{hasText:new RegExp('^'+d+'$')}).first().click();await pg.locator('#controls .go').click();await pg.waitForTimeout(120)};
   let caught=0,agreed=0,refusedAll=0;
@@ -11,7 +11,7 @@ const {open,go,stars,msg,done}=require('./lib');
     const qs=await pg.locator('#controls .choice').allInnerTexts();if(qs.length!==3)errs.push(`${name}: ${qs.length} questions`);
     /* tap cards until one is accepted: the known ones are refused and stay in place */
     let refused=0,asked=false;for(let i=0;i<3&&!asked;i++){const c=pg.locator('#controls .choice').nth(i);if(await c.isDisabled())continue;await c.click();await pg.waitForTimeout(80);if(await pg.locator('#controls .hint').count()){refused++;if(!/already know/.test(await msg(pg)))errs.push(`${name}: a refused card gave no reason`)}else asked=true}
-    if(!asked)errs.push(`${name}: no question was accepted among ${qs.join(' | ')}`);refusedAll+=refused;await pg.waitForTimeout(1100);
+    if(!asked)errs.push(`${name}: no question was accepted among ${qs.join(' | ')}`);refusedAll+=refused;await pause(pg,1100);
     if(!await pg.locator('#stage .barm').count())errs.push(`${name}: no bar for the question`);
     const info=await pg.evaluate(()=>{const c=__ng().ctx;return{ans:c.help.answer,wrong:/wrong/.test(c.help.why),said:+document.querySelector('.bubble em').textContent}});
     if(info.wrong===(info.said===info.ans))errs.push(`${name}: bubble said ${info.said}, answer ${info.ans}, wrong=${info.wrong}`);
