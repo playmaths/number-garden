@@ -95,6 +95,10 @@ service cloud.firestore {
                     && request.resource.data.shot is string && request.resource.data.shot.size() < 500000;
       allow update, delete: if false;
     }
+    // everything else stays closed
+    match /{document=**} {
+      allow read, write: if false;
+    }
   }
 }
 ```
