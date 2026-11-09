@@ -2,6 +2,8 @@
 
 This is the record of how Number Garden is built and why. Each section states the choice and the reason, so a change that goes against one of them is made knowingly.
 
+A drawn version of sections 1, 2, 3 and 11 is at [docs/architecture.html](docs/architecture.html) (served at https://playmaths.github.io/number-garden/docs/architecture.html): the three places things live, the layer stack inside the page, one trail as a sequence, and the build and test pipeline.
+
 ## 1. Shape of the app
 
 **One `index.html`, no framework, no dependencies.** The shipped file is still a single `index.html` (styles, markup and about 3,800 lines of plain JavaScript), next to a manifest, a service worker and an icon folder. The source now lives in `src/` as plain pieces: `head.html`, `style.css`, `body.html`, then the script split at top-level statement boundaries into `engine.js`, `games/*.js` (one file per room, numbered in load order), `ideas.js`, `playground.js`, `think.js`, `play.js` and `wiring.js`. `tools/build.sh` (POSIX sh, nothing to install) concatenates them back, byte for byte, into `index.html`, which is committed alongside `src/`; `tools/check-build.sh` fails when the two disagree. Edit `src/`, run `sh tools/build.sh`, commit both.

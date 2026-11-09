@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Number Garden Architecture</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<!-- Drawn in the diagram-design editorial skin (github.com/cathrynlavery/diagram-design): one accent, hairlines, 4px grid, orthogonal connectors. Hand-written SVG, no libraries. -->
+<style>
+/* Layout: an editorial single column; each diagram is one claim with a caption, on white-smoke paper with hairlines and one accent. Skin: diagram-design defaults. */
+:root{
+  --paper:#f5f5f5; --paper-2:#ececec; --ink:#2d3142; --muted:#4f5d75; --soft:#5a6580;
+  --rule:rgba(45,49,66,.12); --rule-solid:#bfc0c0; --accent:#bf4520; --accent-tint:rgba(191,69,32,.08); --link:#2e5aa8;
+  --wash:rgba(45,49,66,.02); --wash-2:rgba(45,49,66,.05); --edge:rgba(45,49,66,.10); --white:#ffffff;
+  --serif:'Instrument Serif',Georgia,serif; --sans:'Geist',system-ui,sans-serif; --mono:'Geist Mono',ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#2d3142; --paper-2:#393e53; --ink:#f5f5f5; --muted:#bfc0c0; --soft:#949eb2;
+  --rule:rgba(245,245,245,.12); --rule-solid:rgba(191,192,192,.25); --accent:#f08a59; --accent-tint:rgba(240,138,89,.10); --link:#739fdf;
+  --wash:rgba(245,245,245,.03); --wash-2:rgba(245,245,245,.06); --edge:rgba(245,245,245,.12); --white:#363b4f; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#2d3142; --paper-2:#393e53; --ink:#f5f5f5; --muted:#bfc0c0; --soft:#949eb2;
+  --rule:rgba(245,245,245,.12); --rule-solid:rgba(191,192,192,.25); --accent:#f08a59; --accent-tint:rgba(240,138,89,.10); --link:#739fdf;
+  --wash:rgba(245,245,245,.03); --wash-2:rgba(245,245,245,.06); --edge:rgba(245,245,245,.12); --white:#363b4f; color-scheme:dark}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.5;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 64px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:48px}
+header{display:grid;gap:12px}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);font-weight:500}
+h1{font-family:var(--serif);font-weight:400;font-size:clamp(2rem,5vw,3rem);line-height:1.05;margin:0;text-wrap:balance}
+h2{font-family:var(--serif);font-weight:400;font-size:1.75rem;margin:0 0 8px;text-wrap:balance}
+p{max-width:66ch;margin:0;color:var(--ink)}
+p.lede{font-size:1.125rem;color:var(--muted)}
+.cards{display:grid;grid-template-columns:1.1fr 1fr .9fr;gap:12px}
+.card{background:var(--white);border:1px solid var(--rule);border-radius:6px;padding:16px;display:grid;gap:4px;min-width:0}
+.card b{font-family:var(--serif);font-weight:400;font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+.card span{font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:.04em}
+section{display:grid;gap:16px}
+figure{margin:0;display:grid;gap:12px}
+.scroll{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--paper)}
+.scroll svg{display:block;height:auto}
+figcaption{font-family:var(--serif);font-style:italic;font-size:1.05rem;color:var(--muted);max-width:66ch}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+.two>div{min-width:0;display:grid;gap:8px;align-content:start}
+.two h3{font-family:var(--sans);font-weight:600;font-size:.95rem;margin:0}
+.two p{font-size:.95rem}
+code{font-family:var(--mono);font-size:.85em;color:var(--muted)}
+ul{margin:0;padding-left:1.1rem;max-width:66ch;color:var(--ink)}li{margin:4px 0}
+.svgtxt{font-family:var(--sans)}
+footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono);font-size:11px;color:var(--soft);letter-spacing:.04em}
+@media (max-width:700px){.cards{grid-template-columns:1fr 1fr}.cards .card:first-child{grid-column:1/-1}.two{grid-template-columns:1fr}}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .2s}.card:hover{border-color:var(--rule-solid)}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">System overview · November 2026</div>
+  <h1>Number Garden Architecture</h1>
+  <p class="lede">A maths garden for a five-year-old, built as one HTML page with no server of its own. Everything the child does lives on her device; a public static host serves the page, a public database syncs between devices by family code, and nothing else exists to run or pay for.</p>
+  <div class="cards">
+    <div class="card"><b>1 file</b><span>index.html · 950 KB · generated from 26 source files</span></div>
+    <div class="card"><b>60 games</b><span>12 rooms · 32 picture books · 8 brick sets</span></div>
+    <div class="card"><b>53 checks</b><span>Playwright · 16 min locally · 6 CI jobs</span></div>
+  </div>
+</header>
+
+<section>
+  <h2>Where things live</h2>
+  <p>Three places, one of which is the child's own browser. The page is the whole app. GitHub serves it and tests it; Firestore holds a copy of each family's garden and the bug reports a child files by tapping Tell Pip. The arrow that matters is the one from the device to the database: it carries the garden, never a login.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 540" style="min-width:1000px" role="img" aria-labelledby="arch-t arch-d">
+      <title id="arch-t">System architecture of Number Garden</title>
+      <desc id="arch-d">Three zones: the child's device holds index.html, a service worker, localStorage and the browser's speech and audio; GitHub holds Pages, the source repository and Actions; Firebase holds Firestore. Pages serves the page through the service worker; the page saves to localStorage; localStorage syncs to Firestore over REST; the repository publishes to Pages and runs tests on push.</desc>
+      <defs>
+        <marker id="arch-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+        <marker id="arch-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--link)"/></marker>
+      </defs>
+      <!-- zones -->
+      <rect x="32" y="48" width="408" height="368" rx="8" fill="var(--wash)" stroke="var(--edge)" stroke-width=".8"/>
+      <rect x="44" y="52" width="104" height="12" rx="2" fill="var(--paper)"/>
+      <text x="96" y="61" fill="var(--soft)" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em">CHILD'S DEVICE</text>
+      <rect x="488" y="48" width="256" height="368" rx="8" fill="var(--wash)" stroke="var(--edge)" stroke-width=".8"/>
+      <rect x="500" y="52" width="56" height="12" rx="2" fill="var(--paper)"/>
+      <text x="528" y="61" fill="var(--soft)" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em">GITHUB</text>
+      <rect x="792" y="48" width="176" height="368" rx="8" fill="var(--wash)" stroke="var(--edge)" stroke-width=".8"/>
+      <rect x="804" y="52" width="64" height="12" rx="2" fill="var(--paper)"/>
+      <text x="836" y="61" fill="var(--soft)" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em">FIREBASE</text>
+      <!-- arrows (behind nodes) -->
+      <line x1="520" y1="140" x2="408" y2="140" stroke="var(--link)" stroke-width="1.2" marker-end="url(#arch-arrow-link)"/>
+      <rect x="440" y="122" width="48" height="12" rx="2" fill="var(--paper)"/>
+      <text x="464" y="131" fill="var(--link)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">SERVES</text>
+      <line x1="280" y1="140" x2="248" y2="140" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arch-arrow)"/>
+      <line x1="156" y1="176" x2="156" y2="224" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#arch-arrow)"/>
+      <rect x="164" y="194" width="40" height="12" rx="2" fill="var(--paper)"/>
+      <text x="184" y="203" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">SAVES</text>
+      <path d="M156,280 V380 Q156,388 164,388 H872 Q880,388 880,380 V176" fill="none" stroke="var(--link)" stroke-width="1.2" marker-end="url(#arch-arrow-link)"/>
+      <rect x="888" y="300" width="56" height="12" rx="2" fill="var(--paper)"/>
+      <text x="916" y="309" fill="var(--link)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">REST · 1.5 S</text>
+      <line x1="600" y1="224" x2="600" y2="176" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#arch-arrow)"/>
+      <rect x="608" y="194" width="60" height="12" rx="2" fill="var(--paper)"/>
+      <text x="638" y="203" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">PUBLISHES</text>
+      <line x1="632" y1="280" x2="632" y2="312" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#arch-arrow)"/>
+      <rect x="644" y="290" width="48" height="12" rx="2" fill="var(--paper)"/>
+      <text x="668" y="299" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">ON PUSH</text>
+      <!-- nodes: device -->
+      <rect x="64" y="104" width="184" height="72" rx="6" fill="var(--paper)"/>
+      <rect x="64" y="104" width="184" height="72" rx="6" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="1.2"/>
+      <rect x="76" y="112" width="40" height="12" rx="2" fill="var(--accent)"/><text x="96" y="121" fill="#111111" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em" font-weight="500">PAGE</text>
+      <text x="76" y="146" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">index.html</text>
+      <text x="76" y="162" fill="var(--soft)" font-size="9" font-family="var(--mono)">engine + 60 games + 32 books</text>
+      <rect x="280" y="104" width="128" height="72" rx="6" fill="var(--paper)"/>
+      <rect x="280" y="104" width="128" height="72" rx="6" fill="var(--wash)" stroke="var(--edge)" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="292" y="138" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Service worker</text>
+      <text x="292" y="154" fill="var(--soft)" font-size="9" font-family="var(--mono)">sw.js · offline copy</text>
+      <rect x="64" y="224" width="184" height="56" rx="6" fill="var(--paper)"/>
+      <rect x="64" y="224" width="184" height="56" rx="6" fill="var(--wash-2)" stroke="var(--muted)" stroke-width="1"/>
+      <text x="76" y="248" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">localStorage</text>
+      <text x="76" y="264" fill="var(--soft)" font-size="9" font-family="var(--mono)">ng2 · ng2_&lt;child&gt; · ng2_profiles</text>
+      <rect x="280" y="304" width="128" height="56" rx="6" fill="var(--paper)"/>
+      <rect x="280" y="304" width="128" height="56" rx="6" fill="var(--wash)" stroke="var(--edge)" stroke-width="1"/>
+      <text x="292" y="328" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Speech &amp; audio</text>
+      <text x="292" y="344" fill="var(--soft)" font-size="9" font-family="var(--mono)">speechSynthesis · WebAudio</text>
+      <!-- nodes: github -->
+      <rect x="520" y="104" width="192" height="72" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="532" y="138" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">GitHub Pages</text>
+      <text x="532" y="154" fill="var(--soft)" font-size="9" font-family="var(--mono)">playmaths.github.io/number-garden</text>
+      <rect x="520" y="224" width="192" height="56" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="532" y="248" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Repository · src/</text>
+      <text x="532" y="264" fill="var(--soft)" font-size="9" font-family="var(--mono)">tools/build.sh → index.html</text>
+      <rect x="520" y="312" width="192" height="56" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="532" y="336" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Actions</text>
+      <text x="532" y="352" fill="var(--soft)" font-size="9" font-family="var(--mono)">6 parallel jobs · Playwright</text>
+      <!-- nodes: firebase -->
+      <rect x="816" y="104" width="128" height="72" rx="6" fill="var(--paper)"/>
+      <rect x="816" y="104" width="128" height="72" rx="6" fill="var(--wash-2)" stroke="var(--muted)" stroke-width="1"/>
+      <text x="828" y="130" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Firestore</text>
+      <text x="828" y="146" fill="var(--soft)" font-size="9" font-family="var(--mono)">families/{code}</text>
+      <text x="828" y="160" fill="var(--soft)" font-size="9" font-family="var(--mono)">reports · rules = access</text>
+      <!-- legend strip -->
+      <line x1="32" y1="456" x2="968" y2="456" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="48" y1="492" x2="88" y2="492" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#arch-arrow)"/>
+      <text x="100" y="495" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">DATA MOVES</text>
+      <line x1="208" y1="492" x2="248" y2="492" stroke="var(--link)" stroke-width="1.2" marker-end="url(#arch-arrow-link)"/>
+      <text x="260" y="495" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">OVER THE NETWORK</text>
+      <line x1="408" y1="492" x2="448" y2="492" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#arch-arrow)"/>
+      <text x="460" y="495" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">CACHE FALLBACK WHEN OFFLINE</text>
+      <rect x="664" y="486" width="24" height="12" rx="2" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="1"/>
+      <text x="700" y="495" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">THE ONE FILE EVERYTHING ELSE SERVES</text>
+    </svg>
+    </div>
+    <figcaption>The page is the only thing that runs. Pages serves it, the service worker keeps an offline copy, every tap saves to the device, and the saved garden syncs to Firestore by family code a second and a half after it changes.</figcaption>
+  </figure>
+  <div class="two">
+    <div><h3>Why one file</h3><p>Save and refresh is the whole development loop, there is one thing to publish, and the page drops into any static host. The source is split into 26 files for people; a shell script concatenates them byte for byte and a check fails the build if the page drifts from its sources.</p></div>
+    <div><h3>Why no server</h3><p>A static host costs nothing and cannot leak what it does not have. The Firestore web key is public by design; the published rules are the access control: one nine-character code reads and writes one garden document, reports are create-only, everything else is closed.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>Inside the page</h2>
+  <p>Five layers, calls going down and events coming back up. Games know nothing about screens, storage or the network; they describe a problem and the engine does the rest, which is what lets 60 games share one thinking loop.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 420" style="min-width:1000px" role="img" aria-labelledby="lay-t lay-d">
+      <title id="lay-t">Runtime layers of the page</title>
+      <desc id="lay-d">From top to bottom: Views, Games, Engine, State and sync, Platform. The engine is the focal layer: it owns trails, lessons, gates, win and miss, and the state object every other layer reads.</desc>
+      <defs><marker id="lay-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--soft)"/></marker></defs>
+      <!-- direction indicator -->
+      <line x1="56" y1="72" x2="56" y2="352" stroke="var(--soft)" stroke-width="1" marker-end="url(#lay-arrow)"/>
+      <rect x="40" y="200" width="32" height="12" rx="2" fill="var(--paper)"/>
+      <text x="56" y="209" fill="var(--soft)" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em">CALLS</text>
+      <!-- stack -->
+      <rect x="120" y="48" width="800" height="320" rx="6" fill="var(--white)" stroke="var(--muted)" stroke-width="1"/>
+      <line x1="120" y1="112" x2="920" y2="112" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="120" y1="176" x2="920" y2="176" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="120" y1="240" x2="920" y2="240" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="120" y1="304" x2="920" y2="304" stroke="var(--rule)" stroke-width="1"/>
+      <!-- focal layer -->
+      <rect x="120" y="176" width="800" height="64" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="1.2"/>
+      <!-- rows -->
+      <text x="136" y="84" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L5</text>
+      <text x="184" y="85" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Views</text>
+      <text x="904" y="84" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">home · play · done · book · letter · grown-ups · welcome</text>
+      <text x="136" y="148" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L4</text>
+      <text x="184" y="149" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Games</text>
+      <text x="904" y="148" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">60 skills in 26 files · each one: skill({mount, teach}) + help({clues, why})</text>
+      <text x="136" y="212" fill="var(--accent)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L3</text>
+      <text x="184" y="213" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Engine</text>
+      <text x="904" y="212" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">trails · lessons · win / miss · gates · mastery · Pip · bricks · garden</text>
+      <text x="136" y="276" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L2</text>
+      <text x="184" y="277" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">State &amp; sync</text>
+      <text x="904" y="276" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">one object S · localStorage · profiles · Firestore REST · reports</text>
+      <text x="136" y="340" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L1</text>
+      <text x="184" y="341" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Platform</text>
+      <text x="904" y="340" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">browser · PWA (sw.js, manifest) · speechSynthesis · WebAudio · SVG</text>
+      <!-- callout -->
+      <path d="M160,240 Q160,376 192,392" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="200" y="396" fill="var(--accent)" font-size="14" font-family="var(--serif)" font-style="italic">the only layer a game ever talks to: it draws, declares its clues and answer, and reports a win or a miss</text>
+    </svg>
+    </div>
+    <figcaption>A game is a function that draws a problem and declares its clues, answer and why. Everything that makes it a lesson, the trail, the think-first guess, the why gate, the hint on a miss, the star and the flower, happens in the engine, once, for all of them.</figcaption>
+  </figure>
+  <div class="two">
+    <div><h3>The game contract</h3><p><code>skill({id, room, title, levels, teach(lv, L), mount(lv)})</code> registers a game. Inside <code>mount</code> it draws into the stage, puts inputs in the controls and calls <code>help({book, clues, answer, why, show, guess, reasons, ways})</code>. It reports with <code>win()</code> or <code>miss()</code>. That is the whole surface.</p></div>
+    <div><h3>What the engine adds</h3><p>Levels that climb after three clean answers and drop after two heavily hinted ones, never shown to the child. A lesson once per level. A think-first guess, a why gate on odd problems and an another-way gate on even ones, the own-words card, the museum of slips, Pip's moods and voice.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>One trail, start to finish</h2>
+  <p>What happens between a tap on a door and a new flower. The child meets five problems; each one goes through the same loop, and the state is saved and synced after every stone, so closing the tablet mid-trail loses nothing.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 600" style="min-width:1000px" role="img" aria-labelledby="seq-t seq-d">
+      <title id="seq-t">Sequence of one trail</title>
+      <desc id="seq-d">Five actors: the child, the engine, a game, the state object and Firestore. The child taps a door; the engine builds five stones; for each stone the engine mounts the game, the game shows a picture and prompt, the child answers, the game reports a win, the engine asks why, the child picks a reason, the engine saves the level and state syncs to Firestore; after the fifth stone the engine plants a flower and lays a brick.</desc>
+      <defs>
+        <marker id="seq-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker>
+        <marker id="seq-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--accent)"/></marker>
+        <marker id="seq-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--link)"/></marker>
+        <marker id="seq-open" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polyline points="0 0, 8 3, 0 6" fill="none" stroke="var(--link)" stroke-width="1.2"/></marker>
+      </defs>
+      <!-- lifelines -->
+      <line x1="100" y1="88" x2="100" y2="560" stroke="var(--rule-solid)" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="300" y1="88" x2="300" y2="560" stroke="var(--rule-solid)" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="500" y1="88" x2="500" y2="560" stroke="var(--rule-solid)" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="700" y1="88" x2="700" y2="560" stroke="var(--rule-solid)" stroke-width="1" stroke-dasharray="4,4"/>
+      <line x1="900" y1="88" x2="900" y2="560" stroke="var(--rule-solid)" stroke-width="1" stroke-dasharray="4,4"/>
+      <!-- loop frame -->
+      <rect x="40" y="184" width="920" height="320" rx="4" fill="var(--wash)" stroke="var(--edge)" stroke-width="1"/>
+      <rect x="40" y="184" width="48" height="16" rx="2" fill="var(--paper)" stroke="var(--edge)" stroke-width="1"/>
+      <text x="64" y="196" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.12em">LOOP</text>
+      <text x="96" y="196" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">[for each of 5 stones]</text>
+      <!-- activation on engine during loop -->
+      <rect x="296" y="208" width="8" height="272" fill="var(--wash-2)" stroke="var(--rule-solid)" stroke-width=".8"/>
+      <!-- actors -->
+      <rect x="20" y="48" width="160" height="40" rx="6" fill="var(--wash-2)" stroke="var(--soft)" stroke-width="1"/>
+      <text x="100" y="73" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600" text-anchor="middle">Child</text>
+      <rect x="220" y="48" width="160" height="40" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="300" y="73" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600" text-anchor="middle">Engine</text>
+      <rect x="420" y="48" width="160" height="40" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="500" y="73" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600" text-anchor="middle">Game</text>
+      <rect x="620" y="48" width="160" height="40" rx="6" fill="var(--wash-2)" stroke="var(--muted)" stroke-width="1"/>
+      <text x="700" y="73" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600" text-anchor="middle">State S</text>
+      <rect x="820" y="48" width="160" height="40" rx="6" fill="var(--wash-2)" stroke="var(--muted)" stroke-width="1"/>
+      <text x="900" y="73" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600" text-anchor="middle">Firestore</text>
+      <!-- messages -->
+      <line x1="100" y1="120" x2="300" y2="120" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="168" y="102" width="64" height="12" rx="2" fill="var(--paper)"/><text x="200" y="111" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">TAP A DOOR</text>
+      <path d="M300,144 H340 Q348,144 348,152 V160 Q348,168 340,168 H308" fill="none" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <text x="360" y="159" fill="var(--muted)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">FIVE STONES, NO TWO ALIKE</text>
+      <line x1="300" y1="224" x2="500" y2="224" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="368" y="206" width="64" height="12" rx="2" fill="var(--paper)"/><text x="400" y="215" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">MOUNT(LV)</text>
+      <line x1="500" y1="256" x2="100" y2="256" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#seq-arrow)"/>
+      <rect x="248" y="238" width="104" height="12" rx="2" fill="var(--paper)"/><text x="300" y="247" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">PICTURE + PROMPT</text>
+      <line x1="100" y1="296" x2="500" y2="296" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="276" y="278" width="48" height="12" rx="2" fill="var(--paper)"/><text x="300" y="287" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">ANSWER</text>
+      <line x1="500" y1="328" x2="300" y2="328" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="364" y="310" width="72" height="12" rx="2" fill="var(--paper)"/><text x="400" y="319" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">WIN / MISS</text>
+      <line x1="300" y1="360" x2="100" y2="360" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="152" y="342" width="96" height="12" rx="2" fill="var(--paper)"/><text x="200" y="351" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">WHY? OR A HINT</text>
+      <line x1="100" y1="392" x2="300" y2="392" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="172" y="374" width="56" height="12" rx="2" fill="var(--paper)"/><text x="200" y="383" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">A REASON</text>
+      <line x1="300" y1="424" x2="700" y2="424" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/>
+      <rect x="448" y="406" width="104" height="12" rx="2" fill="var(--paper)"/><text x="500" y="415" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">STAR · LEVEL · LOG</text>
+      <line x1="700" y1="456" x2="900" y2="456" stroke="var(--link)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#seq-open)"/>
+      <rect x="760" y="438" width="80" height="12" rx="2" fill="var(--paper)"/><text x="800" y="447" fill="var(--link)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">PUSH, 1.5 S</text>
+      <line x1="300" y1="488" x2="100" y2="488" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#seq-arrow)"/>
+      <rect x="160" y="470" width="80" height="12" rx="2" fill="var(--paper)"/><text x="200" y="479" fill="var(--muted)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">STONE LIT</text>
+      <line x1="300" y1="536" x2="100" y2="536" stroke="var(--accent)" stroke-width="1.4" marker-end="url(#seq-arrow-accent)"/>
+      <rect x="148" y="518" width="104" height="12" rx="2" fill="var(--paper)"/><text x="200" y="527" fill="var(--accent)" font-size="8" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.06em">FLOWER + BRICK</text>
+      <!-- legend -->
+      <line x1="40" y1="576" x2="960" y2="576" stroke="var(--rule)" stroke-width="1"/>
+      <line x1="48" y1="592" x2="88" y2="592" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#seq-arrow)"/><text x="100" y="595" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">CALL</text>
+      <line x1="160" y1="592" x2="200" y2="592" stroke="var(--muted)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#seq-arrow)"/><text x="212" y="595" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">REPLY</text>
+      <line x1="280" y1="592" x2="320" y2="592" stroke="var(--link)" stroke-width="1" stroke-dasharray="4,3" marker-end="url(#seq-open)"/><text x="332" y="595" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">ASYNC, NEVER WAITED FOR</text>
+      <line x1="520" y1="592" x2="560" y2="592" stroke="var(--accent)" stroke-width="1.4" marker-end="url(#seq-arrow-accent)"/><text x="572" y="595" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.06em">THE PAYOFF, ONCE PER TRAIL</text>
+    </svg>
+    </div>
+    <figcaption>The sync is fire-and-forget: the child never waits for the network, and a newer copy from another device wins only when the garden is opened, never mid-problem.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <h2>From an edit to the child's screen</h2>
+  <p>Nothing reaches the live site without passing the same checks twice: once on the machine that made the change, in a fast mode that shrinks every animation and lesson pause, and once on GitHub, split six ways so a push is fully checked in a few minutes.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1000 300" style="min-width:1000px" role="img" aria-labelledby="pipe-t pipe-d">
+      <title id="pipe-t">Build and test pipeline</title>
+      <desc id="pipe-d">Edit the sources, concatenate them into the page, check the page is byte-exact, run the touched suites and smoke locally in fast mode, push to master; the push triggers six parallel Actions jobs and the Pages deploy.</desc>
+      <defs><marker id="pipe-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="var(--muted)"/></marker></defs>
+      <!-- arrows -->
+      <line x1="176" y1="128" x2="208" y2="128" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <line x1="352" y1="128" x2="384" y2="128" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <line x1="528" y1="128" x2="560" y2="128" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <line x1="704" y1="128" x2="736" y2="128" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <path d="M848,104 V88 Q848,80 856,80 H880" fill="none" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <path d="M848,152 V168 Q848,176 856,176 H880" fill="none" stroke="var(--muted)" stroke-width="1.2" marker-end="url(#pipe-arrow)"/>
+      <!-- nodes -->
+      <rect x="32" y="104" width="144" height="48" rx="6" fill="var(--wash-2)" stroke="var(--soft)" stroke-width="1"/>
+      <text x="44" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Edit src/</text>
+      <text x="44" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">26 files · one game each</text>
+      <rect x="208" y="104" width="144" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="220" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Build</text>
+      <text x="220" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">cat, in order → index.html</text>
+      <rect x="384" y="104" width="144" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="396" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Drift check</text>
+      <text x="396" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">cmp: byte-exact or fail</text>
+      <rect x="560" y="104" width="144" height="48" rx="6" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="1.2"/>
+      <text x="572" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Local suites</text>
+      <text x="572" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">touched + smoke · fast mode</text>
+      <rect x="736" y="104" width="112" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="748" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Push</text>
+      <text x="748" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">master</text>
+      <rect x="880" y="56" width="104" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="892" y="76" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Actions</text>
+      <text x="892" y="92" fill="var(--soft)" font-size="9" font-family="var(--mono)">6 jobs · 2–5 min</text>
+      <rect x="880" y="152" width="104" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
+      <text x="892" y="172" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Pages</text>
+      <text x="892" y="188" fill="var(--soft)" font-size="9" font-family="var(--mono)">live in ~1 min</text>
+      <!-- callout -->
+      <path d="M632,160 Q632,208 600,224" fill="none" stroke="var(--accent)" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="472" y="244" fill="var(--accent)" font-size="14" font-family="var(--serif)" font-style="italic">fast mode: waits at a tenth, animations in a blink,</text>
+      <text x="472" y="262" fill="var(--accent)" font-size="14" font-family="var(--serif)" font-style="italic">set only by the test harness. 54 min became 16.</text>
+    </svg>
+    </div>
+    <figcaption>The drift check is what makes a generated single file safe: if anyone edits the page by hand instead of the sources, the build refuses.</figcaption>
+  </figure>
+  <ul>
+    <li><strong>Smoke</strong> mounts all 176 game levels and taps Clue and Show me on each; <strong>books</strong> walks every page of all 32 picture books; <strong>trails</strong> builds five-stone trails from every door; <strong>sync</strong> simulates two devices against a mocked Firestore; 48 <strong>solve</strong> scripts play each game clean and miss-then-recover.</li>
+    <li>Browsers run one at a time on a single machine, behind a lock, because two at once crash the sandbox. CI has six machines, so each runs a deterministic sixth of the list.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Principles the structure protects</h2>
+  <div class="two">
+    <div><h3>Nothing of the child in the repository</h3><p>The default name is Sprout, pronouns are a setting, and the public repository holds no names, codes or reports. Her garden exists on her device and, by family code, in one Firestore document.</p></div>
+    <div><h3>No clocks, no X marks</h3><p>A miss gives a hint about the structure of the problem. Levels adapt silently. The daily limit counts quietly and closes the garden at the next stone, never mid-problem.</p></div>
+    <div><h3>Teach before asking</h3><p>Every game carries a lesson Pip shows once per level before the first problem, and a Big Idea book behind the Learn button. Asking first would be unfair.</p></div>
+    <div><h3>Explaining is not tied to being wrong</h3><p>Why gates, another-way gates, think-first guesses and the own-words card ask the child to reason on right answers too, so a correct number is the start of the thinking, not the end.</p></div>
+  </div>
+</section>
+
+<footer>Source: playmaths/number-garden · ARCHITECTURE.md sections 1–12 · drawn in the diagram-design editorial skin</footer>
+</div>
+</body>
+</html>
