@@ -56,3 +56,5 @@ node tests/books.js "Even and odd"   # one book
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
 
 `lib.js` has the shared helpers: `open()` (a seeded fast-mode browser), `go(pg, gameId, level, door)`, `stars`, `msg`, `book`, `guess`, `gate`, `fast(pg)`, `pause(pg, ms)`, `T(ms)`.
+
+`tools/check-build.sh` also runs `tools/docs-counts.py --check`: the drawn architecture in `docs/architecture.html` carries live counts (games, levels, books, rooms, brick sets, files, checks, CI jobs) between `<!--n:key-->` markers, refreshed by `sh tools/build.sh`; CI fails if the page is behind the repository.

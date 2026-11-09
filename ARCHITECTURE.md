@@ -2,7 +2,7 @@
 
 This is the record of how Number Garden is built and why. Each section states the choice and the reason, so a change that goes against one of them is made knowingly.
 
-A drawn version of sections 1, 2, 3 and 11 is at [docs/architecture.html](docs/architecture.html) (served at https://playmaths.github.io/number-garden/docs/architecture.html): the three places things live, the layer stack inside the page, one trail as a sequence, and the build and test pipeline.
+A drawn version of sections 1, 2, 3 and 11 is at [docs/architecture.html](docs/architecture.html); its inventory numbers are filled in from the repository by `tools/docs-counts.py` on every build, and the build check fails when they are stale, so the drawings can only go out of date on a structural change (served at https://playmaths.github.io/number-garden/docs/architecture.html): the three places things live, the layer stack inside the page, one trail as a sequence, and the build and test pipeline.
 
 ## 1. Shape of the app
 

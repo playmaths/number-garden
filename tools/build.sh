@@ -25,3 +25,5 @@ cd "$root/src"
       play.js wiring.js
   echo '</script>'
 } > "$out"
+# the drawn architecture carries live counts (games, books, checks, CI jobs): refresh them when building the real page
+if [ "$out" = "$root/index.html" ]; then python3 "$root/tools/docs-counts.py"; fi

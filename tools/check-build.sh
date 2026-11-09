@@ -12,3 +12,4 @@ else
   diff "$root/index.html" "$tmp" | head -20 >&2
   exit 1
 fi
+python3 "$root/tools/docs-counts.py" --check
