@@ -91,8 +91,8 @@ service cloud.firestore {
                     && request.resource.data.family is string && request.resource.data.family.size() < 10
                     && request.resource.data.device is string && request.resource.data.device.size() < 80
                     && request.resource.data.lang is string && request.resource.data.lang.size() < 20
-                    && request.resource.data.html is string && request.resource.data.html.size() < 40000
-                    && request.resource.data.shot is string && request.resource.data.shot.size() < 500000;
+                    && (!('html' in request.resource.data) || (request.resource.data.html is string && request.resource.data.html.size() < 40000))
+                    && (!('shot' in request.resource.data) || (request.resource.data.shot is string && request.resource.data.shot.size() < 500000));
       allow update, delete: if false;
     }
     // everything else stays closed
