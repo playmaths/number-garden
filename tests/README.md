@@ -52,6 +52,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-*.js` | plays one door's games for real, right and wrong, asserting stars and book lines (screenshots go to the temp folder) |
 | `solve-fold.js` | Fold and punch at every level: the right open sheet, tap mode with a wrong tap and an early Done, every fold doubles the holes, the unfold, lessons |
 | `solve-belongs.js` | Goes together at every level: odd one out, one more of the group, analogies where the relationship decides, hint wording, the rule card, lessons |
+| `solve-listen.js` | Pip says at every level: the sentence in Pip's bubble with a dashed gap and a Read it to me button, four pictures with exactly one right, a wrong picture hinted with the picked word named and the sentence re-read with the gap, the think-first card at level 2, the why or another-way gate at level 3, honest number sentences, Show me filling the gap and lighting the picture, the lesson at each level |
 | `solve-series2.js` | Two things change at every level: the answer continues every rule, distractors differ, the miss hint names the wrong attribute, Show me, lessons |
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
 

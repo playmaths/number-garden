@@ -21,7 +21,7 @@ cd "$root/src"
       think.js \
       games/12-measure.js games/13-puzzles-more.js games/14-time.js games/15-friends.js games/16-place.js games/17-steps.js \
       games/18-shapes.js games/19-compose.js games/20-solids.js games/21-matrix.js games/22-analogy.js games/23-fold.js \
-      games/24-belongs.js games/25-series2.js games/26-serial.js \
+      games/24-belongs.js games/25-series2.js games/26-serial.js games/29-listen.js \
       play.js wiring.js
   echo '</script>'
 } > "$out"
