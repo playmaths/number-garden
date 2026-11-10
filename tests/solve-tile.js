@@ -30,6 +30,8 @@ const key=f=>[f.shape,f.col,f.size,f.count,f.fill,f.turn].join('|');const same=(
     if(lv===3&&!await pg.locator('#stage .gate').count())errs.push(`${name}: no why or another-way gate`);await gate(pg); /* at levels 1 and 2 the only .gate card is the engine's How did you know? on every fourth win */
     if((await stars(pg))!==before+1)errs.push(`${name}: no star ("${await msg(pg)}")`);const bl=await book(pg);if(!/ finished the wallpaper: \w+, \w+, \w+\.$/.test(bl))errs.push(`${name}: book line "${bl}"`);
     await pg.locator('#stage .tiq').waitFor({state:'detached',timeout:4000}).catch(()=>{});if(await pg.locator('#stage .tiq').count())errs.push(`${name}: the win did not slide the piece in`);if(await pg.locator('#stage .tic svg').count()!==16)errs.push(`${name}: the wallpaper is not full after the win`)}
+  /* the three level-1 kinds are rolled at random: keep mounting until each has shown up, with a cap, so luck cannot fail the check */
+  for(let k=0;k<40&&seenKind.size<3;k++){await go(pg,'tile',1,'reason');seenKind.add(await pg.evaluate(()=>__ng().ctx.rule.kind))}
   if(seenKind.size<3)errs.push(`level 1 only ever drew ${[...seenKind]}`);if(seenHole.size<6)errs.push(`the hole sat in only these places: ${[...seenHole]}`);
   /* Show me slides the piece in, lights the row, then the column, and says the answer with both readings */
   await go(pg,'tile',3,'reason');await pg.getByRole('button',{name:'Show me'}).click();if(!/^It's the piece with the .*\. Because the row goes .*, and the column goes /.test(await msg(pg)))errs.push(`tile lv3: Show me said "${await msg(pg)}"`);
