@@ -53,6 +53,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-fold.js` | Fold and punch at every level: the right open sheet, tap mode with a wrong tap and an early Done, every fold doubles the holes, the unfold, lessons |
 | `solve-belongs.js` | Goes together at every level: odd one out, one more of the group, analogies where the relationship decides, hint wording, the rule card, lessons |
 | `solve-series2.js` | Two things change at every level: the answer continues every rule, distractors differ, the miss hint names the wrong attribute, Show me, lessons |
+| `solve-alike.js` | Three of a kind at every level: the three given figures share `ctx.rule` and nothing else, the answer keeps it and no wrong choice does (at level 3 each breaks exactly one of the two rules), a miss named by what the pick shares with one figure, the think-first card at level 2, the why or another-way gate at level 3, Show me highlighting the rule then the answer, and the lesson at each level |
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
 
 `lib.js` has the shared helpers: `open()` (a seeded fast-mode browser), `go(pg, gameId, level, door)`, `stars`, `msg`, `book`, `guess`, `gate`, `fast(pg)`, `pause(pg, ms)`, `T(ms)`.

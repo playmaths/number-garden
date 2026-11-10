@@ -59,9 +59,9 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
   <h1>Number Garden Architecture</h1>
   <p class="lede">A maths garden for a five-year-old, built as one HTML page with no server of its own. Everything the child does lives on her device; a public static host serves the page, a public database syncs between devices by family code, and nothing else exists to run or pay for.</p>
   <div class="cards">
-    <div class="card"><b>1 file</b><span>index.html · 950 KB · generated from <!--n:srcfiles-->35<!--/n--> source files</span></div>
-    <div class="card"><b><!--n:skills-->63<!--/n--> games</b><span><!--n:rooms-->12<!--/n--> rooms · <!--n:books-->32<!--/n--> picture books · <!--n:sets-->8<!--/n--> brick sets</span></div>
-    <div class="card"><b><!--n:checks-->53<!--/n--> checks</b><span>Playwright · <!--n:jobs-->6<!--/n--> parallel CI jobs · counts generated from the repo</span></div>
+    <div class="card"><b>1 file</b><span>index.html · 950 KB · generated from <!--n:srcfiles-->36<!--/n--> source files</span></div>
+    <div class="card"><b><!--n:skills-->64<!--/n--> games</b><span><!--n:rooms-->12<!--/n--> rooms · <!--n:books-->32<!--/n--> picture books · <!--n:sets-->8<!--/n--> brick sets</span></div>
+    <div class="card"><b><!--n:checks-->54<!--/n--> checks</b><span>Playwright · <!--n:jobs-->6<!--/n--> parallel CI jobs · counts generated from the repo</span></div>
   </div>
 </header>
 
@@ -109,7 +109,7 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
       <rect x="64" y="104" width="184" height="72" rx="6" fill="var(--accent-tint)" stroke="var(--accent)" stroke-width="1.2"/>
       <rect x="76" y="112" width="40" height="12" rx="2" fill="var(--accent)"/><text x="96" y="121" fill="#111111" font-size="7" font-family="var(--mono)" text-anchor="middle" letter-spacing="0.14em" font-weight="500">PAGE</text>
       <text x="76" y="146" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">index.html</text>
-      <text x="76" y="162" fill="var(--soft)" font-size="9" font-family="var(--mono)">engine + <!--n:skills-->63<!--/n--> games + <!--n:books-->32<!--/n--> books</text>
+      <text x="76" y="162" fill="var(--soft)" font-size="9" font-family="var(--mono)">engine + <!--n:skills-->64<!--/n--> games + <!--n:books-->32<!--/n--> books</text>
       <rect x="280" y="104" width="128" height="72" rx="6" fill="var(--paper)"/>
       <rect x="280" y="104" width="128" height="72" rx="6" fill="var(--wash)" stroke="var(--edge)" stroke-width="1" stroke-dasharray="4,3"/>
       <text x="292" y="138" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Service worker</text>
@@ -153,14 +153,14 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
     <figcaption>The page is the only thing that runs. Pages serves it, the service worker keeps an offline copy, every tap saves to the device, and the saved garden syncs to Firestore by family code a second and a half after it changes.</figcaption>
   </figure>
   <div class="two">
-    <div><h3>Why one file</h3><p>Save and refresh is the whole development loop, there is one thing to publish, and the page drops into any static host. The source is split into <!--n:srcfiles-->35<!--/n--> files for people; a shell script concatenates them byte for byte and a check fails the build if the page drifts from its sources.</p></div>
+    <div><h3>Why one file</h3><p>Save and refresh is the whole development loop, there is one thing to publish, and the page drops into any static host. The source is split into <!--n:srcfiles-->36<!--/n--> files for people; a shell script concatenates them byte for byte and a check fails the build if the page drifts from its sources.</p></div>
     <div><h3>Why no server</h3><p>A static host costs nothing and cannot leak what it does not have. The Firestore web key is public by design; the published rules are the access control: one nine-character code reads and writes one garden document, reports are create-only, everything else is closed.</p></div>
   </div>
 </section>
 
 <section>
   <h2>Inside the page</h2>
-  <p>Five layers, calls going down and events coming back up. Games know nothing about screens, storage or the network; they describe a problem and the engine does the rest, which is what lets <!--n:skills-->63<!--/n--> games share one thinking loop.</p>
+  <p>Five layers, calls going down and events coming back up. Games know nothing about screens, storage or the network; they describe a problem and the engine does the rest, which is what lets <!--n:skills-->64<!--/n--> games share one thinking loop.</p>
   <figure>
     <div class="scroll">
     <svg viewBox="0 0 1000 420" style="min-width:1000px" role="img" aria-labelledby="lay-t lay-d">
@@ -185,7 +185,7 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
       <text x="904" y="84" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">home · play · done · book · letter · grown-ups · welcome</text>
       <text x="136" y="148" fill="var(--soft)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L4</text>
       <text x="184" y="149" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Games</text>
-      <text x="904" y="148" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end"><!--n:skills-->63<!--/n--> skills in <!--n:gamefiles-->26<!--/n--> files · each one: skill({mount, teach}) + help({clues, why})</text>
+      <text x="904" y="148" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end"><!--n:skills-->64<!--/n--> skills in <!--n:gamefiles-->27<!--/n--> files · each one: skill({mount, teach}) + help({clues, why})</text>
       <text x="136" y="212" fill="var(--accent)" font-size="8" font-family="var(--mono)" letter-spacing="0.18em">L3</text>
       <text x="184" y="213" fill="var(--ink)" font-size="15" font-family="var(--sans)" font-weight="600">Engine</text>
       <text x="904" y="212" fill="var(--muted)" font-size="9" font-family="var(--mono)" text-anchor="end">trails · lessons · win / miss · gates · mastery · Pip · bricks · garden</text>
@@ -302,7 +302,7 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
       <!-- nodes -->
       <rect x="32" y="104" width="144" height="48" rx="6" fill="var(--wash-2)" stroke="var(--soft)" stroke-width="1"/>
       <text x="44" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Edit src/</text>
-      <text x="44" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)"><!--n:gamefiles-->26<!--/n--> game files</text>
+      <text x="44" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)"><!--n:gamefiles-->27<!--/n--> game files</text>
       <rect x="208" y="104" width="144" height="48" rx="6" fill="var(--white)" stroke="var(--ink)" stroke-width="1"/>
       <text x="220" y="124" fill="var(--ink)" font-size="12" font-family="var(--sans)" font-weight="600">Build</text>
       <text x="220" y="140" fill="var(--soft)" font-size="9" font-family="var(--mono)">cat, in order → index.html</text>
@@ -330,7 +330,7 @@ footer{border-top:1px solid var(--rule);padding-top:16px;font-family:var(--mono)
     <figcaption>The drift check is what makes a generated single file safe: if anyone edits the page by hand instead of the sources, the build refuses.</figcaption>
   </figure>
   <ul>
-    <li><strong>Smoke</strong> mounts all <!--n:levels-->178<!--/n--> game levels and taps Clue and Show me on each; <strong>books</strong> walks every page of all <!--n:books-->32<!--/n--> picture books; <strong>trails</strong> builds five-stone trails from every door; <strong>sync</strong> simulates two devices against a mocked Firestore; <!--n:solves-->47<!--/n--> <strong>solve</strong> scripts play each game clean and miss-then-recover.</li>
+    <li><strong>Smoke</strong> mounts all <!--n:levels-->181<!--/n--> game levels and taps Clue and Show me on each; <strong>books</strong> walks every page of all <!--n:books-->32<!--/n--> picture books; <strong>trails</strong> builds five-stone trails from every door; <strong>sync</strong> simulates two devices against a mocked Firestore; <!--n:solves-->48<!--/n--> <strong>solve</strong> scripts play each game clean and miss-then-recover.</li>
     <li>Browsers run one at a time on a single machine, behind a lock, because two at once crash the sandbox. CI has <!--n:jobs-->6<!--/n--> machines, each running a deterministic slice of the list.</li>
   </ul>
 </section>
