@@ -166,7 +166,7 @@ function win(text,noMastery){
     if(S.streakNow===5){setTimeout(()=>{say(`Five in a row! ${KID()} is unstoppable today.`,true);confetti()},ms(900));addPage(`${KID()} got five right in a row, no clues needed.`,true)}
     if(S.streakNow===10){setTimeout(()=>{say(`TEN in a row! Papa, come and see this.`,true);confetti()},ms(900));addPage(`${KID()} got TEN right in a row. Best streak ever: ${S.bestStreak}.`,true)}
     renderStreak();
-    const line=ctx.help&&ctx.help.book?ctx.help.book:`finished a ${SK[S.skill].title} problem`;addPage(`${KID()} ${line}.`,false);var entry={d:Date.now(),s:S.skill,h:ctx.hints,lv:m.lv};S.log=((S.log||[]).concat(entry)).slice(-400);if(ctx.hints===0)(S.misses||[]).forEach(x=>{if(x.s===S.skill&&!x.beaten&&x.lv<=m.lv){x.beaten=Date.now()}});if(museumRetry!=null){const x=(S.misses||[])[museumRetry];if(x&&ctx.hints===0)x.beaten=Date.now();museumRetry=null} // a clean win beats every old slip on that game at that level or below
+    const line=ctx.help&&ctx.help.book?ctx.help.book:`finished a ${SK[S.skill].title} problem`;addPage(`${KID()} ${line}.`,false);var entry={d:Date.now(),s:S.skill,h:ctx.hints,lv:m.lv};if(ctx.replays)entry.r=ctx.replays;S.log=((S.log||[]).concat(entry)).slice(-400);if(ctx.hints===0)(S.misses||[]).forEach(x=>{if(x.s===S.skill&&!x.beaten&&x.lv<=m.lv){x.beaten=Date.now()}});if(museumRetry!=null){const x=(S.misses||[])[museumRetry];if(x&&ctx.hints===0)x.beaten=Date.now();museumRetry=null} // a clean win beats every old slip on that game at that level or below
     if(levelUp){addPage(`${KID()} moved up in ${SK[S.skill].title}. ${SK[S.skill].grow?SK[S.skill].grow(m.lv):'The problems get a little bigger now.'}`,true);setTimeout(()=>{say(text+' You moved up!',true);confetti()},ms(700))}
     checkBadges()}
   if(S.trail)S.trail.lit[S.trail.i]=true;
@@ -277,7 +277,12 @@ function weekData(){const now=Date.now(),from=now-7*864e5;const log=(S.log||[]).
   const ups=S.book.filter(e=>e.d>=from&&/moved up in/.test(e.t));const thinks=wins.filter(e=>['think','truth','combo','pipslip','talk'].includes(e.s)).length;
   const tried=Object.entries(byGame).sort((a,b)=>b[1].n-a[1].n);const hard=tried.filter(([id,g])=>g.n>=2&&g.h/g.n>=.5).slice(0,3);const strong=tried.filter(([id,g])=>g.n>=2&&g.clean/g.n>=.8).slice(0,3);
   const talk=[];tried.forEach(([id])=>{if(TABLE_TALK[id]&&talk.length<3)talk.push(TABLE_TALK[id])});if(!talk.length)talk.push(TABLE_TALK.think);
-  return{days,wins:wins.length,flowers,said,ups,thinks,tried,hard,strong,ideas,talk}}
+  const started=log.filter(e=>e.door).length;const hints=wins.reduce((a,e)=>a+(e.h||0),0);
+  /* avoided: rooms she has played before but did not touch this week; piled: the games with the most clues this week */
+  const roomOf=id=>SK[id]?SK[id].room:null;const weekRooms=new Set(wins.map(e=>roomOf(e.s)));const everRooms=new Set(Object.keys(S.counts||{}).filter(id=>SK[id]&&S.counts[id]).map(roomOf));const avoided=[...everRooms].filter(r=>r&&!weekRooms.has(r)&&DOORS[r]).map(r=>doorName(r));
+  const piled=Object.entries(byGame).map(([id,g])=>[id,wins.filter(e=>e.s===id).reduce((a,e)=>a+(e.h||0),0),g.n]).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const heard=wins.filter(e=>e.s==='hear');const replays=heard.reduce((a,e)=>a+(e.r||0),0);
+  return{days,wins:wins.length,flowers,said,ups,thinks,tried,hard,strong,ideas,talk,started,hints,avoided,piled,heard:heard.length,replays}}
 function letterText(w){const k=KID(),s=P().s,title=id=>SK[id]?SK[id].title:id;const lines=[];
   lines.push(`${k}'s week in the Number Garden`);lines.push('');
   lines.push(w.wins?`${cap(s)} played on ${inWords(w.days)} day${w.days===1?'':'s'}, solved ${w.wins} problem${w.wins===1?'':'s'} and grew ${inWords(w.flowers)} flower${w.flowers===1?'':'s'}.${w.thinks?` ${w.thinks} of the problems were think problems.`:''}`:`${cap(s)} did not play this week. No pressure: the garden waits.`);
@@ -285,6 +290,10 @@ function letterText(w){const k=KID(),s=P().s,title=id=>SK[id]?SK[id].title:id;co
   if(w.ups.length){lines.push('');lines.push('Moved up:');w.ups.slice(0,4).forEach(e=>lines.push('  '+e.t))}
   if(w.strong.length){lines.push('');lines.push('Solid right now: '+w.strong.map(([id,g])=>`${title(id)} (${g.clean} of ${g.n} without a clue)`).join(', ')+'.')}
   if(w.hard.length){lines.push('');lines.push('Worth doing together: '+w.hard.map(([id,g])=>`${title(id)} (clues on ${g.h} of ${g.n})`).join(', ')+'.')}
+  if(w.started){lines.push('');lines.push(`Trails: started ${w.started}, finished ${w.flowers}.${w.started>w.flowers+1?` ${cap(s)} left ${w.started-w.flowers} trail${w.started-w.flowers===1?'':'s'} before the end; worth asking which game it was.`:''}`)}
+  if(w.piled.length){lines.push('');lines.push('Where the clues piled up: '+w.piled.map(([id,h,n])=>`${title(id)} (${h} clue${h===1?'':'s'} over ${n} problem${n===1?'':'s'})`).join(', ')+'.')}
+  if(w.avoided.length){lines.push('');lines.push(`Not visited this week, though played before: ${w.avoided.join(', ')}. No need to push; Pip's pick will bring one back.`)}
+  if(w.heard){lines.push('');lines.push(`Listening: ${w.heard} stor${w.heard===1?'y':'ies'} by ear, heard again ${w.replays} time${w.replays===1?'':'s'} in all.`)}
   if(w.ideas.length){lines.push('');lines.push('Big Ideas read: '+[...new Set(w.ideas.map(e=>{const i=IDEAS.find(x=>x.id===e.idea);return i?i.title:e.idea}))].join(', ')+'.')}
   lines.push('');lines.push('To say at the table this week:');w.talk.forEach(t=>lines.push('  • '+t));
   return lines.join('\n')}
@@ -468,7 +477,7 @@ function pickTrail(){const now=Date.now(),day=todayN();const log=(S.log||[]).fil
   const steps=[];const take=(...lists)=>{for(const l of lists){const x=shuffle(l).find(id=>!steps.includes(id));if(x){steps.push(x);return true}}return false};
   take(due,stale,fresh);take(stale,fresh,due);take(due,fresh,stale);take(stale,due,fresh);while(steps.length<4)take([shuffle(pool.map(k=>k.id)).find(id=>!steps.includes(id))]);
   steps.splice(2,0,'think');return{steps:steps.slice(0,5),due,stale,fresh}}
-function startTrail(door){if(gardenClosed())return showClosed();makeTrail(door);show('play');play(S.trail.steps[0])}
+function startTrail(door){if(gardenClosed())return showClosed();S.log=((S.log||[]).concat({d:Date.now(),door})).slice(-400);makeTrail(door);show('play');play(S.trail.steps[0])}
 function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(S.welcomeStep){S.trail=null;return welcomeStep(4)} /* the welcome's one stone plants no flower: Pip explains the five instead */
   if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
 function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
