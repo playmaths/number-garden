@@ -777,7 +777,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-09a';
+const APP_VERSION='2026-11-09a';const APP_BUILD='e76a8d4e3688';/* tools/build.sh replaces __BUILD__ with a hash of the sources and writes the same hash to version.txt, so the page can tell when a newer build is online */
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 let pendingShot=null,pendingHtml='';
@@ -849,7 +849,7 @@ function renderSpeakBtn(){const b=$('#speakBtn');if(!b)return;if(!window.speechS
 const prompt=$('#prompt'),stage=$('#stage'),msg=$('#msg'),controls=$('#controls'),turnEl=$('#turn');
 const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],reason:['Reasoning','Spot the rule'],make:['Makes it','You hide, I guess']};
 const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
-function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'&&window.__newBuild)location.reload();if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
 let ctx=null; // current problem context
 window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday}); // read-only hook for the headless checks
 function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'');if(t){void msg.offsetWidth;msg.classList.add('in')}} // the reflow restarts the bubble's pop-in on every new message
@@ -4764,7 +4764,10 @@ $('#newFamily').onclick=()=>{S.family=newFamilyCode();$('#family').value=S.famil
 $('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flowers=[];S.badges={};S.counts={};S.trail=null;S.streakNow=0;S.bestStreak=0;S.days=[];S.last={};S.tellCount=0;try{localStorage.removeItem('ng2_fast')}catch(e){}save();renderLevels()}; // Reset also drops the tests' fast-mode flag, should it ever be found on a real device
 renderHome();connectCloud();famPull();sendReports();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
-if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
+if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').then(reg=>{try{reg.update()}catch(e){}}).catch(()=>{})}
+/* a home-screen app does not reload when it is reopened: it comes back from memory with the build it had. So whenever the page becomes visible again (and once a minute while it is), a tiny version file is fetched past every cache and compared with this build's stamp; a newer build reloads the page on the home screen, never mid-problem (play state is saved anyway) */
+async function checkBuild(){try{if(location.protocol!=='https:'&&!window.__ngFast)return;if(!/^[0-9a-f]{12}$/.test(APP_BUILD))return;const r=await fetch(window.__versionUrl||('version.txt?t='+Date.now()),{cache:'no-store'});/* __versionUrl: the tests point this at a mocked address, since a page opened from a file cannot fetch */if(!r.ok)return;const v=(await r.text()).trim();if(v&&v!==APP_BUILD){window.__newBuild=v;if(!$('#home').hidden)location.reload()}}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkBuild()});setInterval(()=>{if(document.visibilityState==='visible')checkBuild()},60000);setTimeout(checkBuild,3000);
 if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;if(welcomeDue())startWelcome();else show('home')}
 })();
 </script>

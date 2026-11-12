@@ -159,6 +159,8 @@ Each is an entry in `IDEAS`: `title`, `line`, `strand`, `thing`, `door`, `book`,
 
 GitHub Pages serves `master` as-is; every push deploys. The repository lives under an organisation so the address carries no personal name. `manifest.webmanifest` (standalone display, garden colours, icons) and `sw.js` (network-first for the page so updates arrive, cache fallback when offline, old caches cleared on activate) make *Add to Home Screen* a real install. The service worker registers only over `https` on a real site, so the file keeps working from disk and from the artifact page.
 
+**Updates.** `tools/build.sh` stamps `APP_BUILD` with a hash of the built page and writes it to `version.txt`; `checkBuild()` in `src/wiring.js` fetches that file with `cache: 'no-store'` when the page becomes visible and once a minute, and a different stamp reloads on the home screen. `sw.js` fetches the page with `cache: 'no-cache'` so Pages' ten-minute freshness window cannot hold an old build. Without this a home-screen app on iOS kept the previous build until it was killed.
+
 ## 9. Security and privacy
 
 - No accounts, no sign-in, no analytics, no server of our own. The only outbound call is the family sync.

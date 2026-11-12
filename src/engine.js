@@ -42,7 +42,7 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-09a';
+const APP_VERSION='2026-11-09a';const APP_BUILD='__BUILD__';/* tools/build.sh replaces __BUILD__ with a hash of the sources and writes the same hash to version.txt, so the page can tell when a newer build is online */
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 let pendingShot=null,pendingHtml='';
@@ -114,7 +114,7 @@ function renderSpeakBtn(){const b=$('#speakBtn');if(!b)return;if(!window.speechS
 const prompt=$('#prompt'),stage=$('#stage'),msg=$('#msg'),controls=$('#controls'),turnEl=$('#turn');
 const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good idea'],sud:['Sudoku','Rows, columns, boxes'],sand:['Playground','Just play'],warm:['Warm-ups','Count the dots'],add:['Add & take','Sticks of ten'],pat:['Patterns','What comes next?'],puz:['Puzzles','Think hard'],story:['Stories','Read and solve'],space:['Shapes & space','Look closely'],time:['Time','Clocks and days'],meas:['Measure','Halves, lengths, guesses'],reason:['Reasoning','Spot the rule'],make:['Makes it','You hide, I guess']};
 const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
-function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
+function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'&&window.__newBuild)location.reload();if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
 let ctx=null; // current problem context
 window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday}); // read-only hook for the headless checks
 function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'');if(t){void msg.offsetWidth;msg.classList.add('in')}} // the reflow restarts the bubble's pop-in on every new message

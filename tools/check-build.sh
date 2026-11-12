@@ -12,4 +12,6 @@ else
   diff "$root/index.html" "$tmp" | head -20 >&2
   exit 1
 fi
+stamp=$(grep -o "APP_BUILD='[0-9a-f]*'" "$root/index.html" | cut -d"'" -f2)
+if [ "$(cat "$root/version.txt" 2>/dev/null)" != "$stamp" ]; then echo 'version.txt does not match the build stamp in index.html. Run: sh tools/build.sh, then commit version.txt.' >&2; exit 1; fi
 python3 "$root/tools/docs-counts.py" --check

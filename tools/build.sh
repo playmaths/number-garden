@@ -25,5 +25,9 @@ cd "$root/src"
       play.js wiring.js
   echo '</script>'
 } > "$out"
+# stamp the build: a hash of the page as built, written into APP_BUILD and, for the real page, into version.txt next to it
+hash=$(sha1sum "$out" | cut -c1-12)
+sed -i "s/__BUILD__/$hash/" "$out"
+if [ "$out" = "$root/index.html" ]; then printf '%s\n' "$hash" > "$root/version.txt"; fi
 # the drawn architecture carries live counts (games, books, checks, CI jobs): refresh them when building the real page
 if [ "$out" = "$root/index.html" ]; then python3 "$root/tools/docs-counts.py"; fi

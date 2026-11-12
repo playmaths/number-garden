@@ -58,6 +58,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-tile.js` | Finish the wallpaper at every level: the grid obeys its rule (two tiles, a sliding three-tile cycle, shape across and colour down), the right piece continues the row and the column, every distractor differs, the hole off the edge at level 1 and 2 by 2 at level 3, a miss hinted at the row, the think-first card at level 2, the why or another-way gate at level 3, Show me sliding the piece in, lessons |
 | `solve-alike.js` | Three of a kind at every level: the three given figures share `ctx.rule` and nothing else, the answer keeps it and no wrong choice does (at level 3 each breaks exactly one of the two rules), a miss named by what the pick shares with one figure, the think-first card at level 2, the why or another-way gate at level 3, Show me highlighting the rule then the answer, and the lesson at each level |
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
+| `solve-update.js` | a newer build online reloads the page on the home screen and never mid-problem; the same build does nothing |
 
 `lib.js` has the shared helpers: `open()` (a seeded fast-mode browser), `go(pg, gameId, level, door)`, `stars`, `msg`, `book`, `guess`, `gate`, `fast(pg)`, `pause(pg, ms)`, `T(ms)`.
 
