@@ -20,11 +20,11 @@ $('#soundOn').checked=S.sound!==false;$('#soundOn').onchange=e=>{S.sound=e.targe
 $('#limit').onchange=e=>{S.limit=+e.target.value;save();renderLimit()};$('#moreToday').onclick=()=>{const t=playToday();t.extra=(t.extra||0)+600000;save();renderLimit();renderHome()};
 function renderLimit(){$('#limit').value=String(S.limit==null?20:S.limit);const t=playToday();const used=Math.round(t.ms/60000);const lim=S.limit==null?20:S.limit;$('#limitNote').textContent=lim?`${used} minute${used===1?'':'s'} played today of ${lim}${t.extra?` (+${t.extra/60000} extra today)`:''}. When the time is up, the current problem finishes and the garden closes until tomorrow. No clock is ever shown to the child.`:`${used} minute${used===1?'':'s'} played today. No limit set.`}
 $('#note').value=S.note||'';$('#note').oninput=e=>{S.note=e.target.value;save()};
-$('#gearBtn').addEventListener('click',()=>{$('#cloud').textContent=cloudLine();$('#family').value=S.family||'';famLine();renderReports()});
+$('#gearBtn').addEventListener('click',()=>{$('#cloud').textContent=cloudLine();$('#family').value=S.family||'';famLine();renderReports();renderUsage()});
 $('#family').oninput=e=>{const v=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');e.target.value=v;S.family=v;store.set('ng2',S);/* no save(): typing a code is not new progress, so the family's copy stays newer */if(famOK()){famState='';famLine();famPull()}else famLine()};
 $('#newFamily').onclick=()=>{S.family=newFamilyCode();$('#family').value=S.family;famState='';save();famLine();famPush()};
 $('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flowers=[];S.badges={};S.counts={};S.trail=null;S.streakNow=0;S.bestStreak=0;S.days=[];S.last={};S.tellCount=0;try{localStorage.removeItem('ng2_fast')}catch(e){}save();renderLevels()}; // Reset also drops the tests' fast-mode flag, should it ever be found on a real device
-renderHome();connectCloud();famPull();sendReports();
+renderHome();connectCloud();famPull();sendReports();usageOpen();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').then(reg=>{try{reg.update()}catch(e){}}).catch(()=>{})}
 /* a home-screen app does not reload when it is reopened: it comes back from memory with the build it had. So whenever the page becomes visible again (and once a minute while it is), a tiny version file is fetched past every cache and compared with this build's stamp; a newer build reloads the page on the home screen, never mid-problem (play state is saved anyway) */

@@ -22,6 +22,7 @@ node tests/books.js "Even and odd"   # one book
 | `trails.js` | every door builds five-stone trails from its own games, no neighbours alike |
 | `books.js` | every page of every Big Idea draws, interactive pages respond, try-its run; fails on any draw warning |
 | `sync.js` | two simulated devices against a mocked Firestore: join, win on each side, foreground refresh |
+| `usage.js` | anonymous usage counts against a mocked Firestore served over http: one batched write per day, a device once a day, trails and flowers by door, the family code only as a hash, the queue waiting offline, the grown-ups line |
 | `tellpip.js` | Tell Pip: the six big choices on the play card and in a picture book; the report kept on the device, sent to the reports collection, listed for grown-ups, retried when a send fails |
 | `solve-profiles.js` | children on one device: add, switch, each keeps its own garden, remove |
 | `solve-bricks.js` | brick builds: the tab, picking a set, a brick per trail, the finished set on the shelf, flowers untouched |
