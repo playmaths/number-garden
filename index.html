@@ -726,6 +726,7 @@ html.fast *:not(.flame,.exhaust,.fin-ship,.waves,.fpuff,.fglow,.spark,.bug,.pip-
   <label style="flex-direction:column;align-items:stretch;gap:6px">Family code (type the same code on every device, and the garden follows)<div class="row" style="justify-content:flex-start"><input id="family" placeholder="e.g. K7PM-3QX2" maxlength="9" style="text-transform:uppercase;width:150px"><button class="btn quiet" id="newFamily" type="button">New family</button></div></label>
   <p id="famState" class="cloud"></p>
   <div class="papa" id="reportsBox"><h3>Tell Pip reports from this device</h3><div id="reportsList">None yet.</div></div>
+  <div class="papa" id="usageBox"><h3>Who is playing</h3><p class="cloud">Anonymous counts from every device that opens Number Garden: how many devices a day, trails started, flowers planted. No names and no progress are sent; a device counts once a day.</p><div id="usageList">Loading…</div></div>
   <p id="cloud" class="cloud"></p>
   <p>Levels move by themselves: three problems in a row with no hints goes up a level, two problems that needed hints goes down. Nudge a level here if the child is bored or stuck. Levels are never shown; the child sees flowers, the book, and badges.</p>
   <table id="levels"></table>
@@ -776,8 +777,31 @@ async function famPull(){if(!famOK()||!navigator.onLine)return;try{const r=await
     else{famState='up to date';if((d.savedAt||0)<(S.savedAt||0))famPush()}}catch(e){famState='offline, saved on this device'}famLine()}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')famPull()});
 
+/* ---------- anonymous usage counts: one Firestore document per day under gardenUsage/{YYYY-MM-DD} with only numbers: devices (each device once a day), opens, trails started and flowers planted (by door), and hashed family codes. The queue lives under its own storage key, never in S, so it is never copied into the family's garden; counts flush in one batched write when online. Nothing identifying is sent. ---------- */
+const usageDoc=day=>`projects/${FIREBASE.projectId}/databases/(default)/documents/gardenUsage/${day}`;
+const localDay=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
+function hashCode(str){let x=2166136261;for(let i=0;i<str.length;i++){x^=str.charCodeAt(i);x=Math.imul(x,16777619)>>>0}return x.toString(36)}
+let usageBusy=false,usageFlushTimer=null;
+const U=Object.assign({day:null,queue:{}},store.get('ng2_usage',{}));
+function usageCount(field,n=1){const day=localDay();const d=U.queue[day]||(U.queue[day]={});d[field]=(d[field]||0)+n;if(famOK()){d.familiesSet=d.familiesSet||{};d.familiesSet[hashCode(S.family)]=1}store.set('ng2_usage',U);clearTimeout(usageFlushTimer);usageFlushTimer=setTimeout(usageFlush,ms(2500))}
+function usageOpen(){const day=localDay();if(U.day!==day){U.day=day;usageCount('devices')}usageCount('opens')}
+async function usageFlush(){if(usageBusy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;const q=U.queue;const days=Object.keys(q).filter(d=>Object.keys(q[d]).some(k=>k!=='familiesSet'&&q[d][k]>0)||Object.keys(q[d].familiesSet||{}).length);if(!days.length)return;usageBusy=true;
+  const writes=[];for(const day of days){const d=q[day];const tf=[];Object.keys(d).forEach(k=>{if(k==='familiesSet'){const codes=Object.keys(d.familiesSet);if(codes.length)tf.push({fieldPath:'families',appendMissingElements:{values:codes.map(c=>({stringValue:c}))}})}else if(d[k]>0)tf.push({fieldPath:k,increment:{integerValue:String(d[k])}})});if(!tf.length)continue;writes.push({update:{name:usageDoc(day),fields:{day:{stringValue:day}}},updateMask:{fieldPaths:['day']}});writes.push({transform:{document:usageDoc(day),fieldTransforms:tf}})}
+  const sent=JSON.parse(JSON.stringify(q));
+  try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents:commit?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({writes}),keepalive:true});
+    if(r.ok){Object.keys(sent).forEach(day=>{const cur=U.queue[day];if(!cur)return;Object.keys(sent[day]).forEach(k=>{if(k==='familiesSet'){Object.keys(sent[day].familiesSet||{}).forEach(c=>{if(cur.familiesSet)delete cur.familiesSet[c]})}else cur[k]=Math.max(0,(cur[k]||0)-sent[day][k])});if(Object.keys(cur).every(k=>k==='familiesSet'?!Object.keys(cur.familiesSet||{}).length:!cur[k]))delete U.queue[day]});store.set('ng2_usage',U)}
+    else if(r.status===403||r.status===400){Object.keys(U.queue).sort().slice(0,-7).forEach(day=>delete U.queue[day]);store.set('ng2_usage',U)}}catch(e){}
+  usageBusy=false}
+window.addEventListener('online',()=>{clearTimeout(usageFlushTimer);usageFlushTimer=setTimeout(usageFlush,ms(2500))});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')usageOpen()});
+/* the grown-ups screen shows the last 30 days of counts for every device of every family */
+async function renderUsage(){const el=$('#usageList');if(!el)return;if(!/^https?:$/.test(location.protocol)){el.textContent='Counts show when the garden is opened from its web address.';return}el.textContent='Loading…';try{const r=await fetch(`https://firestore.googleapis.com/v1/projects/${FIREBASE.projectId}/databases/(default)/documents:runQuery?key=${FIREBASE.apiKey}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({structuredQuery:{from:[{collectionId:'gardenUsage'}],orderBy:[{field:{fieldPath:'__name__'},direction:'DESCENDING'}],limit:30}})});if(!r.ok)throw new Error('HTTP '+r.status);
+    const rows=(await r.json()).filter(x=>x.document).map(x=>{const f=x.document.fields||{};const n=k=>Number((f[k]||{}).integerValue||0);return{day:(f.day||{}).stringValue||'',devices:n('devices'),opens:n('opens'),starts:n('starts'),wins:n('wins'),families:((f.families||{}).arrayValue||{}).values?f.families.arrayValue.values.length:0}});
+    if(!rows.length){el.textContent='No counts yet. They appear within a few seconds of the first open on a device.';return}
+    const sum=k=>rows.reduce((a,d)=>a+d[k],0);el.innerHTML=`<div><b>${sum('devices')}</b> device-days, <b>${sum('starts')}</b> trails started and <b>${sum('wins')}</b> flowers planted over the last ${rows.length} day${rows.length===1?'':'s'}.</div>`+rows.map(d=>`<div>${d.day} · ${d.devices} device${d.devices===1?'':'s'} · ${d.opens} opens · ${d.starts} trails · ${d.wins} flowers${d.families?' · '+d.families+' famil'+(d.families===1?'y':'ies'):''}</div>`).join('')}catch(e){el.textContent='Could not load the counts ('+e.message+'). Check the gardenUsage rule in Firestore.'}}
+
 /* ---------- Tell Pip: a child's bug report. Six big choices, no typing. Each report is saved on the device and sent to the reports collection; failed sends retry later. Nothing personal goes in: no name, just the game, the level, the words on screen, the time, the app version, the family code and the device type ---------- */
-const APP_VERSION='2026-11-09a';
+const APP_VERSION='2026-11-12a';
 const TELLS=[['🧱','It got stuck','stuck'],['❌','The answer is wrong','wrong'],['🤔','I don\'t get it','confused'],['😵','Too hard','hard'],['😴','Too easy','easy'],['💛','I love this one','love']];
 let tellFrom='play';
 let pendingShot=null,pendingHtml='';
@@ -851,7 +875,7 @@ const DOORS={pick:["Pip's pick",'What is due today'],think:['Think','One good id
 const doorName=room=>room==='make'?`${KID()} makes it`:DOORS[room][0];
 function show(id){document.querySelectorAll('.view').forEach(v=>v.hidden=v.id!==id);window.scrollTo(0,0);if(id==='home'||id==='done')bugs('wave');const c=document.getElementById('confetti');if(c&&id!=='done'){cancelAnimationFrame(window.__cf);c.getContext('2d').clearRect(0,0,c.width,c.height)}}
 let ctx=null; // current problem context
-window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday}); // read-only hook for the headless checks
+window.__ng=()=>({ctx,tricks:typeof TRICKS==='undefined'?null:TRICKS,view3d,view3dBox,el,show,snapshot,playToday,finishTrail}); // read-only hook for the headless checks
 function say(t,good){msg.textContent=t;msg.className='msg'+(good?' good':'');if(t){void msg.offsetWidth;msg.classList.add('in')}} // the reflow restarts the bubble's pop-in on every new message
 function cheer(){const c=pick(['Nice thinking!','You got it!','Yes!','That\'s it!','Great counting!','Clever!']);const who=S.duo&&ctx.turn===1?'Dad':S.name;return who?`${c.replace('!','')}, ${who}!`:c}
 function confetti(){if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;let c=document.getElementById('confetti');if(!c){c=document.createElement('canvas');c.id='confetti';document.body.appendChild(c)}
@@ -1212,10 +1236,10 @@ function pickTrail(){const now=Date.now(),day=todayN();const log=(S.log||[]).fil
   const steps=[];const take=(...lists)=>{for(const l of lists){const x=shuffle(l).find(id=>!steps.includes(id));if(x){steps.push(x);return true}}return false};
   take(due,stale,fresh);take(stale,fresh,due);take(due,fresh,stale);take(stale,due,fresh);while(steps.length<4)take([shuffle(pool.map(k=>k.id)).find(id=>!steps.includes(id))]);
   steps.splice(2,0,'think');return{steps:steps.slice(0,5),due,stale,fresh}}
-function startTrail(door){if(gardenClosed())return showClosed();S.log=((S.log||[]).concat({d:Date.now(),door})).slice(-400);makeTrail(door);show('play');play(S.trail.steps[0])}
+function startTrail(door){if(gardenClosed())return showClosed();S.log=((S.log||[]).concat({d:Date.now(),door})).slice(-400);usageCount('starts');usageCount('startsByLevel.'+door);makeTrail(door);show('play');play(S.trail.steps[0])}
 function stepTrail(){const tr=S.trail;if(!tr)return show('home');if(S.welcomeStep){S.trail=null;return welcomeStep(4)} /* the welcome's one stone plants no flower: Pip explains the five instead */
   if(tr.i>=tr.steps.length-1)return finishTrail();if(gardenClosed()){S.trail=null;save();return showClosed()}tr.i++;save();play(tr.steps[tr.i])}
-function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
+function finishTrail(){const tr=S.trail;const day=Math.floor(Date.now()/864e5);S.flowers.push({room:tr.door,day});usageCount('wins');usageCount('winsByLevel.'+tr.door);const lit=tr.lit.filter(Boolean).length;S.trail=null;checkBadges();save();
   const brickLine=layBrick();if(brickLine){checkBadges();save()}const n=S.flowers.length,kind=Math.floor((n-1)/3)%4;const bf=$('#bigflower');celebrate(bf,tr.door,n,kind);
   const reached=GARDEN_STAGES.find(st=>st.at===n);const pageOpened=(n===1||(n-1)%10===0)&&storyPages()<=STORY.length?storyPages():0;const finished=brickLine&&!S.build;$('#doneTitle').textContent=reached?reached.text:pageOpened?`Page ${pageOpened} of Pip's story is open!`:finished?`${KID()} finished the set!`:brickLine?`A new brick for ${KID()}!`:`A new flower for ${KID()}!`;
   const walked=`${KID()} walked the whole ${doorName(tr.door)} trail${lit?` and solved ${inWords(lit)} problem${lit===1?'':'s'} ${P().self}`:' and looked carefully at every problem'}.`;
@@ -4758,11 +4782,11 @@ $('#soundOn').checked=S.sound!==false;$('#soundOn').onchange=e=>{S.sound=e.targe
 $('#limit').onchange=e=>{S.limit=+e.target.value;save();renderLimit()};$('#moreToday').onclick=()=>{const t=playToday();t.extra=(t.extra||0)+600000;save();renderLimit();renderHome()};
 function renderLimit(){$('#limit').value=String(S.limit==null?20:S.limit);const t=playToday();const used=Math.round(t.ms/60000);const lim=S.limit==null?20:S.limit;$('#limitNote').textContent=lim?`${used} minute${used===1?'':'s'} played today of ${lim}${t.extra?` (+${t.extra/60000} extra today)`:''}. When the time is up, the current problem finishes and the garden closes until tomorrow. No clock is ever shown to the child.`:`${used} minute${used===1?'':'s'} played today. No limit set.`}
 $('#note').value=S.note||'';$('#note').oninput=e=>{S.note=e.target.value;save()};
-$('#gearBtn').addEventListener('click',()=>{$('#cloud').textContent=cloudLine();$('#family').value=S.family||'';famLine();renderReports()});
+$('#gearBtn').addEventListener('click',()=>{$('#cloud').textContent=cloudLine();$('#family').value=S.family||'';famLine();renderReports();renderUsage()});
 $('#family').oninput=e=>{const v=e.target.value.toUpperCase().replace(/[^A-Z0-9-]/g,'');e.target.value=v;S.family=v;store.set('ng2',S);/* no save(): typing a code is not new progress, so the family's copy stays newer */if(famOK()){famState='';famLine();famPull()}else famLine()};
 $('#newFamily').onclick=()=>{S.family=newFamilyCode();$('#family').value=S.family;famState='';save();famLine();famPush()};
 $('#resetAll').onclick=()=>{S.stars=0;S.dad=0;S.m={};S.turn=0;S.book=[];S.flowers=[];S.badges={};S.counts={};S.trail=null;S.streakNow=0;S.bestStreak=0;S.days=[];S.last={};S.tellCount=0;try{localStorage.removeItem('ng2_fast')}catch(e){}save();renderLevels()}; // Reset also drops the tests' fast-mode flag, should it ever be found on a real device
-renderHome();connectCloud();famPull();sendReports();
+renderHome();connectCloud();famPull();sendReports();usageOpen();
 /* installable: register the service worker when served from a real site (not from the claude.ai page, which has no sw.js) */
 if('serviceWorker' in navigator&&location.protocol==='https:'&&!location.hostname.endsWith('claude.ai')){navigator.serviceWorker.register('sw.js').catch(()=>{})}
 if(S.trail&&S.trail.steps&&S.trail.steps.every(id=>SK[id])){show('play');play(S.trail.steps[S.trail.i])}else{S.trail=null;if(welcomeDue())startWelcome();else show('home')}
