@@ -8,10 +8,15 @@ function play(id){S.skill=id;save();prompt.textContent='';stage.innerHTML='';con
     S.recent=S.recent||{};const seen=S.recent[id]||[];let sig='';
     for(let t=0;t<6;t++){stage.innerHTML='';controls.innerHTML='';say('');ctx={hints:0,done:false,turn:S.duo?S.turn:0,id,lv:m.lv};SK[id].mount(m.lv);if(ctx.help&&ctx.help.guess&&!ctx.done)guessGate(ctx.help.guess);sig=prompt.textContent+'|'+stage.textContent+'|'+stage.innerHTML.length;if(!seen.includes(sig))break}
     S.recent[id]=seen.concat(sig).slice(-6);save();
-    if(ctx.help)controls.appendChild(helpRow())};
+    if(ctx.help)controls.appendChild(helpRow());
+    /* coming back: the first problem of a game she has not played for five days or more is watched, to see what stayed */
+    const gap=S.last&&S.last[id]!=null?Math.floor(Date.now()/864e5)-S.last[id]:0;if(gap>=5&&!S.duo)ctx.back=gap};
+  /* try first: the first time she meets a level, one problem comes BEFORE Pip's lesson, with no clues, so a grown-up can see what she works out by herself. A clean answer skips the lesson (Watch is still there); one slip, or a tap on Show me how, and Pip teaches as always. Nothing about it is shown to the child as a score */
+  const coldTry=()=>{mountProblem();ctx.cold=true;ctx.back=0;const hr=$('#helpRow');if(hr)hr.remove();const r=el('div','row');r.id='helpRow';const w=el('button','btn quiet','Show me how');w.onclick=()=>{if(ctx.done)return;obsCold('watch');S.taught[key]=1;save();teachNow(id,m.lv,()=>play(id))};r.appendChild(w);controls.appendChild(r);
+    if(!$('#stage .guess'))say('This one is new. Have a go, or tap Show me how.')};
   /* teach first: a game with a teach(lv) lesson shows it the first time she meets that level, before any question */
   S.taught=S.taught||{};const key=id+':'+m.lv;
-  if(SK[id].teach&&!S.taught[key]){S.taught[key]=1;save();teachNow(id,m.lv,mountProblem)}else mountProblem();
+  if(SK[id].teach&&!S.taught[key]){if(coldOn()&&!S.duo&&!S.welcomeStep)coldTry();else{S.taught[key]=1;save();teachNow(id,m.lv,mountProblem)}}else mountProblem();
   renderTrail()}
 /* a lesson is Pip's bubble plus an animated scene; it ends with a My turn button */
 let lessonToken=0;
@@ -86,6 +91,7 @@ function renderPapa(){const panel=$('#papa');const played=Object.values(SK).filt
   <h3>Big ideas ${P().s} ${vb('has','have')} read</h3><div>${ideas.length?ideas.join(', '):'None yet. Try Even and odd together first.'}</div>
   <h3>Strongest right now</h3><div>${strong.length?strong.map(k=>`${k.title} (level ${S.m[k.id]?S.m[k.id].lv:1})`).join(', '):'Not enough played yet.'}</div>
   <h3>Every game, most clues first</h3>${gameTable()}
+  <h3>How ${P().s} ${vb('meets','meet')} new things</h3>${obsPanel()}
   <h3>Needs a second look</h3><div>${stuck?`${stuck.k.title}: ${P().s} needed hints on the last ${stuck.low===1?'problem':'two problems'}. Worth doing one together.`:`Nothing flagged. ${cap(P().s)} ${vb('is','are')} solving without many hints.`}</div>
   <h3>In ${P().pp} own words</h3><ul>${(S.said||[]).slice(0,5).map(e=>`<li>"${e.t.replace(/</g,'&lt;')}" <small>(${SK[e.skill]?SK[e.skill].title:e.skill})</small></li>`).join('')||'<li>Nothing kept yet. After a think problem the card offers Say it or Type it.</li>'}</ul>
   <h3>${cap(P().p)} last lines</h3><ul>${S.book.slice(0,5).map(e=>`<li>${e.t}</li>`).join('')||'<li>Nothing yet.</li>'}</ul>`}

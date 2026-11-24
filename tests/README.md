@@ -60,6 +60,7 @@ node tests/books.js "Even and odd"   # one book
 | `solve-alike.js` | Three of a kind at every level: the three given figures share `ctx.rule` and nothing else, the answer keeps it and no wrong choice does (at level 3 each breaks exactly one of the two rules), a miss named by what the pick shares with one figure, the think-first card at level 2, the why or another-way gate at level 3, Show me highlighting the rule then the answer, and the lesson at each level |
 | `solve-voice.js` | Pip's voice: the natural voice wins the auto pick, the grown-ups' list is in quality order, a chosen voice is remembered and used for prompts, an iPhone without an enhanced voice gets the download tip |
 | `solve-update.js` | a newer build online reloads the page on the home screen and never mid-problem; the same build does nothing |
+| `solve-observe.js` | try first: a new level before the lesson (clean, slip with no museum entry, Show me how), coming back after five days, the grown-ups' panel, the letter line, the switch |
 
 `lib.js` has the shared helpers: `open()` (a seeded fast-mode browser), `go(pg, gameId, level, door)`, `stars`, `msg`, `book`, `guess`, `gate`, `fast(pg)`, `pause(pg, ms)`, `T(ms)`.
 

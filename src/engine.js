@@ -176,8 +176,21 @@ function askGate(g,go){ctx.gated=true;const card=el('div','note gate',`<small>${
 /* think first: before the numpad, one tap about the shape of the answer (more or fewer, bigger or smaller). A wrong guess costs nothing but a sentence; the point is to think before touching a number */
 function guessGate(g){const kids=[...controls.children];kids.forEach(k=>k.hidden=true);const card=el('div','note guess',`<small>Think first</small>${g.q}`);const r=el('div','row');
   shuffle(g.opts).forEach(o=>{const b=el('button','choice',o.t);if(o.ok)b.dataset.right='1';b.onclick=()=>{r.querySelectorAll('button').forEach(x=>x.disabled=true);if(o.ok){b.classList.add('hit');say(o.why||'Good thinking. Now the number.',true);bugs('happy');sfx('pop')}else{b.classList.add('miss');say(o.why||g.why||'Hmm. Read the story again, then the number.',false);bugs('puzzled')}setTimeout(()=>{card.remove();kids.forEach(k=>k.hidden=false)},ms(1000))};r.appendChild(b)});card.appendChild(r);stage.appendChild(card);bugs('think')}
+/* ---------- observations from ordinary play: what she does before a lesson, and what stays after days away ----------
+   Two small records in S.obs, written from win(), miss() and reveal(): cold (a new level tried before Pip's lesson: clean, helped, slip, or watch for Show me how; kin lists related games she had already moved up in, which makes a clean first go at a new game a sign of carrying an idea over) and back (the first problem of a game after five or more days away: clean, helped or shown). Descriptive only: no score, no label, nothing the child sees. In the tests' fast mode the try-first step is off unless a garden sets S.cold===true, so the lesson checks keep meeting the lesson first */
+const coldOn=()=>S.cold===true||(S.cold!==false&&!window.__ngFast);
+function obsKin(id){const k=SK[id];if(!k)return[];return Object.values(SK).filter(o=>o.id!==id&&S.m[o.id]&&S.m[o.id].lv>=2&&((k.idea&&o.idea===k.idea)||o.room===k.room)).map(o=>o.id).slice(0,4)}
+function obsCold(r){if(!ctx||!ctx.cold||ctx.coldRec)return;ctx.coldRec=1;S.obs=S.obs||{cold:[],back:[]};S.obs.cold=(S.obs.cold||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,r,first:!(S.counts[S.skill]>0),kin:obsKin(S.skill)}).slice(-200);save()}
+function obsBack(r){if(!ctx||!ctx.back||ctx.backRec)return;ctx.backRec=1;S.obs=S.obs||{cold:[],back:[]};S.obs.back=(S.obs.back||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,gap:ctx.back,r}).slice(-200);save()}
+function obsPanel(){const o=S.obs||{},cold=o.cold||[],back=o.back||[];if(!cold.length&&!back.length)return `<div>Nothing yet. When a new level opens, ${P().s} ${vb('gets','get')} one go before Pip's lesson, and the first problem after five days away is noted. Both show here.</div>`;
+  const n=(a,r)=>a.filter(x=>x.r===r).length,line=(a,what)=>a.length?`<div><b>${what}:</b> ${n(a,'clean')} of ${a.length} solved first go with no help${n(a,'helped')?`, ${n(a,'helped')} after a wrong think-first guess`:''}${n(a,'slip')?`, ${n(a,'slip')} slipped and then watched the lesson`:''}${n(a,'watch')?`, ${n(a,'watch')} asked Pip to show how`:''}.</div>`:'';
+  const lv=cold.filter(x=>!x.first),ng=cold.filter(x=>x.first),kin=ng.filter(x=>x.kin&&x.kin.length);const title=id=>SK[id]?SK[id].title:id,when=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  const word={clean:'solved it first go',helped:'solved it after a wrong first guess',slip:'slipped, then watched the lesson',watch:'asked Pip to show how',shown:'asked to be shown'};
+  const recent=cold.map(x=>({d:x.d,t:`${title(x.s)}, ${x.first?'new game':'new level '+x.lv}: ${word[x.r]}${x.first&&x.kin&&x.kin.length&&x.r==='clean'?' (after '+x.kin.map(title).slice(0,2).join(' and ')+')':''}`})).concat(back.map(x=>({d:x.d,t:`${title(x.s)}, back after ${x.gap} days: ${word[x.r]}`}))).sort((a,b)=>b.d-a.d).slice(0,8);
+  return line(lv,'A new level, tried before the lesson')+line(ng,'A new game, tried before the lesson')+(kin.length?`<div><b>Carrying an idea over:</b> ${n(kin,'clean')} of ${kin.length} new games solved first go after moving up in a related game.</div>`:'')+(back.length?`<div><b>Coming back after five days or more:</b> ${n(back,'clean')} of ${back.length} first problems solved with no help${n(back,'helped')?`, ${n(back,'helped')} with clues`:''}${n(back,'shown')?`, ${n(back,'shown')} shown`:''}.</div>`:'')+
+    `<div class="obslist">${recent.map(x=>`<div><small>${when(x.d)}</small> ${x.t}</div>`).join('')}</div><p class="cloud">What this is: notes from ordinary play, in small numbers. A first go at a new game also depends on working out how the screen works. A game she has met elsewhere is not new to her. It is not a test and says nothing about a child by itself.</p>`}
 function win(text,noMastery){
-  if(ctx.done)return;tapFeedback(true);const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
+  if(ctx.done)return;obsCold(ctx.hints===0?'clean':'helped');obsBack(ctx.hints===0?'clean':'helped');if(ctx.cold){S.taught=S.taught||{};S.taught[S.skill+':'+(ctx.lv||1)]=1}tapFeedback(true);const gate=nextGate();if(gate){askGate(gate,()=>win(text,noMastery));return}
   ctx.done=true;say(text,true);bugs('happy');
   const m=S.m[S.skill]||(S.m[S.skill]={lv:1,streak:0,low:0});let levelUp=false;
   if(!noMastery){if(ctx.hints===0){m.streak++;m.low=0;if(m.streak>=3&&m.lv<MAX(S.skill)&&(!SK[S.skill].hasReasons||m.why)){m.lv++;m.streak=0;m.why=0;levelUp=true}}
@@ -206,7 +219,10 @@ const KID=()=>S.name||'Sprout'; // a garden nickname until a name is typed in th
 /* pronouns, chosen in the grown-ups screen: P().s = she/he/they, .o = her/him/them, .p = her/his/their, .pp = hers/his/theirs, .self; vb(singular, plural) picks the verb form, so 'they' reads "they have" */
 const PRO={she:{s:'she',o:'her',p:'her',pp:'hers',self:'herself'},he:{s:'he',o:'him',p:'his',pp:'his',self:'himself'},they:{s:'they',o:'them',p:'their',pp:'theirs',self:'themself'}};
 const P=()=>PRO[S.pro]||PRO.she;const vb=(sg,pl)=>P().s==='they'?pl:sg;const cap=w=>w[0].toUpperCase()+w.slice(1);
-function miss(hint){ctx.hints++;say(hint,false);bugs('puzzled');tapFeedback(false);
+function miss(hint){
+  /* a slip on a try-first problem is not a mistake to keep: Pip simply teaches now, and the problem after the lesson is a fresh one */
+  if(ctx.cold&&!ctx.lesson){if(ctx.coldRec)return;obsCold('slip');const id=S.skill,lv=ctx.lv||1;S.taught=S.taught||{};S.taught[id+':'+lv]=1;ctx.done=true;save();say('Good try. Watch Pip do one, then it is your turn.',false);bugs('think');tapFeedback(false);const my=ctx;setTimeout(()=>{if(ctx===my&&S.skill===id&&!$('#play').hidden)teachNow(id,lv,()=>play(id))},ms(1400));return}
+  ctx.hints++;say(hint,false);bugs('puzzled');tapFeedback(false);
   if(ctx.hints===1&&!ctx.lesson&&S.skill&&SK[S.skill]){const st=$('#stage .story');S.misses=((S.misses||[]).concat({d:Date.now(),s:S.skill,lv:ctx.lv||1,p:$('#prompt').textContent.slice(0,120),st:st?st.textContent.slice(0,160):'',beaten:false})).slice(-60);save()} // the first slip on a problem goes in the museum
   if(ctx.hints===2&&SK[S.skill]&&SK[S.skill].idea){const l=controls.querySelector('.learn');if(l){l.classList.add('glow');setTimeout(()=>say(hint+' Want Pip to show you the idea? Tap Learn.',false),ms(1200))}}if(S.streakNow){S.streakNow=0;renderStreak()}const t=controls.querySelector('.typed');if(t){t.classList.remove('shake');void t.offsetWidth;t.classList.add('shake')}}
 /* every game declares help({clues:[...], answer, why, show}) so the Clue / Show me buttons work the same everywhere */
@@ -224,7 +240,7 @@ function helpRow(){const r=el('div','row');r.id='helpRow';const c=el('button','b
   s.onclick=()=>{if(ctx.done||!ctx.help)return;reveal()};r.append(c,s);
   if(SK[S.skill]&&SK[S.skill].teach){const w=el('button','btn quiet','Watch');w.onclick=()=>{if(ctx.done)return;const lv=S.m[S.skill].lv;teachNow(S.skill,lv,()=>play(S.skill))};r.appendChild(w)}
   if(SK[S.skill]&&SK[S.skill].idea){const l=el('button','btn quiet learn','Learn');l.onclick=()=>{const idea=IDEAS.find(i=>i.id===SK[S.skill].idea);if(idea)openIdea(idea,true)};r.appendChild(l)}return r}
-function reveal(){const h=ctx.help;ctx.done=true;S.streakNow=0;renderStreak();controls.querySelectorAll('button').forEach(b=>{if(b.closest('#helpRow'))return;b.disabled=true});
+function reveal(){const h=ctx.help;obsBack('shown');ctx.done=true;S.streakNow=0;renderStreak();controls.querySelectorAll('button').forEach(b=>{if(b.closest('#helpRow'))return;b.disabled=true});
   if(h.show)try{h.show()}catch(e){}
   say((h.answer!=null?`It's ${h.answer}. `:'')+(h.why||''),true);
   const m=S.m[S.skill]||(S.m[S.skill]={lv:1,streak:0,low:0});m.streak=0;m.low++;if(m.low>=2&&m.lv>1){m.lv--;m.low=0}S.turn=1-S.turn;save();
@@ -305,7 +321,7 @@ function weekData(){const now=Date.now(),from=now-7*864e5;const log=(S.log||[]).
   const roomOf=id=>SK[id]?SK[id].room:null;const weekRooms=new Set(wins.map(e=>roomOf(e.s)));const everRooms=new Set(Object.keys(S.counts||{}).filter(id=>SK[id]&&S.counts[id]).map(roomOf));const avoided=[...everRooms].filter(r=>r&&!weekRooms.has(r)&&DOORS[r]).map(r=>doorName(r));
   const piled=Object.entries(byGame).map(([id,g])=>[id,wins.filter(e=>e.s===id).reduce((a,e)=>a+(e.h||0),0),g.n]).filter(x=>x[1]>=2).sort((a,b)=>b[1]-a[1]).slice(0,3);
   const heard=wins.filter(e=>e.s==='hear');const replays=heard.reduce((a,e)=>a+(e.r||0),0);
-  return{days,wins:wins.length,flowers,said,ups,thinks,tried,hard,strong,ideas,talk,started,hints,avoided,piled,heard:heard.length,replays}}
+  const ob=S.obs||{};return{days,wins:wins.length,flowers,said,ups,thinks,tried,hard,strong,ideas,talk,started,hints,avoided,piled,heard:heard.length,replays,cold:(ob.cold||[]).filter(x=>x.d>=from),back:(ob.back||[]).filter(x=>x.d>=from)}}
 function letterText(w){const k=KID(),s=P().s,title=id=>SK[id]?SK[id].title:id;const lines=[];
   lines.push(`${k}'s week in the Number Garden`);lines.push('');
   lines.push(w.wins?`${cap(s)} played on ${inWords(w.days)} day${w.days===1?'':'s'}, solved ${w.wins} problem${w.wins===1?'':'s'} and grew ${inWords(w.flowers)} flower${w.flowers===1?'':'s'}.${w.thinks?` ${w.thinks} of the problems were think problems.`:''}`:`${cap(s)} did not play this week. No pressure: the garden waits.`);
@@ -316,6 +332,7 @@ function letterText(w){const k=KID(),s=P().s,title=id=>SK[id]?SK[id].title:id;co
   if(w.started){lines.push('');lines.push(`Trails: started ${w.started}, finished ${w.flowers}.${w.started>w.flowers+1?` ${cap(s)} left ${w.started-w.flowers} trail${w.started-w.flowers===1?'':'s'} before the end; worth asking which game it was.`:''}`)}
   if(w.piled.length){lines.push('');lines.push('Where the clues piled up: '+w.piled.map(([id,h,n])=>`${title(id)} (${h} clue${h===1?'':'s'} over ${n} problem${n===1?'':'s'})`).join(', ')+'.')}
   if(w.avoided.length){lines.push('');lines.push(`Not visited this week, though played before: ${w.avoided.join(', ')}. No need to push; Pip's pick will bring one back.`)}
+  if(w.cold.length||w.back.length){lines.push('');const c=w.cold,b=w.back,cl=a=>a.filter(x=>x.r==='clean').length;lines.push('Meeting new things:'+(c.length?` ${cl(c)} of ${c.length} new level${c.length===1?'':'s'} or games solved on the first go, before Pip's lesson.`:'')+(b.length?` Coming back after days away, ${cl(b)} of ${b.length} first problem${b.length===1?' was':'s were'} clean.`:'')+' Small numbers; the grown-ups page has the list.')}
   if(w.heard){lines.push('');lines.push(`Listening: ${w.heard} stor${w.heard===1?'y':'ies'} by ear, heard again ${w.replays} time${w.replays===1?'':'s'} in all.`)}
   if(w.ideas.length){lines.push('');lines.push('Big Ideas read: '+[...new Set(w.ideas.map(e=>{const i=IDEAS.find(x=>x.id===e.idea);return i?i.title:e.idea}))].join(', ')+'.')}
   lines.push('');lines.push('To say at the table this week:');w.talk.forEach(t=>lines.push('  • '+t));
