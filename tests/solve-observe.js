@@ -30,6 +30,9 @@ const {open,stars,msg,done,gate,pause}=require('./lib');
   if(!await pg.locator('#coldOn').isChecked())errs.push('the try-first switch is not on');
   await pg.getByRole('button',{name:"This week's letter"}).click();await pause(pg,200);const letter=await pg.locator('#letterBox').innerText();if(!/Meeting new things: 2 of 4 new levels or games solved on the first go/.test(letter)||!/1 of 2 first problems were clean/.test(letter))errs.push('letter line missing: '+letter.slice(0,400));
   await pg.locator('#letterBack').click();await pg.locator('#coldOn').uncheck();await pause(pg,100);if((await st()).cold!==false)errs.push('the switch did not turn try-first off');
+  /* the maker games are left out: no try-first step there, and coming back is not noted */
+  await seed({skill:'hide',m:{hide:{lv:1,streak:0,low:0}},trail:{door:'make',steps:['hide','hide','hide','hide','hide'],i:0,lit:[0,0,0,0,0]}});if(await pg.evaluate(()=>!!__ng().ctx.cold)||await pg.getByRole('button',{name:'Show me how'}).count())errs.push('a maker game got a try-first step');
+  await pg.evaluate(()=>{const s=JSON.parse(localStorage.getItem('ng2'));s.taught={'hide:1':1};s.counts={hide:2};s.last={hide:Math.floor(Date.now()/864e5)-8};localStorage.setItem('ng2',JSON.stringify(s))});await pg.reload();await pause(pg,300);if(await pg.evaluate(()=>__ng().ctx.back))errs.push('a maker game was marked as coming back');
   /* 6. off: the lesson comes first, as before */
   await seed({cold:false});if(!/Watch first/.test(await pg.locator('#prompt').innerText()))errs.push('with try-first off the lesson should come first');
   console.log('observations checked');done('solve-observe',errs);await br.close()})().catch(e=>{console.error(e);process.exit(1)});

@@ -10,13 +10,13 @@ function play(id){S.skill=id;save();prompt.textContent='';stage.innerHTML='';con
     S.recent[id]=seen.concat(sig).slice(-6);save();
     if(ctx.help)controls.appendChild(helpRow());
     /* coming back: the first problem of a game she has not played for five days or more is watched, to see what stayed */
-    const gap=S.last&&S.last[id]!=null?Math.floor(Date.now()/864e5)-S.last[id]:0;if(gap>=5&&!S.duo)ctx.back=gap};
+    const gap=S.last&&S.last[id]!=null?Math.floor(Date.now()/864e5)-S.last[id]:0;if(gap>=5&&!S.duo&&obsFits(id))ctx.back=gap};
   /* try first: the first time she meets a level, one problem comes BEFORE Pip's lesson, with no clues, so a grown-up can see what she works out by herself. A clean answer skips the lesson (Watch is still there); one slip, or a tap on Show me how, and Pip teaches as always. Nothing about it is shown to the child as a score */
   const coldTry=()=>{mountProblem();ctx.cold=true;ctx.back=0;const hr=$('#helpRow');if(hr)hr.remove();const r=el('div','row');r.id='helpRow';const w=el('button','btn quiet','Show me how');w.onclick=()=>{if(ctx.done)return;obsCold('watch');S.taught[key]=1;save();teachNow(id,m.lv,()=>play(id))};r.appendChild(w);controls.appendChild(r);
     if(!$('#stage .guess'))say('This one is new. Have a go, or tap Show me how.')};
   /* teach first: a game with a teach(lv) lesson shows it the first time she meets that level, before any question */
   S.taught=S.taught||{};const key=id+':'+m.lv;
-  if(SK[id].teach&&!S.taught[key]){if(coldOn()&&!S.duo&&!S.welcomeStep)coldTry();else{S.taught[key]=1;save();teachNow(id,m.lv,mountProblem)}}else mountProblem();
+  if(SK[id].teach&&!S.taught[key]){if(coldOn()&&!S.duo&&!S.welcomeStep&&obsFits(id))coldTry();else{S.taught[key]=1;save();teachNow(id,m.lv,mountProblem)}}else mountProblem();
   renderTrail()}
 /* a lesson is Pip's bubble plus an animated scene; it ends with a My turn button */
 let lessonToken=0;
